@@ -207,10 +207,7 @@ pub fn request(call: Call(m, a), client: Client) -> Request(String) {
   let base =
     base
     |> request.set_method(http.Post)
-    |> request.set_header(
-      "content-type",
-      "application/x-www-form-urlencoded; charset=utf-8",
-    )
+    |> request.set_header("content-type", "application/x-www-form-urlencoded")
     |> request.set_body(uri.query_to_string(call.params))
   let base =
     list.fold(list.reverse(client.headers), base, fn(acc, header) {
