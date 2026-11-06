@@ -3494,6 +3494,8 @@ pub type MessageEvent {
     user: Option(String),
     text: Option(String),
     ts: String,
+    /// The thread's root, when the file was shared as a reply.
+    thread_ts: Option(String),
     files: Option(List(file.File)),
     upload: Option(Bool),
     display_as_bot: Option(Bool),
@@ -4298,6 +4300,7 @@ pub fn message_event_decoder() -> decode.Decoder(MessageEvent) {
       use v_user <- codec.optional_field("user", decode.string)
       use v_text <- codec.optional_field("text", decode.string)
       use v_ts <- decode.field("ts", decode.string)
+      use v_thread_ts <- codec.optional_field("thread_ts", decode.string)
       use v_files <- codec.optional_field(
         "files",
         decode.list(file.file_decoder()),
@@ -4318,6 +4321,7 @@ pub fn message_event_decoder() -> decode.Decoder(MessageEvent) {
         user: v_user,
         text: v_text,
         ts: v_ts,
+        thread_ts: v_thread_ts,
         files: v_files,
         upload: v_upload,
         display_as_bot: v_display_as_bot,
@@ -5320,6 +5324,7 @@ pub fn message_event_to_json(it: MessageEvent) -> json.Json {
       user: v_user,
       text: v_text,
       ts: v_ts,
+      thread_ts: v_thread_ts,
       files: v_files,
       upload: v_upload,
       display_as_bot: v_display_as_bot,
@@ -5334,6 +5339,7 @@ pub fn message_event_to_json(it: MessageEvent) -> json.Json {
         codec.optional("user", v_user, json.string),
         codec.optional("text", v_text, json.string),
         codec.field("ts", json.string(v_ts)),
+        codec.optional("thread_ts", v_thread_ts, json.string),
         codec.optional("files", v_files, codec.list(file.file_to_json)),
         codec.optional("upload", v_upload, json.bool),
         codec.optional("display_as_bot", v_display_as_bot, json.bool),

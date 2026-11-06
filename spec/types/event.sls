@@ -1001,6 +1001,8 @@ union MessageEvent tag "subtype" optional {
     user: String?
     text: String?
     ts: String
+    /// The thread's root, when the file was shared as a reply.
+    thread_ts: String?
     files: List(File)?
     upload: Bool?
     display_as_bot: Bool?
