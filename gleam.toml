@@ -1,0 +1,18 @@
+name = "slackline"
+version = "0.1.0"
+description = "The Slack platform for Gleam: every Web API method, Block Kit, events, interactivity, OAuth and Socket Mode"
+licences = ["MIT"]
+repository = { type = "tangled", user = "dunkirk.sh", repo = "slackline" }
+internal_modules = ["slackline/internal", "slackline/internal/*"]
+
+[dependencies]
+gleam_stdlib = ">= 1.0.0 and < 2.0.0"
+gleam_http = ">= 4.5.0 and < 5.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+gleam_crypto = ">= 1.6.0 and < 2.0.0"
+gleam_httpc = ">= 5.0.0 and < 6.0.0"
+gleam_fetch = ">= 1.4.1 and < 2.0.0"
+gleam_javascript = ">= 1.0.1 and < 2.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
