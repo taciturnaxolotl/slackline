@@ -100,7 +100,10 @@ pub fn envelope_decoder() -> decode.Decoder(Envelope) {
         decode.string,
       )
       use v_event_id <- codec.optional_field("event_id", decode.string)
-      use v_event_time <- codec.optional_field("event_time", decode.int)
+      use v_event_time <- codec.optional_field(
+        "event_time",
+        codec.int_decoder(),
+      )
       use v_authorizations <- codec.optional_field(
         "authorizations",
         decode.list(decode.recursive(envelope_authorization_decoder)),
@@ -142,7 +145,7 @@ pub fn envelope_decoder() -> decode.Decoder(Envelope) {
       use v_team_id <- codec.optional_field("team_id", decode.string)
       use v_minute_rate_limited <- codec.optional_field(
         "minute_rate_limited",
-        decode.int,
+        codec.int_decoder(),
       )
       use v_api_app_id <- codec.optional_field("api_app_id", decode.string)
       decode.success(AppRateLimited(
@@ -785,11 +788,9 @@ pub type Event {
     date_previous_update: Option(Int),
     date_update: Option(Int),
     added_users: Option(List(String)),
-    /// Sent as a string.
-    added_users_count: Option(String),
+    added_users_count: Option(Int),
     removed_users: Option(List(String)),
-    /// Sent as a string.
-    removed_users_count: Option(String),
+    removed_users_count: Option(Int),
     event_ts: Option(String),
   )
   /// You were added to a User Group.
@@ -1090,7 +1091,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     "channel_archive" -> {
       use v_channel <- decode.field("channel", decode.string)
       use v_user <- codec.optional_field("user", decode.string)
-      use v_is_moved <- codec.optional_field("is_moved", decode.int)
+      use v_is_moved <- codec.optional_field("is_moved", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(ChannelArchive(
         channel: v_channel,
@@ -1255,7 +1256,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
         decode.recursive(shared_link_decoder),
       )
       use v_cursor <- codec.optional_field("cursor", decode.string)
-      use v_limit <- codec.optional_field("limit", decode.int)
+      use v_limit <- codec.optional_field("limit", codec.int_decoder())
       use v_thread_root_id <- codec.optional_field(
         "thread_root_id",
         decode.string,
@@ -1984,16 +1985,19 @@ pub fn event_decoder() -> decode.Decoder(Event) {
       use v_team_id <- codec.optional_field("team_id", decode.string)
       use v_date_previous_update <- codec.optional_field(
         "date_previous_update",
-        decode.int,
+        codec.int_decoder(),
       )
-      use v_date_update <- codec.optional_field("date_update", decode.int)
+      use v_date_update <- codec.optional_field(
+        "date_update",
+        codec.int_decoder(),
+      )
       use v_added_users <- codec.optional_field(
         "added_users",
         decode.list(decode.string),
       )
       use v_added_users_count <- codec.optional_field(
         "added_users_count",
-        decode.string,
+        codec.int_decoder(),
       )
       use v_removed_users <- codec.optional_field(
         "removed_users",
@@ -2001,7 +2005,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
       )
       use v_removed_users_count <- codec.optional_field(
         "removed_users_count",
-        decode.string,
+        codec.int_decoder(),
       )
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(SubteamMembersChanged(
@@ -2090,7 +2094,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     }
     "user_change" -> {
       use v_user <- decode.field("user", user.user_decoder())
-      use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+      use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(UserChange(
         user: v_user,
@@ -2120,7 +2124,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     }
     "user_guest_status_changed" -> {
       use v_user <- decode.field("user", user.user_decoder())
-      use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+      use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(UserGuestStatusChanged(
         user: v_user,
@@ -2130,7 +2134,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     }
     "user_huddle_changed" -> {
       use v_user <- decode.field("user", user.user_decoder())
-      use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+      use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(UserHuddleChanged(
         user: v_user,
@@ -2140,7 +2144,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     }
     "user_profile_changed" -> {
       use v_user <- decode.field("user", user.user_decoder())
-      use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+      use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(UserProfileChanged(
         user: v_user,
@@ -2150,7 +2154,7 @@ pub fn event_decoder() -> decode.Decoder(Event) {
     }
     "user_status_changed" -> {
       use v_user <- decode.field("user", user.user_decoder())
-      use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+      use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
       use v_event_ts <- codec.optional_field("event_ts", decode.string)
       decode.success(UserStatusChanged(
         user: v_user,
@@ -3122,17 +3126,13 @@ pub fn event_to_json(it: Event) -> json.Json {
         codec.optional("date_previous_update", v_date_previous_update, json.int),
         codec.optional("date_update", v_date_update, json.int),
         codec.optional("added_users", v_added_users, codec.list(json.string)),
-        codec.optional("added_users_count", v_added_users_count, json.string),
+        codec.optional("added_users_count", v_added_users_count, json.int),
         codec.optional(
           "removed_users",
           v_removed_users,
           codec.list(json.string),
         ),
-        codec.optional(
-          "removed_users_count",
-          v_removed_users_count,
-          json.string,
-        ),
+        codec.optional("removed_users_count", v_removed_users_count, json.int),
         codec.optional("event_ts", v_event_ts, json.string),
       ])
     SubteamSelfAdded(subteam_id: v_subteam_id, event_ts: v_event_ts) ->
@@ -5948,7 +5948,7 @@ pub type EventChannel {
 pub fn event_channel_decoder() -> decode.Decoder(EventChannel) {
   use v_id <- decode.field("id", decode.string)
   use v_name <- codec.optional_field("name", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_creator <- codec.optional_field("creator", decode.string)
   use v_is_channel <- codec.optional_field("is_channel", decode.bool)
   use v_is_mpim <- codec.optional_field("is_mpim", decode.bool)
@@ -6008,11 +6008,17 @@ pub fn event_dnd_status_decoder() -> decode.Decoder(EventDndStatus) {
   use v_dnd_enabled <- codec.optional_field("dnd_enabled", decode.bool)
   use v_next_dnd_start_ts <- codec.optional_field(
     "next_dnd_start_ts",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_next_dnd_end_ts <- codec.optional_field("next_dnd_end_ts", decode.int)
+  use v_next_dnd_end_ts <- codec.optional_field(
+    "next_dnd_end_ts",
+    codec.int_decoder(),
+  )
   use v_snooze_enabled <- codec.optional_field("snooze_enabled", decode.bool)
-  use v_snooze_endtime <- codec.optional_field("snooze_endtime", decode.int)
+  use v_snooze_endtime <- codec.optional_field(
+    "snooze_endtime",
+    codec.int_decoder(),
+  )
   decode.success(EventDndStatus(
     dnd_enabled: v_dnd_enabled,
     next_dnd_start_ts: v_next_dnd_start_ts,
@@ -6208,9 +6214,18 @@ pub fn executed_function_decoder() -> decode.Decoder(ExecutedFunction) {
     decode.list(decode.recursive(function_parameter_decoder)),
   )
   use v_app_id <- codec.optional_field("app_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
-  use v_date_deleted <- codec.optional_field("date_deleted", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
+  use v_date_deleted <- codec.optional_field(
+    "date_deleted",
+    codec.int_decoder(),
+  )
   decode.success(ExecutedFunction(
     id: v_id,
     callback_id: v_callback_id,
@@ -6324,7 +6339,10 @@ pub type InviteRequest {
 pub fn invite_request_decoder() -> decode.Decoder(InviteRequest) {
   use v_id <- decode.field("id", decode.string)
   use v_email <- codec.optional_field("email", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_requester_ids <- codec.optional_field(
     "requester_ids",
     decode.list(decode.string),
@@ -6340,7 +6358,7 @@ pub fn invite_request_decoder() -> decode.Decoder(InviteRequest) {
     decode.bool,
   )
   use v_real_name <- codec.optional_field("real_name", decode.string)
-  use v_date_expire <- codec.optional_field("date_expire", decode.int)
+  use v_date_expire <- codec.optional_field("date_expire", codec.int_decoder())
   use v_request_reason <- codec.optional_field("request_reason", decode.string)
   use v_team <- codec.optional_field("team", team.team_decoder())
   decode.success(InviteRequest(
@@ -6687,7 +6705,10 @@ pub fn app_request_decoder() -> decode.Decoder(AppRequest) {
     decode.bool,
   )
   use v_manager_app_id <- codec.optional_field("manager_app_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   decode.success(AppRequest(
     id: v_id,
     app: v_app,
@@ -6744,8 +6765,14 @@ pub type SharedChannelInvite {
 /// Decodes `SharedChannelInvite` from json.
 pub fn shared_channel_invite_decoder() -> decode.Decoder(SharedChannelInvite) {
   use v_id <- decode.field("id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_invalid <- codec.optional_field("date_invalid", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_invalid <- codec.optional_field(
+    "date_invalid",
+    codec.int_decoder(),
+  )
   use v_inviting_team <- codec.optional_field(
     "inviting_team",
     team.team_decoder(),
@@ -6804,10 +6831,13 @@ pub fn shared_channel_ref_decoder() -> decode.Decoder(SharedChannelRef) {
   use v_name <- codec.optional_field("name", decode.string)
   use v_is_private <- codec.optional_field("is_private", decode.bool)
   use v_is_im <- codec.optional_field("is_im", decode.bool)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_message_latest_counted_timestamp <- codec.optional_field(
     "message_latest_counted_timestamp",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(SharedChannelRef(
     id: v_id,
@@ -6873,7 +6903,7 @@ pub type EventPinItem {
 pub fn event_pin_item_decoder() -> decode.Decoder(EventPinItem) {
   use v_item_type <- codec.optional_field("type", decode.string)
   use v_channel <- codec.optional_field("channel", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_created_by <- codec.optional_field("created_by", decode.string)
   use v_message <- codec.optional_field("message", message.message_decoder())
   use v_file <- codec.optional_field("file", file.file_decoder())
@@ -6922,7 +6952,7 @@ pub fn event_star_item_decoder() -> decode.Decoder(EventStarItem) {
   use v_message <- codec.optional_field("message", message.message_decoder())
   use v_file <- codec.optional_field("file", file.file_decoder())
   use v_comment <- codec.optional_field("comment", value.decoder())
-  use v_date_create <- codec.optional_field("date_create", decode.int)
+  use v_date_create <- codec.optional_field("date_create", codec.int_decoder())
   decode.success(EventStarItem(
     item_type: v_item_type,
     channel: v_channel,

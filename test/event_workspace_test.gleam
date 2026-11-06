@@ -2,6 +2,7 @@
 //// `pin_added` to `user_status_changed`.
 
 import gleam/json
+import gleam/option
 import slackline/event
 
 fn round_trip_envelope(it: event.Envelope) -> Nil {
@@ -445,4 +446,20 @@ pub fn user_status_changed_0_test() {
   let assert event.EventCallback(event: event.UserStatusChanged(..), ..) =
     decoded
   round_trip_envelope(decoded)
+}
+
+/// Live `subteam_members_changed` events send the counts as numbers, though
+/// the docs show strings. Both must decode.
+pub fn subteam_members_changed_numeric_counts_test() {
+  let assert Ok(decoded) =
+    json.parse(
+      "{\"type\": \"subteam_members_changed\", \"subteam_id\": \"S0CFETL7QNR\", \"date_previous_update\": 1793982135, \"date_update\": 1793982135, \"added_users\": [\"U079PPPT189\"], \"added_users_count\": 1, \"removed_users\": [], \"removed_users_count\": 0, \"team_id\": \"T07986PHP2R\", \"event_ts\": \"1793982135.460300\"}",
+      event.event_decoder(),
+    )
+  let assert event.SubteamMembersChanged(
+    added_users_count: option.Some(1),
+    removed_users_count: option.Some(0),
+    ..,
+  ) = decoded
+  Nil
 }

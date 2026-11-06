@@ -525,16 +525,19 @@ pub fn admin_workflow_decoder() -> decode.Decoder(AdminWorkflow) {
   )
   use v_unpublished_change_count <- codec.optional_field(
     "unpublished_change_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_app_id <- codec.optional_field("app_id", decode.string)
   use v_source <- codec.optional_field("source", workflow_source_decoder())
   use v_billing_type <- codec.optional_field("billing_type", decode.string)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_is_billable <- codec.optional_field("is_billable", decode.bool)
   use v_creation_source_type <- codec.optional_field(
     "creation_source_type",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_creation_source_id <- codec.optional_field(
     "creation_source_id",
@@ -847,7 +850,7 @@ pub type SearchResponse {
 
 /// Decodes the response from `admin.workflows.search`.
 pub fn search_response_decoder() -> decode.Decoder(SearchResponse) {
-  use v_total_found <- codec.optional_field("total_found", decode.int)
+  use v_total_found <- codec.optional_field("total_found", codec.int_decoder())
   use v_workflows <- codec.optional_field(
     "workflows",
     decode.list(decode.recursive(admin_workflow_decoder)),

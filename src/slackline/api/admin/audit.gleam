@@ -31,7 +31,7 @@ pub fn anomaly_allow_get_item_response_decoder() -> decode.Decoder(
   )
   use v_trusted_asns <- codec.optional_field(
     "trusted_asns",
-    decode.list(decode.int),
+    decode.list(codec.int_decoder()),
   )
   decode.success(AnomalyAllowGetItemResponse(
     trusted_cidr: v_trusted_cidr,

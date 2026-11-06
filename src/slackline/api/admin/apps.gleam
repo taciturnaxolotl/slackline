@@ -55,7 +55,10 @@ pub fn resolved_app_decoder() -> decode.Decoder(ResolvedApp) {
     "scopes",
     decode.list(event.app_scope_decoder()),
   )
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_last_resolved_by <- codec.optional_field(
     "last_resolved_by",
     decode.recursive(app_resolver_decoder),

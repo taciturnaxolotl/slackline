@@ -214,10 +214,10 @@ pub fn message_decoder() -> decode.Decoder(Message) {
     decode.recursive(message_metadata_decoder),
   )
   use v_app_context <- codec.optional_field("app_context", value.decoder())
-  use v_reply_count <- codec.optional_field("reply_count", decode.int)
+  use v_reply_count <- codec.optional_field("reply_count", codec.int_decoder())
   use v_reply_users_count <- codec.optional_field(
     "reply_users_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_reply_users <- codec.optional_field(
     "reply_users",
@@ -230,7 +230,10 @@ pub fn message_decoder() -> decode.Decoder(Message) {
   )
   use v_subscribed <- codec.optional_field("subscribed", decode.bool)
   use v_last_read <- codec.optional_field("last_read", decode.string)
-  use v_unread_count <- codec.optional_field("unread_count", decode.int)
+  use v_unread_count <- codec.optional_field(
+    "unread_count",
+    codec.int_decoder(),
+  )
   use v_parent_user_id <- codec.optional_field("parent_user_id", decode.string)
   use v_is_locked <- codec.optional_field("is_locked", decode.bool)
   use v_root <- codec.optional_field("root", decode.recursive(message_decoder))
@@ -823,7 +826,7 @@ pub fn bot_profile_decoder() -> decode.Decoder(BotProfile) {
   use v_app_id <- codec.optional_field("app_id", decode.string)
   use v_name <- codec.optional_field("name", decode.string)
   use v_deleted <- codec.optional_field("deleted", decode.bool)
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_team_id <- codec.optional_field("team_id", decode.string)
   use v_icons <- codec.optional_field(
     "icons",
@@ -1035,8 +1038,8 @@ pub fn huddle_room_decoder() -> decode.Decoder(HuddleRoom) {
   use v_name <- codec.optional_field("name", decode.string)
   use v_media_server <- codec.optional_field("media_server", decode.string)
   use v_created_by <- codec.optional_field("created_by", decode.string)
-  use v_date_start <- codec.optional_field("date_start", decode.int)
-  use v_date_end <- codec.optional_field("date_end", decode.int)
+  use v_date_start <- codec.optional_field("date_start", codec.int_decoder())
+  use v_date_end <- codec.optional_field("date_end", codec.int_decoder())
   use v_participants <- codec.optional_field(
     "participants",
     decode.list(decode.string),
@@ -1375,8 +1378,11 @@ pub type EntityComments {
 
 /// Decodes `EntityComments` from json.
 pub fn entity_comments_decoder() -> decode.Decoder(EntityComments) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_latest_timestamp <- codec.optional_field("latest_timestamp", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_latest_timestamp <- codec.optional_field(
+    "latest_timestamp",
+    codec.int_decoder(),
+  )
   decode.success(EntityComments(
     count: v_count,
     latest_timestamp: v_latest_timestamp,

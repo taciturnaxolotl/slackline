@@ -356,7 +356,10 @@ pub fn attachment_action_decoder() -> decode.Decoder(AttachmentAction) {
     "selected_options",
     decode.list(decode.recursive(attachment_option_decoder)),
   )
-  use v_min_query_length <- codec.optional_field("min_query_length", decode.int)
+  use v_min_query_length <- codec.optional_field(
+    "min_query_length",
+    codec.int_decoder(),
+  )
   use v_url <- codec.optional_field("url", decode.string)
   decode.success(AttachmentAction(
     action_type: v_action_type,
@@ -414,7 +417,7 @@ pub type AttachmentTs {
 
 /// Decodes `AttachmentTs` from json. It tries each alternative in order.
 pub fn attachment_ts_decoder() -> decode.Decoder(AttachmentTs) {
-  decode.one_of(decode.map(decode.int, IntTs), [
+  decode.one_of(decode.map(codec.int_decoder(), IntTs), [
     decode.map(decode.string, StringTs),
   ])
 }
@@ -519,9 +522,12 @@ pub fn attachment_decoder() -> decode.Decoder(Attachment) {
     "mrkdwn_in",
     decode.list(decode.string),
   )
-  use v_id <- codec.optional_field("id", decode.int)
-  use v_thumb_width <- codec.optional_field("thumb_width", decode.int)
-  use v_thumb_height <- codec.optional_field("thumb_height", decode.int)
+  use v_id <- codec.optional_field("id", codec.int_decoder())
+  use v_thumb_width <- codec.optional_field("thumb_width", codec.int_decoder())
+  use v_thumb_height <- codec.optional_field(
+    "thumb_height",
+    codec.int_decoder(),
+  )
   use v_service_name <- codec.optional_field("service_name", decode.string)
   decode.success(Attachment(
     blocks: v_blocks,

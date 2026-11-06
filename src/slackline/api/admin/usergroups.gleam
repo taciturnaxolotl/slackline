@@ -52,7 +52,7 @@ pub fn usergroup_channel_decoder() -> decode.Decoder(UsergroupChannel) {
   use v_id <- decode.field("id", decode.string)
   use v_name <- codec.optional_field("name", decode.string)
   use v_team_id <- codec.optional_field("team_id", decode.string)
-  use v_num_members <- codec.optional_field("num_members", decode.int)
+  use v_num_members <- codec.optional_field("num_members", codec.int_decoder())
   use v_is_redacted <- codec.optional_field("is_redacted", decode.bool)
   decode.success(UsergroupChannel(
     id: v_id,
@@ -467,7 +467,7 @@ pub type UploadUsersResponse {
 pub fn upload_users_response_decoder() -> decode.Decoder(UploadUsersResponse) {
   use v_successful_user_count <- codec.optional_field(
     "successful_user_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_invalid_users <- codec.optional_field(
     "invalid_users",

@@ -68,7 +68,7 @@ pub type Reaction {
 /// Decodes `Reaction` from json.
 pub fn reaction_decoder() -> decode.Decoder(Reaction) {
   use v_name <- decode.field("name", decode.string)
-  use v_count <- codec.optional_field("count", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
   use v_users <- codec.optional_field("users", decode.list(decode.string))
   use v_url <- codec.optional_field("url", decode.string)
   decode.success(Reaction(
@@ -175,7 +175,7 @@ pub fn app_activity_decoder() -> decode.Decoder(AppActivity) {
   use v_component_type <- codec.optional_field("component_type", decode.string)
   use v_component_id <- codec.optional_field("component_id", decode.string)
   use v_payload <- codec.optional_field("payload", value.decoder())
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_trace_id <- codec.optional_field("trace_id", decode.string)
   decode.success(AppActivity(
     app_id: v_app_id,

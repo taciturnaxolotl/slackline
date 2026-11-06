@@ -77,10 +77,10 @@ pub type FilesPaging {
 
 /// Decodes `FilesPaging` from json.
 pub fn files_paging_decoder() -> decode.Decoder(FilesPaging) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_total <- codec.optional_field("total", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_pages <- codec.optional_field("pages", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_total <- codec.optional_field("total", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_pages <- codec.optional_field("pages", codec.int_decoder())
   decode.success(FilesPaging(
     count: v_count,
     total: v_total,

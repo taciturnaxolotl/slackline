@@ -29,10 +29,10 @@ pub type SearchPaging {
 
 /// Decodes `SearchPaging` from json.
 pub fn search_paging_decoder() -> decode.Decoder(SearchPaging) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_total <- codec.optional_field("total", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_pages <- codec.optional_field("pages", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_total <- codec.optional_field("total", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_pages <- codec.optional_field("pages", codec.int_decoder())
   decode.success(SearchPaging(
     count: v_count,
     total: v_total,
@@ -71,12 +71,12 @@ pub type SearchPagination {
 
 /// Decodes `SearchPagination` from json.
 pub fn search_pagination_decoder() -> decode.Decoder(SearchPagination) {
-  use v_first <- codec.optional_field("first", decode.int)
-  use v_last <- codec.optional_field("last", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_page_count <- codec.optional_field("page_count", decode.int)
-  use v_per_page <- codec.optional_field("per_page", decode.int)
-  use v_total_count <- codec.optional_field("total_count", decode.int)
+  use v_first <- codec.optional_field("first", codec.int_decoder())
+  use v_last <- codec.optional_field("last", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_page_count <- codec.optional_field("page_count", codec.int_decoder())
+  use v_per_page <- codec.optional_field("per_page", codec.int_decoder())
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
   decode.success(SearchPagination(
     first: v_first,
     last: v_last,
@@ -364,7 +364,7 @@ pub fn search_messages_decoder() -> decode.Decoder(SearchMessages) {
     "paging",
     decode.recursive(search_paging_decoder),
   )
-  use v_total <- codec.optional_field("total", decode.int)
+  use v_total <- codec.optional_field("total", codec.int_decoder())
   decode.success(SearchMessages(
     matches: v_matches,
     pagination: v_pagination,
@@ -415,7 +415,7 @@ pub fn search_files_decoder() -> decode.Decoder(SearchFiles) {
     "paging",
     decode.recursive(search_paging_decoder),
   )
-  use v_total <- codec.optional_field("total", decode.int)
+  use v_total <- codec.optional_field("total", codec.int_decoder())
   decode.success(SearchFiles(
     matches: v_matches,
     pagination: v_pagination,
@@ -447,7 +447,7 @@ pub type SearchPosts {
 /// Decodes `SearchPosts` from json.
 pub fn search_posts_decoder() -> decode.Decoder(SearchPosts) {
   use v_matches <- codec.optional_field("matches", decode.list(value.decoder()))
-  use v_total <- codec.optional_field("total", decode.int)
+  use v_total <- codec.optional_field("total", codec.int_decoder())
   decode.success(SearchPosts(matches: v_matches, total: v_total))
 }
 

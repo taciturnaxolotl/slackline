@@ -35,8 +35,8 @@ pub fn tokens_rotate_response_decoder() -> decode.Decoder(TokensRotateResponse) 
   use v_refresh_token <- decode.field("refresh_token", decode.string)
   use v_team_id <- codec.optional_field("team_id", decode.string)
   use v_user_id <- codec.optional_field("user_id", decode.string)
-  use v_iat <- codec.optional_field("iat", decode.int)
-  use v_exp <- codec.optional_field("exp", decode.int)
+  use v_iat <- codec.optional_field("iat", codec.int_decoder())
+  use v_exp <- codec.optional_field("exp", codec.int_decoder())
   decode.success(TokensRotateResponse(
     token: v_token,
     refresh_token: v_refresh_token,

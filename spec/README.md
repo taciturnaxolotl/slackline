@@ -165,9 +165,9 @@ method chat.postMessage {
 }
 ```
 
-Types: `String`, `Int`, `Float` (accepts integers), `Bool`, `Value` (any
-json), `List(T)`, `Dict(T)` (string keys), `List(T?)` / `Dict(T?)` (items
-that may be json `null`, as `Option(T)`), `ResponseMetadata` (from the
+Types: `String`, `Int` (accepts numeric strings), `Float` (accepts
+integers), `Bool`, `Value` (any json), `List(T)`, `Dict(T)` (string keys),
+`List(T?)` / `Dict(T?)` (items that may be json `null`, as `Option(T)`), `ResponseMetadata` (from the
 hand-written `slackline` module), and any declared name. A type name may
 only be declared once across all specs, so each concept has one type. The
 generator rejects a second declaration. A bare name resolves to the type of

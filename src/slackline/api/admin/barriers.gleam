@@ -63,7 +63,7 @@ pub fn barrier_decoder() -> decode.Decoder(Barrier) {
     "restricted_subjects",
     decode.list(decode.string),
   )
-  use v_date_update <- codec.optional_field("date_update", decode.int)
+  use v_date_update <- codec.optional_field("date_update", codec.int_decoder())
   use v_response_metadata <- codec.optional_field(
     "response_metadata",
     slackline.response_metadata_decoder(),

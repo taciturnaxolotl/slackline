@@ -76,8 +76,8 @@ pub type ReactedFileComment {
 /// Decodes `ReactedFileComment` from json.
 pub fn reacted_file_comment_decoder() -> decode.Decoder(ReactedFileComment) {
   use v_id <- codec.optional_field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_user <- codec.optional_field("user", decode.string)
   use v_comment <- codec.optional_field("comment", decode.string)
   use v_is_intro <- codec.optional_field("is_intro", decode.bool)
@@ -177,10 +177,10 @@ pub type ReactionsPaging {
 
 /// Decodes `ReactionsPaging` from json.
 pub fn reactions_paging_decoder() -> decode.Decoder(ReactionsPaging) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_total <- codec.optional_field("total", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_pages <- codec.optional_field("pages", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_total <- codec.optional_field("total", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_pages <- codec.optional_field("pages", codec.int_decoder())
   decode.success(ReactionsPaging(
     count: v_count,
     total: v_total,

@@ -317,8 +317,8 @@ pub type File {
 /// Decodes `File` from json.
 pub fn file_decoder() -> decode.Decoder(File) {
   use v_id <- codec.optional_field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_name <- codec.optional_field("name", decode.string)
   use v_title <- codec.optional_field("title", decode.string)
   use v_mimetype <- codec.optional_field("mimetype", decode.string)
@@ -332,7 +332,7 @@ pub fn file_decoder() -> decode.Decoder(File) {
   use v_app_id <- codec.optional_field("app_id", decode.string)
   use v_app_name <- codec.optional_field("app_name", decode.string)
   use v_editable <- codec.optional_field("editable", decode.bool)
-  use v_size <- codec.optional_field("size", decode.int)
+  use v_size <- codec.optional_field("size", codec.int_decoder())
   use v_mode <- codec.optional_field("mode", file_mode_decoder())
   use v_subtype <- codec.optional_field("subtype", decode.string)
   use v_state <- codec.optional_field("state", decode.string)
@@ -361,7 +361,7 @@ pub fn file_decoder() -> decode.Decoder(File) {
     decode.string,
   )
   use v_edit_link <- codec.optional_field("edit_link", decode.string)
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_channels <- codec.optional_field("channels", decode.list(decode.string))
   use v_groups <- codec.optional_field("groups", decode.list(decode.string))
   use v_ims <- codec.optional_field("ims", decode.list(decode.string))
@@ -375,8 +375,11 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "initial_comment",
     decode.recursive(file_comment_decoder),
   )
-  use v_comments_count <- codec.optional_field("comments_count", decode.int)
-  use v_num_stars <- codec.optional_field("num_stars", decode.int)
+  use v_comments_count <- codec.optional_field(
+    "comments_count",
+    codec.int_decoder(),
+  )
+  use v_num_stars <- codec.optional_field("num_stars", codec.int_decoder())
   use v_is_starred <- codec.optional_field("is_starred", decode.bool)
   use v_pinned_to <- codec.optional_field(
     "pinned_to",
@@ -401,8 +404,8 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "preview_highlight",
     decode.string,
   )
-  use v_lines <- codec.optional_field("lines", decode.int)
-  use v_lines_more <- codec.optional_field("lines_more", decode.int)
+  use v_lines <- codec.optional_field("lines", codec.int_decoder())
+  use v_lines_more <- codec.optional_field("lines_more", codec.int_decoder())
   use v_preview_is_truncated <- codec.optional_field(
     "preview_is_truncated",
     decode.bool,
@@ -413,40 +416,52 @@ pub fn file_decoder() -> decode.Decoder(File) {
   )
   use v_image_exif_rotation <- codec.optional_field(
     "image_exif_rotation",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_original_w <- codec.optional_field("original_w", decode.int)
-  use v_original_h <- codec.optional_field("original_h", decode.int)
+  use v_original_w <- codec.optional_field("original_w", codec.int_decoder())
+  use v_original_h <- codec.optional_field("original_h", codec.int_decoder())
   use v_thumb_64 <- codec.optional_field("thumb_64", decode.string)
   use v_thumb_80 <- codec.optional_field("thumb_80", decode.string)
   use v_thumb_160 <- codec.optional_field("thumb_160", decode.string)
   use v_thumb_360 <- codec.optional_field("thumb_360", decode.string)
-  use v_thumb_360_w <- codec.optional_field("thumb_360_w", decode.int)
-  use v_thumb_360_h <- codec.optional_field("thumb_360_h", decode.int)
+  use v_thumb_360_w <- codec.optional_field("thumb_360_w", codec.int_decoder())
+  use v_thumb_360_h <- codec.optional_field("thumb_360_h", codec.int_decoder())
   use v_thumb_360_gif <- codec.optional_field("thumb_360_gif", decode.string)
   use v_thumb_480 <- codec.optional_field("thumb_480", decode.string)
-  use v_thumb_480_w <- codec.optional_field("thumb_480_w", decode.int)
-  use v_thumb_480_h <- codec.optional_field("thumb_480_h", decode.int)
+  use v_thumb_480_w <- codec.optional_field("thumb_480_w", codec.int_decoder())
+  use v_thumb_480_h <- codec.optional_field("thumb_480_h", codec.int_decoder())
   use v_thumb_480_gif <- codec.optional_field("thumb_480_gif", decode.string)
   use v_thumb_720 <- codec.optional_field("thumb_720", decode.string)
-  use v_thumb_720_w <- codec.optional_field("thumb_720_w", decode.int)
-  use v_thumb_720_h <- codec.optional_field("thumb_720_h", decode.int)
+  use v_thumb_720_w <- codec.optional_field("thumb_720_w", codec.int_decoder())
+  use v_thumb_720_h <- codec.optional_field("thumb_720_h", codec.int_decoder())
   use v_thumb_800 <- codec.optional_field("thumb_800", decode.string)
-  use v_thumb_800_w <- codec.optional_field("thumb_800_w", decode.int)
-  use v_thumb_800_h <- codec.optional_field("thumb_800_h", decode.int)
+  use v_thumb_800_w <- codec.optional_field("thumb_800_w", codec.int_decoder())
+  use v_thumb_800_h <- codec.optional_field("thumb_800_h", codec.int_decoder())
   use v_thumb_960 <- codec.optional_field("thumb_960", decode.string)
-  use v_thumb_960_w <- codec.optional_field("thumb_960_w", decode.int)
-  use v_thumb_960_h <- codec.optional_field("thumb_960_h", decode.int)
+  use v_thumb_960_w <- codec.optional_field("thumb_960_w", codec.int_decoder())
+  use v_thumb_960_h <- codec.optional_field("thumb_960_h", codec.int_decoder())
   use v_thumb_1024 <- codec.optional_field("thumb_1024", decode.string)
-  use v_thumb_1024_w <- codec.optional_field("thumb_1024_w", decode.int)
-  use v_thumb_1024_h <- codec.optional_field("thumb_1024_h", decode.int)
+  use v_thumb_1024_w <- codec.optional_field(
+    "thumb_1024_w",
+    codec.int_decoder(),
+  )
+  use v_thumb_1024_h <- codec.optional_field(
+    "thumb_1024_h",
+    codec.int_decoder(),
+  )
   use v_thumb_pdf <- codec.optional_field("thumb_pdf", decode.string)
-  use v_thumb_pdf_w <- codec.optional_field("thumb_pdf_w", decode.int)
-  use v_thumb_pdf_h <- codec.optional_field("thumb_pdf_h", decode.int)
+  use v_thumb_pdf_w <- codec.optional_field("thumb_pdf_w", codec.int_decoder())
+  use v_thumb_pdf_h <- codec.optional_field("thumb_pdf_h", codec.int_decoder())
   use v_thumb_tiny <- codec.optional_field("thumb_tiny", decode.string)
   use v_thumb_video <- codec.optional_field("thumb_video", decode.string)
-  use v_thumb_video_w <- codec.optional_field("thumb_video_w", decode.int)
-  use v_thumb_video_h <- codec.optional_field("thumb_video_h", decode.int)
+  use v_thumb_video_w <- codec.optional_field(
+    "thumb_video_w",
+    codec.int_decoder(),
+  )
+  use v_thumb_video_h <- codec.optional_field(
+    "thumb_video_h",
+    codec.int_decoder(),
+  )
   use v_thumb_video_ts <- codec.optional_field("thumb_video_ts", decode.string)
   use v_deanimate <- codec.optional_field("deanimate", decode.string)
   use v_deanimate_gif <- codec.optional_field("deanimate_gif", decode.string)
@@ -473,10 +488,10 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "is_restricted_sharing_enabled",
     decode.bool,
   )
-  use v_last_read <- codec.optional_field("last_read", decode.int)
+  use v_last_read <- codec.optional_field("last_read", codec.int_decoder())
   use v_most_recent_access_request_ts <- codec.optional_field(
     "most_recent_access_request_ts",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_org_or_workspace_access <- codec.optional_field(
     "org_or_workspace_access",
@@ -484,13 +499,16 @@ pub fn file_decoder() -> decode.Decoder(File) {
   )
   use v_private_channels_with_file_access_count <- codec.optional_field(
     "private_channels_with_file_access_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_private_external_workspaces_with_read_access_count <- codec.optional_field(
     "private_external_workspaces_with_read_access_count",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_restriction_type <- codec.optional_field("restriction_type", decode.int)
+  use v_restriction_type <- codec.optional_field(
+    "restriction_type",
+    codec.int_decoder(),
+  )
   use v_teams_shared_with <- codec.optional_field(
     "teams_shared_with",
     decode.list(decode.string),
@@ -501,11 +519,11 @@ pub fn file_decoder() -> decode.Decoder(File) {
   )
   use v_ai_skill_library_count <- codec.optional_field(
     "ai_skill_library_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_ai_skill_usage_count <- codec.optional_field(
     "ai_skill_usage_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_ai_summary <- codec.optional_field("ai_summary", value.decoder())
   use v_excluded_from_slack_ai <- codec.optional_field(
@@ -522,9 +540,9 @@ pub fn file_decoder() -> decode.Decoder(File) {
   use v_acc <- codec.optional_field("acc", decode.string)
   use v_audio_wave_samples <- codec.optional_field(
     "audio_wave_samples",
-    decode.list(decode.int),
+    decode.list(codec.int_decoder()),
   )
-  use v_duration_ms <- codec.optional_field("duration_ms", decode.int)
+  use v_duration_ms <- codec.optional_field("duration_ms", codec.int_decoder())
   use v_hls <- codec.optional_field("hls", decode.string)
   use v_hls_embed <- codec.optional_field("hls_embed", decode.string)
   use v_hls_preview <- codec.optional_field("hls_preview", decode.string)
@@ -594,7 +612,7 @@ pub fn file_decoder() -> decode.Decoder(File) {
   use v_is_org_visible <- codec.optional_field("is_org_visible", decode.bool)
   use v_template_conversion_ts <- codec.optional_field(
     "template_conversion_ts",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_template_converter_id <- codec.optional_field(
     "template_converter_id",
@@ -615,10 +633,16 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "can_toggle_canvas_lock",
     decode.bool,
   )
-  use v_edit_timestamp <- codec.optional_field("edit_timestamp", decode.int)
+  use v_edit_timestamp <- codec.optional_field(
+    "edit_timestamp",
+    codec.int_decoder(),
+  )
   use v_editor <- codec.optional_field("editor", decode.string)
   use v_editors <- codec.optional_field("editors", decode.list(decode.string))
-  use v_editors_count <- codec.optional_field("editors_count", decode.int)
+  use v_editors_count <- codec.optional_field(
+    "editors_count",
+    codec.int_decoder(),
+  )
   use v_is_locked <- codec.optional_field("is_locked", decode.bool)
   use v_last_editor <- codec.optional_field("last_editor", decode.string)
   use v_non_owner_editable <- codec.optional_field(
@@ -645,7 +669,7 @@ pub fn file_decoder() -> decode.Decoder(File) {
   use v_headers <- codec.optional_field("headers", value.decoder())
   use v_inline_attachment_count <- codec.optional_field(
     "inline_attachment_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_meeting_metadata <- codec.optional_field(
     "meeting_metadata",
@@ -654,7 +678,7 @@ pub fn file_decoder() -> decode.Decoder(File) {
   use v_office_pdf <- codec.optional_field("office_pdf", decode.string)
   use v_original_attachment_count <- codec.optional_field(
     "original_attachment_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_sent_to_self <- codec.optional_field("sent_to_self", decode.bool)
   use v_simplified_html <- codec.optional_field(
@@ -666,19 +690,19 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "to",
     decode.list(decode.recursive(email_address_decoder)),
   )
-  use v_date_delete <- codec.optional_field("date_delete", decode.int)
+  use v_date_delete <- codec.optional_field("date_delete", codec.int_decoder())
   use v_is_archived <- codec.optional_field("is_archived", decode.bool)
   use v_is_deleted <- codec.optional_field("is_deleted", decode.bool)
   use v_is_hidden_by_limit <- codec.optional_field(
     "is_hidden_by_limit",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_is_legally_held <- codec.optional_field("is_legally_held", decode.bool)
   use v_is_tombstoned <- codec.optional_field("is_tombstoned", decode.bool)
   use v_migrated_id <- codec.optional_field("migrated_id", decode.string)
   use v_update_notification <- codec.optional_field(
     "update_notification",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_list_csv_download_url <- codec.optional_field(
     "list_csv_download_url",
@@ -717,7 +741,10 @@ pub fn file_decoder() -> decode.Decoder(File) {
     "alt_text_highlights",
     decode.string,
   )
-  use v_annotation_count <- codec.optional_field("annotation_count", decode.int)
+  use v_annotation_count <- codec.optional_field(
+    "annotation_count",
+    codec.int_decoder(),
+  )
   use v_contents <- codec.optional_field("contents", decode.string)
   use v_contents_extracts <- codec.optional_field(
     "contents_extracts",
@@ -738,10 +765,13 @@ pub fn file_decoder() -> decode.Decoder(File) {
     decode.list(decode.string),
   )
   use v_plain_text <- codec.optional_field("plain_text", decode.string)
-  use v_huddle_date_end <- codec.optional_field("huddle_date_end", decode.int)
+  use v_huddle_date_end <- codec.optional_field(
+    "huddle_date_end",
+    codec.int_decoder(),
+  )
   use v_huddle_date_start <- codec.optional_field(
     "huddle_date_start",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_huddle_participant_ids <- codec.optional_field(
     "huddle_participant_ids",
@@ -1604,9 +1634,9 @@ pub fn file_share_decoder() -> decode.Decoder(FileShare) {
   )
   use v_reply_users_count <- codec.optional_field(
     "reply_users_count",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_reply_count <- codec.optional_field("reply_count", decode.int)
+  use v_reply_count <- codec.optional_field("reply_count", codec.int_decoder())
   use v_latest_reply <- codec.optional_field("latest_reply", decode.string)
   decode.success(FileShare(
     ts: v_ts,
@@ -1659,8 +1689,8 @@ pub type FileComment {
 /// Decodes `FileComment` from json.
 pub fn file_comment_decoder() -> decode.Decoder(FileComment) {
   use v_id <- decode.field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_user <- codec.optional_field("user", decode.string)
   use v_comment <- codec.optional_field("comment", decode.string)
   use v_is_intro <- codec.optional_field("is_intro", decode.bool)

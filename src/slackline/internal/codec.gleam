@@ -75,6 +75,21 @@ pub fn float_decoder() -> Decoder(Float) {
   decode.one_of(decode.float, [decode.map(decode.int, int.to_float)])
 }
 
+/// Slack sends some counts as numbers in one payload and as strings in
+/// another (`subteam_members_changed` documents `"3"` but sends `3`), so
+/// integers accept numeric strings too.
+pub fn int_decoder() -> Decoder(Int) {
+  decode.one_of(decode.int, [
+    {
+      use text <- decode.then(decode.string)
+      case int.parse(text) {
+        Ok(n) -> decode.success(n)
+        Error(Nil) -> decode.failure(0, "Int")
+      }
+    },
+  ])
+}
+
 // ---- form parameters -----------------------------------------------------
 
 pub fn form_int(value: Int) -> String {

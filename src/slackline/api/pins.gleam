@@ -76,8 +76,8 @@ pub type PinnedFileComment {
 /// Decodes `PinnedFileComment` from json.
 pub fn pinned_file_comment_decoder() -> decode.Decoder(PinnedFileComment) {
   use v_id <- codec.optional_field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_user <- codec.optional_field("user", decode.string)
   use v_comment <- codec.optional_field("comment", decode.string)
   use v_is_intro <- codec.optional_field("is_intro", decode.bool)
@@ -137,7 +137,7 @@ pub type PinnedItem {
 pub fn pinned_item_decoder() -> decode.Decoder(PinnedItem) {
   use v_item_type <- codec.optional_field("type", pinned_item_type_decoder())
   use v_channel <- codec.optional_field("channel", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_created_by <- codec.optional_field("created_by", decode.string)
   use v_message <- codec.optional_field("message", message.message_decoder())
   use v_file <- codec.optional_field("file", file.file_decoder())

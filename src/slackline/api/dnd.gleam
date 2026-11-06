@@ -27,9 +27,12 @@ pub fn dnd_status_decoder() -> decode.Decoder(DndStatus) {
   use v_dnd_enabled <- codec.optional_field("dnd_enabled", decode.bool)
   use v_next_dnd_start_ts <- codec.optional_field(
     "next_dnd_start_ts",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_next_dnd_end_ts <- codec.optional_field("next_dnd_end_ts", decode.int)
+  use v_next_dnd_end_ts <- codec.optional_field(
+    "next_dnd_end_ts",
+    codec.int_decoder(),
+  )
   decode.success(DndStatus(
     dnd_enabled: v_dnd_enabled,
     next_dnd_start_ts: v_next_dnd_start_ts,
@@ -73,12 +76,21 @@ pub fn dnd_info_decoder() -> decode.Decoder(DndInfo) {
   use v_dnd_enabled <- codec.optional_field("dnd_enabled", decode.bool)
   use v_next_dnd_start_ts <- codec.optional_field(
     "next_dnd_start_ts",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_next_dnd_end_ts <- codec.optional_field("next_dnd_end_ts", decode.int)
+  use v_next_dnd_end_ts <- codec.optional_field(
+    "next_dnd_end_ts",
+    codec.int_decoder(),
+  )
   use v_snooze_enabled <- codec.optional_field("snooze_enabled", decode.bool)
-  use v_snooze_endtime <- codec.optional_field("snooze_endtime", decode.int)
-  use v_snooze_remaining <- codec.optional_field("snooze_remaining", decode.int)
+  use v_snooze_endtime <- codec.optional_field(
+    "snooze_endtime",
+    codec.int_decoder(),
+  )
+  use v_snooze_remaining <- codec.optional_field(
+    "snooze_remaining",
+    codec.int_decoder(),
+  )
   use v_snooze_is_indefinite <- codec.optional_field(
     "snooze_is_indefinite",
     decode.bool,

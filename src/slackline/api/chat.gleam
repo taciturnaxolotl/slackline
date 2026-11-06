@@ -287,7 +287,7 @@ pub type ScheduledPostAt {
 
 /// Decodes `ScheduledPostAt` from json. It tries each alternative in order.
 pub fn scheduled_post_at_decoder() -> decode.Decoder(ScheduledPostAt) {
-  decode.one_of(decode.map(decode.int, ScheduledPostAtUnix), [
+  decode.one_of(decode.map(codec.int_decoder(), ScheduledPostAtUnix), [
     decode.map(decode.string, ScheduledPostAtString),
   ])
 }
@@ -309,7 +309,7 @@ pub type ScheduledMessageId {
 /// Decodes `ScheduledMessageId` from json. It tries each alternative in order.
 pub fn scheduled_message_id_decoder() -> decode.Decoder(ScheduledMessageId) {
   decode.one_of(decode.map(decode.string, ScheduledMessageIdString), [
-    decode.map(decode.int, ScheduledMessageIdInt),
+    decode.map(codec.int_decoder(), ScheduledMessageIdInt),
   ])
 }
 
@@ -341,8 +341,11 @@ pub type ScheduledMessage {
 pub fn scheduled_message_decoder() -> decode.Decoder(ScheduledMessage) {
   use v_id <- decode.field("id", scheduled_message_id_decoder())
   use v_channel_id <- codec.optional_field("channel_id", decode.string)
-  use v_post_at <- codec.optional_field("post_at", decode.int)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_post_at <- codec.optional_field("post_at", codec.int_decoder())
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_text <- codec.optional_field("text", decode.string)
   decode.success(ScheduledMessage(
     id: v_id,

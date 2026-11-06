@@ -197,8 +197,14 @@ pub fn dialog_element_decoder() -> decode.Decoder(DialogElement) {
       use v_label <- decode.field("label", decode.string)
       use v_name <- decode.field("name", decode.string)
       use v_placeholder <- codec.optional_field("placeholder", decode.string)
-      use v_max_length <- codec.optional_field("max_length", decode.int)
-      use v_min_length <- codec.optional_field("min_length", decode.int)
+      use v_max_length <- codec.optional_field(
+        "max_length",
+        codec.int_decoder(),
+      )
+      use v_min_length <- codec.optional_field(
+        "min_length",
+        codec.int_decoder(),
+      )
       use v_optional <- codec.optional_field("optional", decode.bool)
       use v_hint <- codec.optional_field("hint", decode.string)
       use v_subtype <- codec.optional_field(
@@ -222,8 +228,14 @@ pub fn dialog_element_decoder() -> decode.Decoder(DialogElement) {
       use v_label <- decode.field("label", decode.string)
       use v_name <- decode.field("name", decode.string)
       use v_placeholder <- codec.optional_field("placeholder", decode.string)
-      use v_max_length <- codec.optional_field("max_length", decode.int)
-      use v_min_length <- codec.optional_field("min_length", decode.int)
+      use v_max_length <- codec.optional_field(
+        "max_length",
+        codec.int_decoder(),
+      )
+      use v_min_length <- codec.optional_field(
+        "min_length",
+        codec.int_decoder(),
+      )
       use v_optional <- codec.optional_field("optional", decode.bool)
       use v_hint <- codec.optional_field("hint", decode.string)
       use v_subtype <- codec.optional_field(
@@ -252,7 +264,7 @@ pub fn dialog_element_decoder() -> decode.Decoder(DialogElement) {
       )
       use v_min_query_length <- codec.optional_field(
         "min_query_length",
-        decode.int,
+        codec.int_decoder(),
       )
       use v_placeholder <- codec.optional_field("placeholder", decode.string)
       use v_optional <- codec.optional_field("optional", decode.bool)

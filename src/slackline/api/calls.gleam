@@ -77,8 +77,8 @@ pub type Call {
 /// Decodes `Call` from json.
 pub fn call_decoder() -> decode.Decoder(Call) {
   use v_id <- decode.field("id", decode.string)
-  use v_date_start <- codec.optional_field("date_start", decode.int)
-  use v_date_end <- codec.optional_field("date_end", decode.int)
+  use v_date_start <- codec.optional_field("date_start", codec.int_decoder())
+  use v_date_end <- codec.optional_field("date_end", codec.int_decoder())
   use v_external_unique_id <- codec.optional_field(
     "external_unique_id",
     decode.string,

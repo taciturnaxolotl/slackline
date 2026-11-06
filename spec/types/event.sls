@@ -641,11 +641,10 @@ union Event tag "type" {
     date_previous_update: Int?
     date_update: Int?
     added_users: List(String)?
-    /// Sent as a string.
-    added_users_count: String?
+    # The docs show a string; live events send a number. Both decode.
+    added_users_count: Int?
     removed_users: List(String)?
-    /// Sent as a string.
-    removed_users_count: String?
+    removed_users_count: Int?
     event_ts: String?
   }
   /// You were added to a User Group.

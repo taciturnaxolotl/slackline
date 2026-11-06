@@ -193,8 +193,14 @@ pub type ManifestMetadata {
 
 /// Decodes `ManifestMetadata` from json.
 pub fn manifest_metadata_decoder() -> decode.Decoder(ManifestMetadata) {
-  use v_major_version <- codec.optional_field("major_version", decode.int)
-  use v_minor_version <- codec.optional_field("minor_version", decode.int)
+  use v_major_version <- codec.optional_field(
+    "major_version",
+    codec.int_decoder(),
+  )
+  use v_minor_version <- codec.optional_field(
+    "minor_version",
+    codec.int_decoder(),
+  )
   decode.success(ManifestMetadata(
     major_version: v_major_version,
     minor_version: v_minor_version,

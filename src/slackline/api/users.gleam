@@ -228,7 +228,7 @@ pub fn profile_update_decoder() -> decode.Decoder(ProfileUpdate) {
   use v_status_emoji <- codec.optional_field("status_emoji", decode.string)
   use v_status_expiration <- codec.optional_field(
     "status_expiration",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_status_text <- codec.optional_field("status_text", decode.string)
   use v_fields <- codec.optional_field(
@@ -458,8 +458,14 @@ pub fn get_presence_response_decoder() -> decode.Decoder(GetPresenceResponse) {
   use v_online <- codec.optional_field("online", decode.bool)
   use v_auto_away <- codec.optional_field("auto_away", decode.bool)
   use v_manual_away <- codec.optional_field("manual_away", decode.bool)
-  use v_connection_count <- codec.optional_field("connection_count", decode.int)
-  use v_last_activity <- codec.optional_field("last_activity", decode.int)
+  use v_connection_count <- codec.optional_field(
+    "connection_count",
+    codec.int_decoder(),
+  )
+  use v_last_activity <- codec.optional_field(
+    "last_activity",
+    codec.int_decoder(),
+  )
   decode.success(GetPresenceResponse(
     presence: v_presence,
     online: v_online,
@@ -580,7 +586,7 @@ pub fn list_response_decoder() -> decode.Decoder(ListResponse) {
     "members",
     decode.list(user.user_decoder()),
   )
-  use v_cache_ts <- codec.optional_field("cache_ts", decode.int)
+  use v_cache_ts <- codec.optional_field("cache_ts", codec.int_decoder())
   use v_response_metadata <- codec.optional_field(
     "response_metadata",
     slackline.response_metadata_decoder(),

@@ -27,7 +27,7 @@ pub fn role_assignment_decoder() -> decode.Decoder(RoleAssignment) {
   use v_role_id <- codec.optional_field("role_id", decode.string)
   use v_entity_id <- codec.optional_field("entity_id", decode.string)
   use v_user_id <- codec.optional_field("user_id", decode.string)
-  use v_date_create <- codec.optional_field("date_create", decode.int)
+  use v_date_create <- codec.optional_field("date_create", codec.int_decoder())
   decode.success(RoleAssignment(
     role_id: v_role_id,
     entity_id: v_entity_id,

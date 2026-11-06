@@ -83,9 +83,9 @@ pub fn usergroup_decoder() -> decode.Decoder(Usergroup) {
   use v_description <- codec.optional_field("description", decode.string)
   use v_handle <- codec.optional_field("handle", decode.string)
   use v_is_external <- codec.optional_field("is_external", decode.bool)
-  use v_date_create <- codec.optional_field("date_create", decode.int)
-  use v_date_update <- codec.optional_field("date_update", decode.int)
-  use v_date_delete <- codec.optional_field("date_delete", decode.int)
+  use v_date_create <- codec.optional_field("date_create", codec.int_decoder())
+  use v_date_update <- codec.optional_field("date_update", codec.int_decoder())
+  use v_date_delete <- codec.optional_field("date_delete", codec.int_decoder())
   use v_auto_type <- codec.optional_field(
     "auto_type",
     usergroup_auto_type_decoder(),
@@ -102,7 +102,10 @@ pub fn usergroup_decoder() -> decode.Decoder(Usergroup) {
     "user_count",
     usergroup_count_decoder(),
   )
-  use v_channel_count <- codec.optional_field("channel_count", decode.int)
+  use v_channel_count <- codec.optional_field(
+    "channel_count",
+    codec.int_decoder(),
+  )
   use v_channels <- codec.optional_field("channels", decode.list(decode.string))
   use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
   use v_enterprise_subteam_id <- codec.optional_field(
@@ -290,7 +293,7 @@ pub type UsergroupCount {
 
 /// Decodes `UsergroupCount` from json. It tries each alternative in order.
 pub fn usergroup_count_decoder() -> decode.Decoder(UsergroupCount) {
-  decode.one_of(decode.map(decode.int, UsergroupCountInt), [
+  decode.one_of(decode.map(codec.int_decoder(), UsergroupCountInt), [
     decode.map(decode.string, UsergroupCountString),
   ])
 }

@@ -28,10 +28,10 @@ pub type TeamPaging {
 
 /// Decodes `TeamPaging` from json.
 pub fn team_paging_decoder() -> decode.Decoder(TeamPaging) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_total <- codec.optional_field("total", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_pages <- codec.optional_field("pages", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_total <- codec.optional_field("total", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_pages <- codec.optional_field("pages", codec.int_decoder())
   decode.success(TeamPaging(
     count: v_count,
     total: v_total,
@@ -80,9 +80,9 @@ pub type AccessLog {
 pub fn access_log_decoder() -> decode.Decoder(AccessLog) {
   use v_user_id <- decode.field("user_id", decode.string)
   use v_username <- codec.optional_field("username", decode.string)
-  use v_date_first <- codec.optional_field("date_first", decode.int)
-  use v_date_last <- codec.optional_field("date_last", decode.int)
-  use v_count <- codec.optional_field("count", decode.int)
+  use v_date_first <- codec.optional_field("date_first", codec.int_decoder())
+  use v_date_last <- codec.optional_field("date_last", codec.int_decoder())
+  use v_count <- codec.optional_field("count", codec.int_decoder())
   use v_ip <- codec.optional_field("ip", decode.string)
   use v_user_agent <- codec.optional_field("user_agent", decode.string)
   use v_isp <- codec.optional_field("isp", decode.string)
@@ -261,7 +261,7 @@ pub type OwnershipDetail {
 /// Decodes `OwnershipDetail` from json.
 pub fn ownership_detail_decoder() -> decode.Decoder(OwnershipDetail) {
   use v_team_id <- codec.optional_field("team_id", decode.string)
-  use v_count <- codec.optional_field("count", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
   decode.success(OwnershipDetail(team_id: v_team_id, count: v_count))
 }
 
@@ -286,7 +286,7 @@ pub type SharedItemCounts {
 
 /// Decodes `SharedItemCounts` from json.
 pub fn shared_item_counts_decoder() -> decode.Decoder(SharedItemCounts) {
-  use v_total_count <- codec.optional_field("total_count", decode.int)
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
   use v_ownership_details <- codec.optional_field(
     "ownership_details",
     decode.list(decode.recursive(ownership_detail_decoder)),
@@ -396,16 +396,19 @@ pub fn external_organization_decoder() -> decode.Decoder(ExternalOrganization) {
   use v_team_domain <- codec.optional_field("team_domain", decode.string)
   use v_public_channel_count <- codec.optional_field(
     "public_channel_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_private_channel_count <- codec.optional_field(
     "private_channel_count",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_im_channel_count <- codec.optional_field("im_channel_count", decode.int)
+  use v_im_channel_count <- codec.optional_field(
+    "im_channel_count",
+    codec.int_decoder(),
+  )
   use v_mpim_channel_count <- codec.optional_field(
     "mpim_channel_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_connected_workspaces <- codec.optional_field(
     "connected_workspaces",
@@ -421,7 +424,7 @@ pub fn external_organization_decoder() -> decode.Decoder(ExternalOrganization) {
   )
   use v_last_active_timestamp <- codec.optional_field(
     "last_active_timestamp",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_is_sponsored <- codec.optional_field("is_sponsored", decode.bool)
   use v_canvas <- codec.optional_field(
@@ -487,7 +490,7 @@ pub type IntegrationServiceId {
 /// Decodes `IntegrationServiceId` from json. It tries each alternative in order.
 pub fn integration_service_id_decoder() -> decode.Decoder(IntegrationServiceId) {
   decode.one_of(decode.map(decode.string, IntegrationServiceIdString), [
-    decode.map(decode.int, IntegrationServiceIdInt),
+    decode.map(codec.int_decoder(), IntegrationServiceIdInt),
   ])
 }
 
@@ -1015,7 +1018,7 @@ pub fn external_teams_list_response_decoder() -> decode.Decoder(
     "organizations",
     decode.list(decode.recursive(external_organization_decoder)),
   )
-  use v_total_count <- codec.optional_field("total_count", decode.int)
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
   use v_response_metadata <- codec.optional_field(
     "response_metadata",
     slackline.response_metadata_decoder(),
@@ -1173,7 +1176,7 @@ pub fn preferences_list_response_decoder() -> decode.Decoder(
   )
   use v_msg_edit_window_mins <- codec.optional_field(
     "msg_edit_window_mins",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_who_can_post_general <- codec.optional_field(
     "who_can_post_general",

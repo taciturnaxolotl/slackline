@@ -89,8 +89,8 @@ pub type StarredFileComment {
 /// Decodes `StarredFileComment` from json.
 pub fn starred_file_comment_decoder() -> decode.Decoder(StarredFileComment) {
   use v_id <- codec.optional_field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_user <- codec.optional_field("user", decode.string)
   use v_comment <- codec.optional_field("comment", decode.string)
   use v_is_intro <- codec.optional_field("is_intro", decode.bool)
@@ -157,7 +157,7 @@ pub fn starred_item_decoder() -> decode.Decoder(StarredItem) {
     "comment",
     decode.recursive(starred_file_comment_decoder),
   )
-  use v_date_create <- codec.optional_field("date_create", decode.int)
+  use v_date_create <- codec.optional_field("date_create", codec.int_decoder())
   decode.success(StarredItem(
     item_type: v_item_type,
     channel: v_channel,
@@ -202,12 +202,12 @@ pub type StarsPaging {
 
 /// Decodes `StarsPaging` from json.
 pub fn stars_paging_decoder() -> decode.Decoder(StarsPaging) {
-  use v_count <- codec.optional_field("count", decode.int)
-  use v_per_page <- codec.optional_field("per_page", decode.int)
-  use v_spill <- codec.optional_field("spill", decode.int)
-  use v_total <- codec.optional_field("total", decode.int)
-  use v_page <- codec.optional_field("page", decode.int)
-  use v_pages <- codec.optional_field("pages", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  use v_per_page <- codec.optional_field("per_page", codec.int_decoder())
+  use v_spill <- codec.optional_field("spill", codec.int_decoder())
+  use v_total <- codec.optional_field("total", codec.int_decoder())
+  use v_page <- codec.optional_field("page", codec.int_decoder())
+  use v_pages <- codec.optional_field("pages", codec.int_decoder())
   decode.success(StarsPaging(
     count: v_count,
     per_page: v_per_page,

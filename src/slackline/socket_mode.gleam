@@ -34,10 +34,13 @@ pub type DebugInfo {
 pub fn debug_info_decoder() -> decode.Decoder(DebugInfo) {
   use v_host <- codec.optional_field("host", decode.string)
   use v_started <- codec.optional_field("started", decode.string)
-  use v_build_number <- codec.optional_field("build_number", decode.int)
+  use v_build_number <- codec.optional_field(
+    "build_number",
+    codec.int_decoder(),
+  )
   use v_approximate_connection_time <- codec.optional_field(
     "approximate_connection_time",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(DebugInfo(
     host: v_host,
@@ -163,7 +166,7 @@ pub fn socket_message_decoder() -> decode.Decoder(SocketMessage) {
     "hello" -> {
       use v_num_connections <- codec.optional_field(
         "num_connections",
-        decode.int,
+        codec.int_decoder(),
       )
       use v_connection_info <- codec.optional_field(
         "connection_info",
@@ -194,7 +197,10 @@ pub fn socket_message_decoder() -> decode.Decoder(SocketMessage) {
         "accepts_response_payload",
         decode.bool,
       )
-      use v_retry_attempt <- codec.optional_field("retry_attempt", decode.int)
+      use v_retry_attempt <- codec.optional_field(
+        "retry_attempt",
+        codec.int_decoder(),
+      )
       use v_retry_reason <- codec.optional_field("retry_reason", decode.string)
       decode.success(EventsApi(
         envelope_id: v_envelope_id,

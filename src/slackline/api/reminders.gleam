@@ -183,8 +183,8 @@ pub fn reminder_decoder() -> decode.Decoder(Reminder) {
   use v_user <- codec.optional_field("user", decode.string)
   use v_text <- codec.optional_field("text", decode.string)
   use v_recurring <- codec.optional_field("recurring", decode.bool)
-  use v_time <- codec.optional_field("time", decode.int)
-  use v_complete_ts <- codec.optional_field("complete_ts", decode.int)
+  use v_time <- codec.optional_field("time", codec.int_decoder())
+  use v_complete_ts <- codec.optional_field("complete_ts", codec.int_decoder())
   decode.success(Reminder(
     id: v_id,
     creator: v_creator,

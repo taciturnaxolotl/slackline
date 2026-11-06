@@ -195,7 +195,7 @@ pub type EntityComment {
 pub fn entity_comment_decoder() -> decode.Decoder(EntityComment) {
   use v_id <- decode.field("id", decode.string)
   use v_sender <- decode.field("sender", decode.recursive(entity_user_decoder))
-  use v_timestamp <- decode.field("timestamp", decode.int)
+  use v_timestamp <- decode.field("timestamp", codec.int_decoder())
   use v_comment <- decode.field(
     "comment",
     decode.recursive(comment_content_decoder),
@@ -204,13 +204,19 @@ pub fn entity_comment_decoder() -> decode.Decoder(EntityComment) {
   use v_can_edit <- codec.optional_field("can_edit", decode.bool)
   use v_can_delete <- codec.optional_field("can_delete", decode.bool)
   use v_can_reply <- codec.optional_field("can_reply", decode.bool)
-  use v_reply_count <- codec.optional_field("reply_count", decode.int)
+  use v_reply_count <- codec.optional_field("reply_count", codec.int_decoder())
   use v_reply_users <- codec.optional_field(
     "reply_users",
     decode.list(decode.recursive(entity_user_decoder)),
   )
-  use v_latest_reply_ts <- codec.optional_field("latest_reply_ts", decode.int)
-  use v_last_edit_ts <- codec.optional_field("last_edit_ts", decode.int)
+  use v_latest_reply_ts <- codec.optional_field(
+    "latest_reply_ts",
+    codec.int_decoder(),
+  )
+  use v_last_edit_ts <- codec.optional_field(
+    "last_edit_ts",
+    codec.int_decoder(),
+  )
   use v_thread_root_id <- codec.optional_field("thread_root_id", decode.string)
   use v_cursor <- codec.optional_field("cursor", decode.string)
   decode.success(EntityComment(

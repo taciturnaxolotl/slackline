@@ -33,7 +33,7 @@ pub fn connect_token_response_decoder() -> decode.Decoder(ConnectTokenResponse) 
   use v_token_type <- codec.optional_field("token_type", decode.string)
   use v_id_token <- codec.optional_field("id_token", decode.string)
   use v_refresh_token <- codec.optional_field("refresh_token", decode.string)
-  use v_expires_in <- codec.optional_field("expires_in", decode.int)
+  use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
   decode.success(ConnectTokenResponse(
     access_token: v_access_token,
     token_type: v_token_type,
@@ -123,7 +123,7 @@ pub fn connect_user_info_response_decoder() -> decode.Decoder(
   use v_email_verified <- codec.optional_field("email_verified", decode.bool)
   use v_date_email_verified <- codec.optional_field(
     "date_email_verified",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_name <- codec.optional_field("name", decode.string)
   use v_picture <- codec.optional_field("picture", decode.string)

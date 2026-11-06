@@ -1349,7 +1349,10 @@ pub fn container_decoder() -> decode.Decoder(Container) {
     }
     "message_attachment" -> {
       use v_message_ts <- codec.optional_field("message_ts", decode.string)
-      use v_attachment_id <- codec.optional_field("attachment_id", decode.int)
+      use v_attachment_id <- codec.optional_field(
+        "attachment_id",
+        codec.int_decoder(),
+      )
       use v_channel_id <- codec.optional_field("channel_id", decode.string)
       use v_is_ephemeral <- codec.optional_field("is_ephemeral", decode.bool)
       use v_is_app_unfurl <- codec.optional_field("is_app_unfurl", decode.bool)
@@ -2094,7 +2097,7 @@ pub fn block_action_decoder() -> decode.Decoder(BlockAction) {
       use v_action_ts <- codec.optional_field("action_ts", decode.string)
       use v_selected_date_time <- codec.optional_field(
         "selected_date_time",
-        decode.int,
+        codec.int_decoder(),
       )
       decode.success(DatetimepickerAction(
         action_id: v_action_id,

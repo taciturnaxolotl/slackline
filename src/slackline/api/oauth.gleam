@@ -84,7 +84,7 @@ pub fn oauth_authed_user_decoder() -> decode.Decoder(OAuthAuthedUser) {
   use v_scope <- codec.optional_field("scope", decode.string)
   use v_access_token <- codec.optional_field("access_token", decode.string)
   use v_token_type <- codec.optional_field("token_type", decode.string)
-  use v_expires_in <- codec.optional_field("expires_in", decode.int)
+  use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
   use v_refresh_token <- codec.optional_field("refresh_token", decode.string)
   decode.success(OAuthAuthedUser(
     id: v_id,
@@ -197,7 +197,7 @@ pub fn oauth_v2_access_response_decoder() -> decode.Decoder(
   use v_scope <- codec.optional_field("scope", decode.string)
   use v_bot_user_id <- codec.optional_field("bot_user_id", decode.string)
   use v_app_id <- codec.optional_field("app_id", decode.string)
-  use v_expires_in <- codec.optional_field("expires_in", decode.int)
+  use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
   use v_refresh_token <- codec.optional_field("refresh_token", decode.string)
   use v_team <- codec.optional_field(
     "team",

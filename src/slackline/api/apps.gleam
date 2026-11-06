@@ -507,7 +507,7 @@ pub fn datastore_count_response_decoder() -> decode.Decoder(
   DatastoreCountResponse,
 ) {
   use v_datastore <- codec.optional_field("datastore", decode.string)
-  use v_count <- codec.optional_field("count", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
   decode.success(DatastoreCountResponse(datastore: v_datastore, count: v_count))
 }
 

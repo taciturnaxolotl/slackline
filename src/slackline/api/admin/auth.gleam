@@ -61,7 +61,7 @@ pub fn policy_entity_decoder() -> decode.Decoder(PolicyEntity) {
     policy_entity_type_decoder(),
   )
   use v_entity_id <- decode.field("entity_id", decode.string)
-  use v_date_added <- codec.optional_field("date_added", decode.int)
+  use v_date_added <- codec.optional_field("date_added", codec.int_decoder())
   decode.success(PolicyEntity(
     entity_type: v_entity_type,
     entity_id: v_entity_id,
@@ -134,7 +134,7 @@ pub fn policy_get_entities_response_decoder() -> decode.Decoder(
   )
   use v_entity_total_count <- codec.optional_field(
     "entity_total_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_response_metadata <- codec.optional_field(
     "response_metadata",

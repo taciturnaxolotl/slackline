@@ -31,7 +31,7 @@ pub fn bot_decoder() -> decode.Decoder(Bot) {
   use v_id <- decode.field("id", decode.string)
   use v_deleted <- codec.optional_field("deleted", decode.bool)
   use v_name <- codec.optional_field("name", decode.string)
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_app_id <- codec.optional_field("app_id", decode.string)
   use v_user_id <- codec.optional_field("user_id", decode.string)
   use v_icons <- codec.optional_field(

@@ -259,8 +259,11 @@ pub fn agent_session_view_decoder() -> decode.Decoder(AgentSessionView) {
   use v_file_id <- codec.optional_field("file_id", decode.string)
   use v_name <- codec.optional_field("name", decode.string)
   use v_label <- codec.optional_field("label", decode.string)
-  use v_content_version <- codec.optional_field("content_version", decode.int)
-  use v_date_added <- codec.optional_field("date_added", decode.int)
+  use v_content_version <- codec.optional_field(
+    "content_version",
+    codec.int_decoder(),
+  )
+  use v_date_added <- codec.optional_field("date_added", codec.int_decoder())
   decode.success(AgentSessionView(
     view_id: v_view_id,
     type_: v_type_,
@@ -777,7 +780,7 @@ pub fn conversations_set_canvas_content_response_decoder() -> decode.Decoder(
   use v_canvas_id <- decode.field("canvas_id", decode.string)
   use v_sections_changed_count <- codec.optional_field(
     "sections_changed_count",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(ConversationsSetCanvasContentResponse(
     canvas_id: v_canvas_id,
@@ -837,7 +840,10 @@ pub fn conversations_set_commands_response_decoder() -> decode.Decoder(
   ConversationsSetCommandsResponse,
 ) {
   use v_channel_id <- decode.field("channel_id", decode.string)
-  use v_command_count <- codec.optional_field("command_count", decode.int)
+  use v_command_count <- codec.optional_field(
+    "command_count",
+    codec.int_decoder(),
+  )
   decode.success(ConversationsSetCommandsResponse(
     channel_id: v_channel_id,
     command_count: v_command_count,
@@ -955,7 +961,10 @@ pub fn conversations_set_view_response_decoder() -> decode.Decoder(
   use v_view_id <- decode.field("view_id", decode.string)
   use v_file_id <- codec.optional_field("file_id", decode.string)
   use v_canvas_id <- codec.optional_field("canvas_id", decode.string)
-  use v_content_version <- codec.optional_field("content_version", decode.int)
+  use v_content_version <- codec.optional_field(
+    "content_version",
+    codec.int_decoder(),
+  )
   use v_type_ <- codec.optional_field("type", decode.string)
   decode.success(ConversationsSetViewResponse(
     channel_id: v_channel_id,

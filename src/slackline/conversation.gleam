@@ -186,11 +186,11 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
   use v_is_im <- codec.optional_field("is_im", decode.bool)
   use v_is_mpim <- codec.optional_field("is_mpim", decode.bool)
   use v_is_private <- codec.optional_field("is_private", decode.bool)
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_creator <- codec.optional_field("creator", decode.string)
   use v_is_archived <- codec.optional_field("is_archived", decode.bool)
   use v_is_general <- codec.optional_field("is_general", decode.bool)
-  use v_unlinked <- codec.optional_field("unlinked", decode.int)
+  use v_unlinked <- codec.optional_field("unlinked", codec.int_decoder())
   use v_is_shared <- codec.optional_field("is_shared", decode.bool)
   use v_is_ext_shared <- codec.optional_field("is_ext_shared", decode.bool)
   use v_is_org_shared <- codec.optional_field("is_org_shared", decode.bool)
@@ -229,11 +229,11 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
   )
   use v_is_migrating <- codec.optional_field("is_migrating", decode.bool)
   use v_is_deleted <- codec.optional_field("is_deleted", decode.bool)
-  use v_is_moved <- codec.optional_field("is_moved", decode.int)
+  use v_is_moved <- codec.optional_field("is_moved", codec.int_decoder())
   use v_is_user_deleted <- codec.optional_field("is_user_deleted", decode.bool)
   use v_is_redacted <- codec.optional_field("is_redacted", decode.bool)
   use v_has_pins <- codec.optional_field("has_pins", decode.bool)
-  use v_pin_count <- codec.optional_field("pin_count", decode.int)
+  use v_pin_count <- codec.optional_field("pin_count", codec.int_decoder())
   use v_has_barrier <- codec.optional_field("has_barrier", decode.bool)
   use v_context_team_id <- codec.optional_field(
     "context_team_id",
@@ -245,7 +245,7 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
     "conversation_host_id",
     decode.string,
   )
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_parent_conversation <- codec.optional_field(
     "parent_conversation",
     decode.string,
@@ -288,7 +288,7 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
     "previous_names",
     decode.list(decode.string),
   )
-  use v_num_members <- codec.optional_field("num_members", decode.int)
+  use v_num_members <- codec.optional_field("num_members", codec.int_decoder())
   use v_members <- codec.optional_field("members", decode.list(decode.string))
   use v_properties <- codec.optional_field(
     "properties",
@@ -296,7 +296,7 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
   )
   use v_retention_duration <- codec.optional_field(
     "retention_duration",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_use_case <- codec.optional_field("use_case", decode.string)
   use v_user <- codec.optional_field("user", decode.string)
@@ -307,15 +307,24 @@ pub fn conversation_decoder() -> decode.Decoder(Conversation) {
     "display_counts",
     decode.recursive(display_counts_decoder),
   )
-  use v_timezone_count <- codec.optional_field("timezone_count", decode.int)
-  use v_version <- codec.optional_field("version", decode.int)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_timezone_count <- codec.optional_field(
+    "timezone_count",
+    codec.int_decoder(),
+  )
+  use v_version <- codec.optional_field("version", codec.int_decoder())
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_last_read <- codec.optional_field("last_read", decode.string)
   use v_latest <- codec.optional_field("latest", message.message_decoder())
-  use v_unread_count <- codec.optional_field("unread_count", decode.int)
+  use v_unread_count <- codec.optional_field(
+    "unread_count",
+    codec.int_decoder(),
+  )
   use v_unread_count_display <- codec.optional_field(
     "unread_count_display",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(Conversation(
     id: v_id,
@@ -508,7 +517,7 @@ pub type ConversationTopic {
 pub fn conversation_topic_decoder() -> decode.Decoder(ConversationTopic) {
   use v_value <- codec.optional_field("value", decode.string)
   use v_creator <- codec.optional_field("creator", decode.string)
-  use v_last_set <- codec.optional_field("last_set", decode.int)
+  use v_last_set <- codec.optional_field("last_set", codec.int_decoder())
   decode.success(ConversationTopic(
     value: v_value,
     creator: v_creator,
@@ -566,8 +575,14 @@ pub type DisplayCounts {
 
 /// Decodes `DisplayCounts` from json.
 pub fn display_counts_decoder() -> decode.Decoder(DisplayCounts) {
-  use v_display_counts <- codec.optional_field("display_counts", decode.int)
-  use v_guest_counts <- codec.optional_field("guest_counts", decode.int)
+  use v_display_counts <- codec.optional_field(
+    "display_counts",
+    codec.int_decoder(),
+  )
+  use v_guest_counts <- codec.optional_field(
+    "guest_counts",
+    codec.int_decoder(),
+  )
   decode.success(DisplayCounts(
     display_counts: v_display_counts,
     guest_counts: v_guest_counts,
@@ -660,7 +675,10 @@ pub fn conversation_properties_decoder() -> decode.Decoder(
     decode.bool,
   )
   use v_meeting_notes <- codec.optional_field("meeting_notes", value.decoder())
-  use v_membership_limit <- codec.optional_field("membership_limit", decode.int)
+  use v_membership_limit <- codec.optional_field(
+    "membership_limit",
+    codec.int_decoder(),
+  )
   use v_posting_restricted_to <- codec.optional_field(
     "posting_restricted_to",
     decode.recursive(posting_restriction_decoder),

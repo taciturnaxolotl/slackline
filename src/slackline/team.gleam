@@ -55,7 +55,10 @@ pub fn team_decoder() -> decode.Decoder(Team) {
     decode.string,
   )
   use v_is_verified <- codec.optional_field("is_verified", decode.bool)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_requires_sponsorship <- codec.optional_field(
     "requires_sponsorship",
     decode.bool,
@@ -330,7 +333,7 @@ pub type TeamProfileField {
 /// Decodes `TeamProfileField` from json.
 pub fn team_profile_field_decoder() -> decode.Decoder(TeamProfileField) {
   use v_id <- decode.field("id", decode.string)
-  use v_ordering <- codec.optional_field("ordering", decode.int)
+  use v_ordering <- codec.optional_field("ordering", codec.int_decoder())
   use v_field_name <- codec.optional_field("field_name", decode.string)
   use v_label <- codec.optional_field("label", decode.string)
   use v_hint <- codec.optional_field("hint", decode.string)
@@ -404,7 +407,7 @@ pub fn team_profile_section_decoder() -> decode.Decoder(TeamProfileSection) {
   use v_team_id <- codec.optional_field("team_id", decode.string)
   use v_section_type <- codec.optional_field("section_type", decode.string)
   use v_label <- codec.optional_field("label", decode.string)
-  use v_order <- codec.optional_field("order", decode.int)
+  use v_order <- codec.optional_field("order", codec.int_decoder())
   use v_is_hidden <- codec.optional_field("is_hidden", decode.bool)
   decode.success(TeamProfileSection(
     id: v_id,

@@ -98,19 +98,19 @@ pub fn member_analytics_decoder() -> decode.Decoder(MemberAnalytics) {
   )
   use v_reactions_added_count <- codec.optional_field(
     "reactions_added_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_messages_posted_count <- codec.optional_field(
     "messages_posted_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_channel_messages_posted_count <- codec.optional_field(
     "channel_messages_posted_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_files_added_count <- codec.optional_field(
     "files_added_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_is_active_apps <- codec.optional_field("is_active_apps", decode.bool)
   use v_is_active_workflows <- codec.optional_field(
@@ -123,18 +123,24 @@ pub fn member_analytics_decoder() -> decode.Decoder(MemberAnalytics) {
   )
   use v_total_calls_count <- codec.optional_field(
     "total_calls_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_slack_calls_count <- codec.optional_field(
     "slack_calls_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_slack_huddles_count <- codec.optional_field(
     "slack_huddles_count",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_search_count <- codec.optional_field("search_count", decode.int)
-  use v_date_claimed <- codec.optional_field("date_claimed", decode.int)
+  use v_search_count <- codec.optional_field(
+    "search_count",
+    codec.int_decoder(),
+  )
+  use v_date_claimed <- codec.optional_field(
+    "date_claimed",
+    codec.int_decoder(),
+  )
   decode.success(MemberAnalytics(
     date: v_date,
     enterprise_id: v_enterprise_id,
@@ -323,39 +329,45 @@ pub fn public_channel_analytics_decoder() -> decode.Decoder(
     "externally_shared_with_organizations",
     decode.list(decode.recursive(analytics_external_organization_decoder)),
   )
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_last_active <- codec.optional_field("date_last_active", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_last_active <- codec.optional_field(
+    "date_last_active",
+    codec.int_decoder(),
+  )
   use v_total_members_count <- codec.optional_field(
     "total_members_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_full_members_count <- codec.optional_field(
     "full_members_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_guest_member_count <- codec.optional_field(
     "guest_member_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_messages_posted_count <- codec.optional_field(
     "messages_posted_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_messages_posted_by_members_count <- codec.optional_field(
     "messages_posted_by_members_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_members_who_posted_count <- codec.optional_field(
     "members_who_posted_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_members_who_viewed_count <- codec.optional_field(
     "members_who_viewed_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_reactions_added_count <- codec.optional_field(
     "reactions_added_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_date <- codec.optional_field("date", decode.string)
   decode.success(PublicChannelAnalytics(
@@ -493,13 +505,16 @@ pub type MessageViewsByClient {
 pub fn message_views_by_client_decoder() -> decode.Decoder(MessageViewsByClient) {
   use v_desktop_views_count <- codec.optional_field(
     "desktop_views_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_mobile_views_count <- codec.optional_field(
     "mobile_views_count",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_web_views_count <- codec.optional_field("web_views_count", decode.int)
+  use v_web_views_count <- codec.optional_field(
+    "web_views_count",
+    codec.int_decoder(),
+  )
   decode.success(MessageViewsByClient(
     desktop_views_count: v_desktop_views_count,
     mobile_views_count: v_mobile_views_count,
@@ -532,10 +547,10 @@ pub fn message_department_stats_decoder() -> decode.Decoder(
   MessageDepartmentStats,
 ) {
   use v_department <- codec.optional_field("department", decode.string)
-  use v_views <- codec.optional_field("views", decode.int)
-  use v_reactions <- codec.optional_field("reactions", decode.int)
-  use v_shares <- codec.optional_field("shares", decode.int)
-  use v_clicks <- codec.optional_field("clicks", decode.int)
+  use v_views <- codec.optional_field("views", codec.int_decoder())
+  use v_reactions <- codec.optional_field("reactions", codec.int_decoder())
+  use v_shares <- codec.optional_field("shares", codec.int_decoder())
+  use v_clicks <- codec.optional_field("clicks", codec.int_decoder())
   decode.success(MessageDepartmentStats(
     department: v_department,
     views: v_views,
@@ -572,10 +587,10 @@ pub type MessageOrgStats {
 /// Decodes `MessageOrgStats` from json.
 pub fn message_org_stats_decoder() -> decode.Decoder(MessageOrgStats) {
   use v_team_id <- codec.optional_field("team_id", decode.string)
-  use v_views <- codec.optional_field("views", decode.int)
-  use v_reactions <- codec.optional_field("reactions", decode.int)
-  use v_shares <- codec.optional_field("shares", decode.int)
-  use v_clicks <- codec.optional_field("clicks", decode.int)
+  use v_views <- codec.optional_field("views", codec.int_decoder())
+  use v_reactions <- codec.optional_field("reactions", codec.int_decoder())
+  use v_shares <- codec.optional_field("shares", codec.int_decoder())
+  use v_clicks <- codec.optional_field("clicks", codec.int_decoder())
   decode.success(MessageOrgStats(
     team_id: v_team_id,
     views: v_views,
@@ -618,19 +633,19 @@ pub fn message_activity_decoder() -> decode.Decoder(MessageActivity) {
   use v_timestamp <- codec.optional_field("timestamp", decode.string)
   use v_unique_user_reactions_count <- codec.optional_field(
     "unique_user_reactions_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_unique_user_shares_count <- codec.optional_field(
     "unique_user_shares_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_unique_user_views_count <- codec.optional_field(
     "unique_user_views_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_unique_user_clicks_count <- codec.optional_field(
     "unique_user_clicks_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_unique_views_client <- codec.optional_field(
     "unique_views_client",
@@ -715,7 +730,7 @@ pub fn message_metadata_reaction_decoder() -> decode.Decoder(
   MessageMetadataReaction,
 ) {
   use v_name <- decode.field("name", decode.string)
-  use v_count <- codec.optional_field("count", decode.int)
+  use v_count <- codec.optional_field("count", codec.int_decoder())
   decode.success(MessageMetadataReaction(name: v_name, count: v_count))
 }
 
@@ -756,8 +771,8 @@ pub type MessageMetadataFile {
 /// Decodes `MessageMetadataFile` from json.
 pub fn message_metadata_file_decoder() -> decode.Decoder(MessageMetadataFile) {
   use v_id <- decode.field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
   use v_mimetype <- codec.optional_field("mimetype", decode.string)
   use v_filetype <- codec.optional_field("filetype", decode.string)
   use v_subtype <- codec.optional_field("subtype", decode.string)
@@ -770,7 +785,7 @@ pub fn message_metadata_file_decoder() -> decode.Decoder(MessageMetadataFile) {
     decode.bool,
   )
   use v_display_as_bot <- codec.optional_field("display_as_bot", decode.bool)
-  use v_duration_ms <- codec.optional_field("duration_ms", decode.int)
+  use v_duration_ms <- codec.optional_field("duration_ms", codec.int_decoder())
   use v_media_display_type <- codec.optional_field(
     "media_display_type",
     decode.string,
@@ -846,7 +861,7 @@ pub fn message_metadata_entry_decoder() -> decode.Decoder(MessageMetadataEntry) 
   use v_client_msg_id <- codec.optional_field("client_msg_id", decode.string)
   use v_text_character_count <- codec.optional_field(
     "text_character_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_reactions <- codec.optional_field(
     "reactions",

@@ -156,7 +156,7 @@ pub fn qualified(
 pub fn decoder(type_: Resolved, scope: Scope) -> String {
   case type_ {
     RString -> "decode.string"
-    RInt -> "decode.int"
+    RInt -> codec(scope) <> ".int_decoder()"
     RBool -> "decode.bool"
     RFloat -> codec(scope) <> ".float_decoder()"
     RValue -> value(scope) <> ".decoder()"

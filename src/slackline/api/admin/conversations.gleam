@@ -356,13 +356,19 @@ pub fn searched_conversation_decoder() -> decode.Decoder(SearchedConversation) {
   use v_id <- decode.field("id", decode.string)
   use v_name <- codec.optional_field("name", decode.string)
   use v_purpose <- codec.optional_field("purpose", decode.string)
-  use v_member_count <- codec.optional_field("member_count", decode.int)
-  use v_created <- codec.optional_field("created", decode.int)
+  use v_member_count <- codec.optional_field(
+    "member_count",
+    codec.int_decoder(),
+  )
+  use v_created <- codec.optional_field("created", codec.int_decoder())
   use v_creator_id <- codec.optional_field("creator_id", decode.string)
   use v_is_private <- codec.optional_field("is_private", decode.bool)
   use v_is_archived <- codec.optional_field("is_archived", decode.bool)
   use v_is_general <- codec.optional_field("is_general", decode.bool)
-  use v_last_activity_ts <- codec.optional_field("last_activity_ts", decode.int)
+  use v_last_activity_ts <- codec.optional_field(
+    "last_activity_ts",
+    codec.int_decoder(),
+  )
   use v_is_ext_shared <- codec.optional_field("is_ext_shared", decode.bool)
   use v_is_global_shared <- codec.optional_field(
     "is_global_shared",
@@ -381,7 +387,7 @@ pub fn searched_conversation_decoder() -> decode.Decoder(SearchedConversation) {
   )
   use v_internal_team_ids_count <- codec.optional_field(
     "internal_team_ids_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_internal_team_ids_sample_team <- codec.optional_field(
     "internal_team_ids_sample_team",
@@ -1002,7 +1008,10 @@ pub fn get_custom_retention_response_decoder() -> decode.Decoder(
     "is_policy_enabled",
     decode.bool,
   )
-  use v_duration_days <- codec.optional_field("duration_days", decode.int)
+  use v_duration_days <- codec.optional_field(
+    "duration_days",
+    codec.int_decoder(),
+  )
   decode.success(GetCustomRetentionResponse(
     is_policy_enabled: v_is_policy_enabled,
     duration_days: v_duration_days,
@@ -1487,7 +1496,7 @@ pub fn search_response_decoder() -> decode.Decoder(SearchResponse) {
     decode.list(decode.recursive(searched_conversation_decoder)),
   )
   use v_next_cursor <- codec.optional_field("next_cursor", decode.string)
-  use v_total_count <- codec.optional_field("total_count", decode.int)
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
   decode.success(SearchResponse(
     conversations: v_conversations,
     next_cursor: v_next_cursor,

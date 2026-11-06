@@ -126,12 +126,21 @@ pub fn slackbot_skill_decoder() -> decode.Decoder(SlackbotSkill) {
     common.skill_category_decoder(),
   )
   use v_creator_id <- codec.optional_field("creator_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_visibility <- codec.optional_field("visibility", decode.string)
   use v_is_official <- codec.optional_field("is_official", decode.bool)
-  use v_usage_count <- codec.optional_field("usage_count", decode.int)
-  use v_library_count <- codec.optional_field("library_count", decode.int)
+  use v_usage_count <- codec.optional_field("usage_count", codec.int_decoder())
+  use v_library_count <- codec.optional_field(
+    "library_count",
+    codec.int_decoder(),
+  )
   use v_auto_enabled <- codec.optional_field(
     "auto_enabled",
     decode.recursive(skill_auto_enabled_decoder),

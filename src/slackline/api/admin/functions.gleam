@@ -89,9 +89,18 @@ pub fn admin_function_decoder() -> decode.Decoder(AdminFunction) {
     decode.list(decode.recursive(admin_function_parameter_decoder)),
   )
   use v_app_id <- codec.optional_field("app_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
-  use v_date_deleted <- codec.optional_field("date_deleted", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
+  use v_date_deleted <- codec.optional_field(
+    "date_deleted",
+    codec.int_decoder(),
+  )
   decode.success(AdminFunction(
     id: v_id,
     callback_id: v_callback_id,

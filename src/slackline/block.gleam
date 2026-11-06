@@ -1077,7 +1077,7 @@ pub fn datetimepicker_element_decoder() -> decode.Decoder(DatetimepickerElement)
   use v_action_id <- codec.optional_field("action_id", decode.string)
   use v_initial_date_time <- codec.optional_field(
     "initial_date_time",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_confirm <- codec.optional_field(
     "confirm",
@@ -1192,7 +1192,7 @@ pub fn file_input_element_decoder() -> decode.Decoder(FileInputElement) {
     "filetypes",
     decode.list(decode.string),
   )
-  use v_max_files <- codec.optional_field("max_files", decode.int)
+  use v_max_files <- codec.optional_field("max_files", codec.int_decoder())
   decode.success(FileInputElement(
     action_id: v_action_id,
     filetypes: v_filetypes,
@@ -1362,7 +1362,10 @@ pub fn external_select_element_decoder() -> decode.Decoder(
     "initial_option",
     decode.recursive(select_option_decoder),
   )
-  use v_min_query_length <- codec.optional_field("min_query_length", decode.int)
+  use v_min_query_length <- codec.optional_field(
+    "min_query_length",
+    codec.int_decoder(),
+  )
   use v_confirm <- codec.optional_field(
     "confirm",
     decode.recursive(confirmation_dialog_decoder),
@@ -1663,7 +1666,7 @@ pub fn multi_static_select_element_decoder() -> decode.Decoder(
   )
   use v_max_selected_items <- codec.optional_field(
     "max_selected_items",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_focus_on_load <- codec.optional_field("focus_on_load", decode.bool)
   use v_placeholder <- codec.optional_field(
@@ -1737,7 +1740,10 @@ pub fn multi_external_select_element_decoder() -> decode.Decoder(
     codec.constant("multi_external_select"),
   )
   use v_action_id <- codec.optional_field("action_id", decode.string)
-  use v_min_query_length <- codec.optional_field("min_query_length", decode.int)
+  use v_min_query_length <- codec.optional_field(
+    "min_query_length",
+    codec.int_decoder(),
+  )
   use v_initial_options <- codec.optional_field(
     "initial_options",
     decode.list(decode.recursive(select_option_decoder)),
@@ -1748,7 +1754,7 @@ pub fn multi_external_select_element_decoder() -> decode.Decoder(
   )
   use v_max_selected_items <- codec.optional_field(
     "max_selected_items",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_focus_on_load <- codec.optional_field("focus_on_load", decode.bool)
   use v_placeholder <- codec.optional_field(
@@ -1824,7 +1830,7 @@ pub fn multi_users_select_element_decoder() -> decode.Decoder(
   )
   use v_max_selected_items <- codec.optional_field(
     "max_selected_items",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_focus_on_load <- codec.optional_field("focus_on_load", decode.bool)
   use v_placeholder <- codec.optional_field(
@@ -1903,7 +1909,7 @@ pub fn multi_conversations_select_element_decoder() -> decode.Decoder(
   )
   use v_max_selected_items <- codec.optional_field(
     "max_selected_items",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_filter <- codec.optional_field(
     "filter",
@@ -1989,7 +1995,7 @@ pub fn multi_channels_select_element_decoder() -> decode.Decoder(
   )
   use v_max_selected_items <- codec.optional_field(
     "max_selected_items",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_focus_on_load <- codec.optional_field("focus_on_load", decode.bool)
   use v_placeholder <- codec.optional_field(
@@ -2177,8 +2183,8 @@ pub fn plain_text_input_element_decoder() -> decode.Decoder(
   use v_action_id <- codec.optional_field("action_id", decode.string)
   use v_initial_value <- codec.optional_field("initial_value", decode.string)
   use v_multiline <- codec.optional_field("multiline", decode.bool)
-  use v_min_length <- codec.optional_field("min_length", decode.int)
-  use v_max_length <- codec.optional_field("max_length", decode.int)
+  use v_min_length <- codec.optional_field("min_length", codec.int_decoder())
+  use v_max_length <- codec.optional_field("max_length", codec.int_decoder())
   use v_dispatch_action_config <- codec.optional_field(
     "dispatch_action_config",
     decode.recursive(dispatch_action_config_decoder),
@@ -2322,8 +2328,8 @@ pub fn rich_text_input_element_decoder() -> decode.Decoder(RichTextInputElement)
     "placeholder",
     decode.recursive(plain_text_decoder),
   )
-  use v_min_lines <- codec.optional_field("min_lines", decode.int)
-  use v_max_lines <- codec.optional_field("max_lines", decode.int)
+  use v_min_lines <- codec.optional_field("min_lines", codec.int_decoder())
+  use v_max_lines <- codec.optional_field("max_lines", codec.int_decoder())
   decode.success(RichTextInputElement(
     action_id: v_action_id,
     initial_value: v_initial_value,
@@ -3524,7 +3530,7 @@ pub fn rich_text_element_decoder() -> decode.Decoder(RichTextElement) {
       decode.success(BroadcastElement(range: v_range, style: v_style))
     }
     "date" -> {
-      use v_timestamp <- decode.field("timestamp", decode.int)
+      use v_timestamp <- decode.field("timestamp", codec.int_decoder())
       use v_format <- decode.field("format", decode.string)
       use v_timezone <- codec.optional_field("timezone", decode.string)
       use v_url <- codec.optional_field("url", decode.string)
@@ -3608,7 +3614,7 @@ pub fn rich_text_element_decoder() -> decode.Decoder(RichTextElement) {
     "citation" -> {
       use v_url <- decode.field("url", decode.string)
       use v_text <- decode.field("text", decode.string)
-      use v_index <- decode.field("index", decode.int)
+      use v_index <- decode.field("index", codec.int_decoder())
       use v_details <- decode.field(
         "details",
         decode.recursive(citation_details_decoder),
@@ -4226,9 +4232,9 @@ pub fn rich_text_object_decoder() -> decode.Decoder(RichTextObject) {
         "elements",
         decode.list(decode.recursive(rich_text_object_decoder)),
       )
-      use v_indent <- codec.optional_field("indent", decode.int)
-      use v_offset <- codec.optional_field("offset", decode.int)
-      use v_border <- codec.optional_field("border", decode.int)
+      use v_indent <- codec.optional_field("indent", codec.int_decoder())
+      use v_offset <- codec.optional_field("offset", codec.int_decoder())
+      use v_border <- codec.optional_field("border", codec.int_decoder())
       decode.success(RichTextList(
         style: v_style,
         elements: v_elements,
@@ -4242,7 +4248,7 @@ pub fn rich_text_object_decoder() -> decode.Decoder(RichTextObject) {
         "elements",
         decode.list(decode.recursive(rich_text_element_decoder)),
       )
-      use v_border <- codec.optional_field("border", decode.int)
+      use v_border <- codec.optional_field("border", codec.int_decoder())
       use v_language <- codec.optional_field("language", decode.string)
       decode.success(RichTextPreformatted(
         elements: v_elements,
@@ -4255,7 +4261,7 @@ pub fn rich_text_object_decoder() -> decode.Decoder(RichTextObject) {
         "elements",
         decode.list(decode.recursive(rich_text_element_decoder)),
       )
-      use v_border <- codec.optional_field("border", decode.int)
+      use v_border <- codec.optional_field("border", codec.int_decoder())
       decode.success(RichTextQuote(elements: v_elements, border: v_border))
     }
     _ -> decode.map(value.decoder(), UnknownRichTextObject(type_: tag, raw: _))
@@ -5146,11 +5152,11 @@ pub fn data_table_block_decoder() -> decode.Decoder(DataTableBlock) {
     decode.list(decode.list(decode.recursive(table_cell_decoder))),
   )
   use v_block_id <- codec.optional_field("block_id", decode.string)
-  use v_page_size <- codec.optional_field("page_size", decode.int)
+  use v_page_size <- codec.optional_field("page_size", codec.int_decoder())
   use v_caption <- decode.field("caption", decode.string)
   use v_row_header_column_index <- codec.optional_field(
     "row_header_column_index",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(DataTableBlock(
     rows: v_rows,
@@ -5320,7 +5326,7 @@ pub fn header_block_decoder() -> decode.Decoder(HeaderBlock) {
   use _ <- decode.optional_field("type", "header", codec.constant("header"))
   use v_text <- decode.field("text", decode.recursive(plain_text_decoder))
   use v_block_id <- codec.optional_field("block_id", decode.string)
-  use v_level <- codec.optional_field("level", decode.int)
+  use v_level <- codec.optional_field("level", codec.int_decoder())
   decode.success(HeaderBlock(text: v_text, block_id: v_block_id, level: v_level))
 }
 

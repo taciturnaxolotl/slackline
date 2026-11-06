@@ -54,8 +54,14 @@ pub fn bookmark_decoder() -> decode.Decoder(Bookmark) {
   use v_icon_url <- codec.optional_field("icon_url", decode.string)
   use v_bookmark_type <- codec.optional_field("type", decode.string)
   use v_entity_id <- codec.optional_field("entity_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_rank <- codec.optional_field("rank", decode.string)
   use v_last_updated_by_user_id <- codec.optional_field(
     "last_updated_by_user_id",

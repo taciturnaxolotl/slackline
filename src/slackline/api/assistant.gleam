@@ -215,8 +215,14 @@ pub fn search_file_result_decoder() -> decode.Decoder(SearchFileResult) {
   use v_author_user_id <- codec.optional_field("author_user_id", decode.string)
   use v_author_name <- codec.optional_field("author_name", decode.string)
   use v_team_id <- codec.optional_field("team_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_title <- codec.optional_field("title", decode.string)
   use v_file_type <- codec.optional_field("file_type", decode.string)
   use v_permalink <- codec.optional_field("permalink", decode.string)
@@ -280,8 +286,14 @@ pub fn search_channel_result_decoder() -> decode.Decoder(SearchChannelResult) {
     decode.string,
   )
   use v_creator_name <- codec.optional_field("creator_name", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_updated <- codec.optional_field("date_updated", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_updated <- codec.optional_field(
+    "date_updated",
+    codec.int_decoder(),
+  )
   use v_name <- codec.optional_field("name", decode.string)
   use v_topic <- codec.optional_field("topic", decode.string)
   use v_purpose <- codec.optional_field("purpose", decode.string)

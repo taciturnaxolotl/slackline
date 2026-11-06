@@ -216,7 +216,7 @@ pub fn view_state_value_decoder() -> decode.Decoder(ViewStateValue) {
     "datetimepicker" -> {
       use v_selected_date_time <- codec.optional_field(
         "selected_date_time",
-        decode.int,
+        codec.int_decoder(),
       )
       decode.success(StateDatetimepicker(
         selected_date_time: v_selected_date_time,

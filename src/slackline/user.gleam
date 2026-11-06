@@ -117,7 +117,7 @@ pub fn user_decoder() -> decode.Decoder(User) {
   use v_real_name <- codec.optional_field("real_name", decode.string)
   use v_tz <- codec.optional_field("tz", decode.string)
   use v_tz_label <- codec.optional_field("tz_label", decode.string)
-  use v_tz_offset <- codec.optional_field("tz_offset", decode.int)
+  use v_tz_offset <- codec.optional_field("tz_offset", codec.int_decoder())
   use v_profile <- codec.optional_field(
     "profile",
     decode.recursive(user_profile_decoder),
@@ -140,7 +140,7 @@ pub fn user_decoder() -> decode.Decoder(User) {
     "is_agentforce_bot",
     decode.bool,
   )
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_is_email_confirmed <- codec.optional_field(
     "is_email_confirmed",
     decode.bool,
@@ -165,7 +165,7 @@ pub fn user_decoder() -> decode.Decoder(User) {
   )
   use v_locale <- codec.optional_field("locale", decode.string)
   use v_always_active <- codec.optional_field("always_active", decode.bool)
-  use v_first_login <- codec.optional_field("first_login", decode.int)
+  use v_first_login <- codec.optional_field("first_login", codec.int_decoder())
   use v_is_external <- codec.optional_field("is_external", decode.bool)
   use v_is_forgotten <- codec.optional_field("is_forgotten", decode.bool)
   use v_is_invited_user <- codec.optional_field("is_invited_user", decode.bool)
@@ -181,7 +181,7 @@ pub fn user_decoder() -> decode.Decoder(User) {
   use v_presence <- codec.optional_field("presence", decode.string)
   use v_restricted_user_type <- codec.optional_field(
     "restricted_user_type",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_suspended <- codec.optional_field("suspended", decode.bool)
   use v_team <- codec.optional_field("team", decode.string)
@@ -457,7 +457,7 @@ pub fn user_profile_decoder() -> decode.Decoder(UserProfile) {
   )
   use v_status_expiration <- codec.optional_field(
     "status_expiration",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_status_text_canonical <- codec.optional_field(
     "status_text_canonical",
@@ -489,7 +489,7 @@ pub fn user_profile_decoder() -> decode.Decoder(UserProfile) {
   )
   use v_huddle_state_expiration_ts <- codec.optional_field(
     "huddle_state_expiration_ts",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_first_name <- codec.optional_field("first_name", decode.string)
   use v_last_name <- codec.optional_field("last_name", decode.string)
@@ -508,7 +508,7 @@ pub fn user_profile_decoder() -> decode.Decoder(UserProfile) {
   use v_bot_id <- codec.optional_field("bot_id", decode.string)
   use v_guest_expiration_ts <- codec.optional_field(
     "guest_expiration_ts",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_guest_invited_by <- codec.optional_field(
     "guest_invited_by",
@@ -527,14 +527,14 @@ pub fn user_profile_decoder() -> decode.Decoder(UserProfile) {
   )
   use v_memberships_count <- codec.optional_field(
     "memberships_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_name <- codec.optional_field("name", decode.string)
   use v_restricted_user_type <- codec.optional_field(
     "restricted_user_type",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_user_id <- codec.optional_field("user_id", decode.string)
   use v_username <- codec.optional_field("username", decode.string)
   use v_who_can_share_contact_card <- codec.optional_field(

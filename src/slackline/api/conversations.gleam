@@ -137,8 +137,14 @@ pub type ConnectInviteDetails {
 /// Decodes `ConnectInviteDetails` from json.
 pub fn connect_invite_details_decoder() -> decode.Decoder(ConnectInviteDetails) {
   use v_id <- decode.field("id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_invalid <- codec.optional_field("date_invalid", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_invalid <- codec.optional_field(
+    "date_invalid",
+    codec.int_decoder(),
+  )
   use v_inviting_team <- codec.optional_field(
     "inviting_team",
     team.team_decoder(),
@@ -197,7 +203,7 @@ pub type ConnectInviteReview {
 /// Decodes `ConnectInviteReview` from json.
 pub fn connect_invite_review_decoder() -> decode.Decoder(ConnectInviteReview) {
   use v_review_type <- codec.optional_field("type", decode.string)
-  use v_date_review <- codec.optional_field("date_review", decode.int)
+  use v_date_review <- codec.optional_field("date_review", codec.int_decoder())
   use v_reviewing_team <- codec.optional_field(
     "reviewing_team",
     team.team_decoder(),
@@ -246,11 +252,17 @@ pub fn connect_invite_acceptance_decoder() -> decode.Decoder(
     "approval_status",
     decode.string,
   )
-  use v_date_accepted <- codec.optional_field("date_accepted", decode.int)
-  use v_date_invalid <- codec.optional_field("date_invalid", decode.int)
+  use v_date_accepted <- codec.optional_field(
+    "date_accepted",
+    codec.int_decoder(),
+  )
+  use v_date_invalid <- codec.optional_field(
+    "date_invalid",
+    codec.int_decoder(),
+  )
   use v_date_last_updated <- codec.optional_field(
     "date_last_updated",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_accepting_team <- codec.optional_field(
     "accepting_team",
@@ -320,7 +332,7 @@ pub fn connect_invite_decoder() -> decode.Decoder(ConnectInvite) {
   use v_status <- codec.optional_field("status", decode.string)
   use v_date_last_updated <- codec.optional_field(
     "date_last_updated",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_invite_type <- codec.optional_field("invite_type", decode.string)
   use v_invite <- codec.optional_field(
@@ -458,7 +470,10 @@ pub fn shared_invite_channel_decoder() -> decode.Decoder(SharedInviteChannel) {
   use v_name <- codec.optional_field("name", decode.string)
   use v_is_im <- codec.optional_field("is_im", decode.bool)
   use v_is_private <- codec.optional_field("is_private", decode.bool)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_connections <- codec.optional_field(
     "connections",
     decode.list(decode.recursive(shared_invite_connection_decoder)),
@@ -544,13 +559,16 @@ pub type SharedInviteRequest {
 /// Decodes `SharedInviteRequest` from json.
 pub fn shared_invite_request_decoder() -> decode.Decoder(SharedInviteRequest) {
   use v_id <- decode.field("id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_date_last_updated <- codec.optional_field(
     "date_last_updated",
-    decode.int,
+    codec.int_decoder(),
   )
-  use v_expires_at <- codec.optional_field("expires_at", decode.int)
-  use v_date_denied <- codec.optional_field("date_denied", decode.int)
+  use v_expires_at <- codec.optional_field("expires_at", codec.int_decoder())
+  use v_date_denied <- codec.optional_field("date_denied", codec.int_decoder())
   use v_inviting_team <- codec.optional_field(
     "inviting_team",
     team.team_decoder(),
@@ -1034,7 +1052,7 @@ pub fn history_response_decoder() -> decode.Decoder(HistoryResponse) {
     decode.list(message.message_decoder()),
   )
   use v_has_more <- codec.optional_field("has_more", decode.bool)
-  use v_pin_count <- codec.optional_field("pin_count", decode.int)
+  use v_pin_count <- codec.optional_field("pin_count", codec.int_decoder())
   use v_latest <- codec.optional_field("latest", decode.string)
   use v_is_limited <- codec.optional_field("is_limited", decode.bool)
   use v_response_metadata <- codec.optional_field(

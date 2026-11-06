@@ -111,7 +111,7 @@ pub fn invite_preferences_decoder() -> decode.Decoder(InvitePreferences) {
     "is_ultra_restricted",
     decode.bool,
   )
-  use v_date_expire <- codec.optional_field("date_expire", decode.int)
+  use v_date_expire <- codec.optional_field("date_expire", codec.int_decoder())
   use v_channel_ids <- codec.optional_field(
     "channel_ids",
     decode.list(decode.string),
@@ -166,8 +166,11 @@ pub fn approved_invite_decoder() -> decode.Decoder(ApprovedInvite) {
   use v_id <- decode.field("id", decode.string)
   use v_inviter_id <- codec.optional_field("inviter_id", decode.string)
   use v_email <- codec.optional_field("email", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_date_resent <- codec.optional_field("date_resent", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_date_resent <- codec.optional_field("date_resent", codec.int_decoder())
   use v_is_bouncing <- codec.optional_field("is_bouncing", decode.bool)
   use v_invite_preferences <- codec.optional_field(
     "invite_preferences",

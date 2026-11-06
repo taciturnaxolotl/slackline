@@ -24,7 +24,10 @@ pub type AdminEmoji {
 /// Decodes `AdminEmoji` from json.
 pub fn admin_emoji_decoder() -> decode.Decoder(AdminEmoji) {
   use v_url <- codec.optional_field("url", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_uploaded_by <- codec.optional_field("uploaded_by", decode.string)
   decode.success(AdminEmoji(
     url: v_url,

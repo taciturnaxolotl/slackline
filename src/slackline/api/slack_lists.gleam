@@ -115,11 +115,11 @@ pub fn list_column_options_decoder() -> decode.Decoder(ListColumnOptions) {
     decode.list(decode.recursive(list_choice_decoder)),
   )
   use v_format <- codec.optional_field("format", decode.string)
-  use v_precision <- codec.optional_field("precision", decode.int)
+  use v_precision <- codec.optional_field("precision", codec.int_decoder())
   use v_date_format <- codec.optional_field("date_format", decode.string)
   use v_emoji <- codec.optional_field("emoji", decode.string)
   use v_emoji_team_id <- codec.optional_field("emoji_team_id", decode.string)
-  use v_max <- codec.optional_field("max", decode.int)
+  use v_max <- codec.optional_field("max", codec.int_decoder())
   use v_default_value_typed <- codec.optional_field(
     "default_value_typed",
     decode.recursive(list_column_default_value_decoder),
@@ -335,7 +335,10 @@ pub fn list_view_decoder() -> decode.Decoder(ListView) {
     "columns",
     decode.list(decode.recursive(list_view_column_decoder)),
   )
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_created_by <- codec.optional_field("created_by", decode.string)
   use v_stick_column_left <- codec.optional_field(
     "stick_column_left",
@@ -534,30 +537,39 @@ pub fn list_limits_decoder() -> decode.Decoder(ListLimits) {
     "over_row_maximum",
     decode.bool,
   )
-  use v_row_count_limit <- codec.optional_field("row_count_limit", decode.int)
-  use v_row_count <- codec.optional_field("row_count", decode.int)
+  use v_row_count_limit <- codec.optional_field(
+    "row_count_limit",
+    codec.int_decoder(),
+  )
+  use v_row_count <- codec.optional_field("row_count", codec.int_decoder())
   use v_archived_row_count <- codec.optional_field(
     "archived_row_count",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_over_column_maximum <- codec.optional_field(
     "over_column_maximum",
     decode.bool,
   )
-  use v_column_count <- codec.optional_field("column_count", decode.int)
+  use v_column_count <- codec.optional_field(
+    "column_count",
+    codec.int_decoder(),
+  )
   use v_column_count_limit <- codec.optional_field(
     "column_count_limit",
-    decode.int,
+    codec.int_decoder(),
   )
   use v_over_view_maximum <- codec.optional_field(
     "over_view_maximum",
     decode.bool,
   )
-  use v_view_count <- codec.optional_field("view_count", decode.int)
-  use v_view_count_limit <- codec.optional_field("view_count_limit", decode.int)
+  use v_view_count <- codec.optional_field("view_count", codec.int_decoder())
+  use v_view_count_limit <- codec.optional_field(
+    "view_count_limit",
+    codec.int_decoder(),
+  )
   use v_max_attachments_per_cell <- codec.optional_field(
     "max_attachments_per_cell",
-    decode.int,
+    codec.int_decoder(),
   )
   decode.success(ListLimits(
     over_row_maximum: v_over_row_maximum,
@@ -643,9 +655,9 @@ pub type ListFile {
 /// Decodes `ListFile` from json.
 pub fn list_file_decoder() -> decode.Decoder(ListFile) {
   use v_id <- decode.field("id", decode.string)
-  use v_created <- codec.optional_field("created", decode.int)
-  use v_timestamp <- codec.optional_field("timestamp", decode.int)
-  use v_updated <- codec.optional_field("updated", decode.int)
+  use v_created <- codec.optional_field("created", codec.int_decoder())
+  use v_timestamp <- codec.optional_field("timestamp", codec.int_decoder())
+  use v_updated <- codec.optional_field("updated", codec.int_decoder())
   use v_name <- codec.optional_field("name", decode.string)
   use v_title <- codec.optional_field("title", decode.string)
   use v_mimetype <- codec.optional_field("mimetype", decode.string)
@@ -654,7 +666,7 @@ pub fn list_file_decoder() -> decode.Decoder(ListFile) {
   use v_user <- codec.optional_field("user", decode.string)
   use v_user_team <- codec.optional_field("user_team", decode.string)
   use v_editable <- codec.optional_field("editable", decode.bool)
-  use v_size <- codec.optional_field("size", decode.int)
+  use v_size <- codec.optional_field("size", codec.int_decoder())
   use v_mode <- codec.optional_field("mode", decode.string)
   use v_is_external <- codec.optional_field("is_external", decode.bool)
   use v_external_type <- codec.optional_field("external_type", decode.string)
@@ -1120,8 +1132,14 @@ pub fn list_field_decoder() -> decode.Decoder(ListField) {
   use v_checkbox <- codec.optional_field("checkbox", value.decoder())
   use v_email <- codec.optional_field("email", decode.list(decode.string))
   use v_phone <- codec.optional_field("phone", decode.list(decode.string))
-  use v_rating <- codec.optional_field("rating", decode.list(decode.int))
-  use v_timestamp <- codec.optional_field("timestamp", decode.list(decode.int))
+  use v_rating <- codec.optional_field(
+    "rating",
+    decode.list(codec.int_decoder()),
+  )
+  use v_timestamp <- codec.optional_field(
+    "timestamp",
+    decode.list(codec.int_decoder()),
+  )
   use v_link <- codec.optional_field(
     "link",
     decode.list(decode.recursive(list_link_value_decoder)),
@@ -1200,8 +1218,11 @@ pub type ListSavedReminder {
 /// Decodes `ListSavedReminder` from json.
 pub fn list_saved_reminder_decoder() -> decode.Decoder(ListSavedReminder) {
   use v_is_archived <- codec.optional_field("is_archived", decode.bool)
-  use v_date_due <- codec.optional_field("date_due", decode.int)
-  use v_date_completed <- codec.optional_field("date_completed", decode.int)
+  use v_date_due <- codec.optional_field("date_due", codec.int_decoder())
+  use v_date_completed <- codec.optional_field(
+    "date_completed",
+    codec.int_decoder(),
+  )
   use v_state <- codec.optional_field("state", decode.string)
   decode.success(ListSavedReminder(
     is_archived: v_is_archived,
@@ -1247,7 +1268,10 @@ pub type ListItem {
 pub fn list_item_decoder() -> decode.Decoder(ListItem) {
   use v_id <- decode.field("id", decode.string)
   use v_list_id <- codec.optional_field("list_id", decode.string)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
   use v_created_by <- codec.optional_field("created_by", decode.string)
   use v_updated_by <- codec.optional_field("updated_by", decode.string)
   use v_updated_timestamp <- codec.optional_field(
@@ -1372,8 +1396,14 @@ pub fn list_cell_input_decoder() -> decode.Decoder(ListCellInput) {
     decode.list(decode.recursive(list_link_input_decoder)),
   )
   use v_message <- codec.optional_field("message", decode.list(decode.string))
-  use v_rating <- codec.optional_field("rating", decode.list(decode.int))
-  use v_timestamp <- codec.optional_field("timestamp", decode.list(decode.int))
+  use v_rating <- codec.optional_field(
+    "rating",
+    decode.list(codec.int_decoder()),
+  )
+  use v_timestamp <- codec.optional_field(
+    "timestamp",
+    decode.list(codec.int_decoder()),
+  )
   use v_channel <- codec.optional_field("channel", decode.list(decode.string))
   use v_reference <- codec.optional_field(
     "reference",

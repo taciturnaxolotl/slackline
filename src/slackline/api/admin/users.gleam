@@ -57,9 +57,18 @@ pub fn admin_user_decoder() -> decode.Decoder(AdminUser) {
   use v_username <- codec.optional_field("username", decode.string)
   use v_full_name <- codec.optional_field("full_name", decode.string)
   use v_is_active <- codec.optional_field("is_active", decode.bool)
-  use v_date_created <- codec.optional_field("date_created", decode.int)
-  use v_deactivated_ts <- codec.optional_field("deactivated_ts", decode.int)
-  use v_expiration_ts <- codec.optional_field("expiration_ts", decode.int)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_deactivated_ts <- codec.optional_field(
+    "deactivated_ts",
+    codec.int_decoder(),
+  )
+  use v_expiration_ts <- codec.optional_field(
+    "expiration_ts",
+    codec.int_decoder(),
+  )
   use v_workspaces <- codec.optional_field(
     "workspaces",
     decode.list(decode.string),
@@ -131,7 +140,10 @@ pub fn guest_expiration_decoder() -> decode.Decoder(GuestExpiration) {
     "is_ultra_restricted",
     decode.bool,
   )
-  use v_expiration_ts <- codec.optional_field("expiration_ts", decode.int)
+  use v_expiration_ts <- codec.optional_field(
+    "expiration_ts",
+    codec.int_decoder(),
+  )
   decode.success(GuestExpiration(
     id: v_id,
     email: v_email,
@@ -243,7 +255,7 @@ pub type ActiveSession {
 pub fn active_session_decoder() -> decode.Decoder(ActiveSession) {
   use v_user_id <- decode.field("user_id", decode.string)
   use v_team_id <- codec.optional_field("team_id", decode.string)
-  use v_session_id <- decode.field("session_id", decode.int)
+  use v_session_id <- decode.field("session_id", codec.int_decoder())
   use v_recent <- codec.optional_field(
     "recent",
     decode.recursive(session_device_decoder),
@@ -290,7 +302,7 @@ pub fn user_session_settings_decoder() -> decode.Decoder(UserSessionSettings) {
     "desktop_app_browser_quit",
     decode.bool,
   )
-  use v_duration <- codec.optional_field("duration", decode.int)
+  use v_duration <- codec.optional_field("duration", codec.int_decoder())
   decode.success(UserSessionSettings(
     user_id: v_user_id,
     desktop_app_browser_quit: v_desktop_app_browser_quit,
