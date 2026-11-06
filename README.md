@@ -2,7 +2,7 @@
     <img src="https://l4.dunkirk.sh/i/Wdwiu5DGBIuc.svg" alt="slackline title graphic" />
 </p>
 
-Slackline is a slack api client for gleam that attempts to port most of [slack's api surface](https://docs.slack.dev) to gleam. This is still very beta so please do open an issue or send me an email if something isn't working properly! Also if you have opinions about how to make this more idiomatic I would love to hear!
+Slackline is a slack api client for gleam that attempts to port most of [slack's api surface](https://docs.slack.dev) similar to projects like [slack-edge](https://github.com/slack-edge/slack-edge). This is still very beta so please do open an issue or send me an email if something isn't working properly! Also if you have opinions about how to make this more idiomatic I would love to hear!
 
 ```sh
 gleam add slackline
@@ -72,7 +72,7 @@ view.modal(
 
 ### Apps
 
-`slackline/app` routes slash commands, actions, modal submissions and events to your handlers. Slack wants an answer within three seconds, so anything slow goes after `use <- app.ack_then`:
+`slackline/app` routes slash commands, actions, modal submissions and events to your handlers. Slack requires an `ack` within a three second timelimit, so put anything slow goes after `use <- app.ack_then`:
 
 ```gleam
 import slackline/api/views
@@ -112,7 +112,7 @@ let app.Handled(response:, after:) = app.handle(bot, request)
 
 ### Socket Mode
 
-Call `apps.connections_open()` with an app-level (`xapp-`) token. Connect any WebSocket client to the `url` it returns. Pass each text frame to the same app:
+Call `apps.connections_open()` with an app-level (`xapp-`) token. Connect any WebSocket client to the `url` it returns and then pass text frames back to the app:
 
 ```gleam
 case app.handle_socket(bot, frame) {
@@ -127,7 +127,7 @@ case app.handle_socket(bot, frame) {
 
 ### Pagination
 
-`httpc.fold_pages` follows `next_cursor` until the last page:
+`httpc.fold_pages` returns `next_cursor` for folding:
 
 ```gleam
 import slackline/api/conversations
@@ -142,8 +142,6 @@ conversations.list()
   metadata: fn(page) { page.response_metadata },
 )
 ```
-
-`test/readme_test.gleam` compiles all of these.
 
 ---
 
