@@ -160,6 +160,8 @@ gleam run -m slackline_codegen/generate       # regenerate src/ from spec/
 
 Then run `gleam test` and `gleam test --target javascript` from the root. `spec/README.md` contains the spec language and the modelling rules.
 
+`live/` can run slackline with a slack app to test that the calls havent changed without docs updates: read and write calls, the Events API, interactivity and Socket Mode. See `live/README.md`.
+
 <p align="center">
     <img src="https://raw.githubusercontent.com/taciturnaxolotl/carriage/main/.github/images/line-break.svg" />
 </p>

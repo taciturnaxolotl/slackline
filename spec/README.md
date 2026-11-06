@@ -303,6 +303,8 @@ for helpers like `block.mrkdwn(text)` that make common cases short.
   rejects the payload without them, so the type checker catches mistakes.
 - **Open enums for data Slack sends** (`.. UnknownX`), closed enums for
   request-only values.
+- **Values seen live but missing from the docs** go into the enum with a `#`
+  comment that says so. `live/` reports each catch-all it hits.
 - **Every union has a catch-all.** It holds the raw json, so new Slack
   features never break decoding.
 - **Type names must be unique across all specs.** Refer to the type that
