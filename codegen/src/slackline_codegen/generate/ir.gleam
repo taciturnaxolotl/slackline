@@ -128,6 +128,9 @@ pub type Method {
     unauthenticated: Bool,
     args: List(Field),
     response: Option(Response),
+    /// The `deprecated "reason"` section, for methods Slack is retiring
+    /// even where the reference does not say so.
+    deprecated: Option(String),
   )
 }
 

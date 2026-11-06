@@ -555,7 +555,7 @@ fn oneof_variant(tokens: Tokens, docs: String) -> Parsed(Entry(OneofVariant)) {
   #(Entry(ir.OneofVariant(ctor, type_, docs)), rest)
 }
 
-/// `method name [as function] [unauthenticated] { args {..} response .. }`
+/// `method name [as function] [unauthenticated] { args {..} response .. deprecated ".." }`
 fn method(tokens: Tokens, docs: String, file: String) -> Parsed(Method) {
   use #(name, rest) <- result.try(expect(tokens, Ident, ""))
   use #(function, rest) <- result.try(rename(rest))
@@ -573,6 +573,7 @@ fn method(tokens: Tokens, docs: String, file: String) -> Parsed(Method) {
       unauthenticated:,
       args: [],
       response: None,
+      deprecated: None,
     )
   method_sections(rest, method)
 }
@@ -588,7 +589,11 @@ fn method_sections(tokens: Tokens, method: Method) -> Parsed(Method) {
       use #(response, rest) <- result.try(response(rest))
       method_sections(rest, ir.Method(..method, response: Some(response)))
     }
-    _ -> fail(tokens, "expected `args`, `response` or `}`")
+    #(Token(Ident, "deprecated", _), rest) -> {
+      use #(reason, rest) <- result.try(expect(rest, Str, ""))
+      method_sections(rest, ir.Method(..method, deprecated: Some(reason)))
+    }
+    _ -> fail(tokens, "expected `args`, `response`, `deprecated` or `}`")
   }
 }
 

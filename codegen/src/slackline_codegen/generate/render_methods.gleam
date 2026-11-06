@@ -297,9 +297,12 @@ pub fn render(
         ),
         0,
       ),
-      case docs.deprecated {
-        True -> ["@deprecated(" <> names.gleam_string(summary) <> ")"]
-        False -> []
+      case spec, docs.deprecated {
+        Some(ir.Method(deprecated: Some(reason), ..)), _ -> [
+          "@deprecated(" <> names.gleam_string(reason) <> ")",
+        ]
+        _, True -> ["@deprecated(" <> names.gleam_string(summary) <> ")"]
+        _, False -> []
       },
       [
         "pub fn "

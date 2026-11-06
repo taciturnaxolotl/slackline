@@ -1,5 +1,7 @@
 //// Reminders (`reminders.*`). Slack began retiring these methods in March
-//// 2023, so they may be degraded.
+//// 2023. Live tests show `reminders.add` still works, but the reminder it
+//// creates lands in To-dos, and `info`, `list`, `complete` and `delete`
+//// answer `not_found` or an empty list for it.
 module slackline/api/reminders
 
 /// How often a recurring reminder repeats.
@@ -48,6 +50,7 @@ record Reminder {
 }
 
 method reminders.add {
+  deprecated "Slack is retiring reminders. New reminders are filed under To-dos, where reminders.info, list, complete and delete cannot find them."
   args {
     /// The repeating behavior of the reminder.
     recurrence: ReminderRecurrence
@@ -59,14 +62,17 @@ method reminders.add {
 }
 
 method reminders.complete {
+  deprecated "Slack is retiring reminders. New reminders are filed under To-dos, where reminders.info, list, complete and delete cannot find them."
   response Nil
 }
 
 method reminders.delete {
+  deprecated "Slack is retiring reminders. New reminders are filed under To-dos, where reminders.info, list, complete and delete cannot find them."
   response Nil
 }
 
 method reminders.info {
+  deprecated "Slack is retiring reminders. New reminders are filed under To-dos, where reminders.info, list, complete and delete cannot find them."
   response {
     # Optional because the success example in the docs leaves it out.
     /// The reminder.
@@ -75,6 +81,7 @@ method reminders.info {
 }
 
 method reminders.list {
+  deprecated "Slack is retiring reminders. New reminders are filed under To-dos, where reminders.info, list, complete and delete cannot find them."
   response {
     /// Reminders created by or for the user.
     reminders: List(Reminder)?

@@ -181,6 +181,11 @@ authenticate with client credentials or a refresh token in the body
 (`oauth.v2.access`, `tooling.tokens.rotate`, ...): their calls never send the
 client's bearer token, which could make Slack reject them.
 
+`deprecated "reason"` inside a method marks its function `@deprecated` with
+that reason. Methods whose docs summary starts with "Deprecated" get the
+attribute automatically; use the section when live behavior shows a method is
+retired before the docs say so (`reminders.*`).
+
 `response Nil` is for methods that only return `ok`. `response SomeRecord`
 reuses a declared record. Leaving `response` out returns the raw `Value`.
 
