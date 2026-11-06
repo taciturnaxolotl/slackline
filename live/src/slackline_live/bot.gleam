@@ -27,6 +27,8 @@ import gleam/string
 import gleam/uri
 import mist
 import slackline
+import slackline/api/assistant
+import slackline/api/assistant/threads_set_suggested_prompts as set_suggested_prompts
 import slackline/api/chat
 import slackline/api/chat/post_message
 import slackline/api/chat/unfurl
@@ -49,6 +51,7 @@ import slackline/element/static_select
 import slackline/event
 import slackline/httpc
 import slackline/interaction
+import slackline/manifest
 import slackline/mrkdwn
 import slackline/oauth
 import slackline/view
@@ -136,6 +139,17 @@ fn callback(info: env.AppInfo, request: Request(String)) -> #(Int, String) {
               user_id: user.id,
             )
           let assert Ok(Nil) = env.save_tokens(tokens)
+          case granted.incoming_webhook {
+            Some(oauth_api.OAuthIncomingWebhook(url: Some(url), channel:, ..)) -> {
+              let _ = env.write_file(env.state_dir() <> "/webhook", url)
+              io.println(
+                "incoming webhook for "
+                <> option.unwrap(channel, "?")
+                <> " saved",
+              )
+            }
+            _ -> Nil
+          }
           io.println("installed for " <> user.id)
           #(200, "slackline test is installed. You can close this tab.")
         }
@@ -430,6 +444,35 @@ pub fn router(info: env.AppInfo) -> app.App {
         |> unfurl.unfurls(unfurls)
         |> httpc.send(client())
         |> report("chat.unfurl", _)
+      }
+      event.AssistantThreadStarted(
+        assistant_thread: event.AssistantThread(channel_id:, thread_ts:, ..),
+        ..,
+      ) -> {
+        assistant.threads_set_title(
+          channel_id:,
+          thread_ts:,
+          title: "slackline assistant",
+        )
+        |> httpc.send(client())
+        |> report("assistant.threads.setTitle", _)
+        assistant.threads_set_suggested_prompts(channel_id:, prompts: [
+          manifest.SuggestedPrompt(title: "Ping", message: "ping"),
+        ])
+        |> set_suggested_prompts.thread_ts(thread_ts)
+        |> httpc.send(client())
+        |> report("assistant.threads.setSuggestedPrompts", _)
+        assistant.threads_set_status(
+          channel_id:,
+          thread_ts:,
+          status: "is thinking...",
+        )
+        |> httpc.send(client())
+        |> report("assistant.threads.setStatus", _)
+        chat.post_message(channel: channel_id, text: "hello from slackline")
+        |> post_message.thread_ts(thread_ts)
+        |> httpc.send(client())
+        |> report("chat.postMessage (assistant)", _)
       }
       event.UnknownEvent(type_:, ..) ->
         io.println("  UNKNOWN event type " <> type_)

@@ -3,6 +3,7 @@
 //// ```sh
 //// source ~/.local/state/slackline-live/env   # sets SLACK_APP_TOKEN
 //// gleam run -m slackline_live/socket
+//// SLACKLINE_DEBUG_RECONNECTS=1 gleam run -m slackline_live/socket  # disconnect in ~6 min
 //// ```
 ////
 //// Every frame is saved to `build/live/socket/`, and every frame that
@@ -38,7 +39,11 @@ fn connect(app_token: String, router: app.App) -> Nil {
     }
     Ok(opened) -> {
       let done = process.new_subject()
-      let url = case opened.url {
+      let opened_url = case env.getenv("SLACKLINE_DEBUG_RECONNECTS") {
+        Ok(_) -> opened.url <> "&debug_reconnects=true"
+        Error(Nil) -> opened.url
+      }
+      let url = case opened_url {
         "wss://" <> rest -> "https://" <> rest
         "ws://" <> rest -> "http://" <> rest
         url -> url

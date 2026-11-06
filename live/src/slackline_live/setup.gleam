@@ -15,6 +15,7 @@
 import argv
 import gleam/io
 import gleam/json
+import gleam/list
 import gleam/option.{Some}
 import gleam/string
 import slackline
@@ -134,8 +135,8 @@ pub fn install_url(app: env.AppInfo) -> String {
   oauth.authorize_url(
     oauth.Authorize(
       ..oauth.authorize(client_id: app.client_id),
-      scopes: bot_scopes,
-      user_scopes: user_scopes,
+      scopes: list.unique(bot_scopes),
+      user_scopes: list.unique(user_scopes),
       redirect_uri: Some(env.public_url <> "/oauth/callback"),
       state: Some(oauth.sign_state(app.signing_secret)),
     ),
@@ -152,7 +153,9 @@ const bot_scopes = [
   "reactions:write", "team:read", "usergroups:read", "users.profile:read",
   "users:read", "users:read.email", "canvases:read", "canvases:write",
   "calls:read", "calls:write", "remote_files:read", "remote_files:write",
-  "remote_files:share", "users:write",
+  "remote_files:share", "users:write", "usergroups:write", "groups:read",
+  "channels:write.topic", "groups:write.topic", "assistant:write",
+  "incoming-webhook", "emoji:read", "team.preferences:read",
 ]
 
 const user_scopes = [
@@ -161,7 +164,9 @@ const user_scopes = [
   "im:read", "mpim:history", "mpim:read", "pins:read", "reactions:read",
   "reminders:read", "search:read", "stars:read", "team:read", "usergroups:read",
   "users.profile:read", "users:read", "reminders:write", "dnd:write",
-  "stars:write",
+  "stars:write", "users.profile:write", "users:write", "channels:write.topic",
+  "usergroups:write", "files:write", "canvases:write", "chat:write",
+  "channels:write", "groups:write", "im:write", "mpim:write",
 ]
 
 /// Decodes the manifest with slackline's types, then encodes it again, so
@@ -183,7 +188,7 @@ fn manifest_json(socket: Bool) -> String {
       False -> [#(key, json.string(url)), ..entries]
     }
   }
-  let scopes = fn(list) { json.array(list, json.string) }
+  let scopes = fn(list) { json.array(list.unique(list), json.string) }
   json.object([
     #(
       "_metadata",
@@ -212,6 +217,15 @@ fn manifest_json(socket: Bool) -> String {
             #("home_tab_enabled", json.bool(True)),
             #("messages_tab_enabled", json.bool(True)),
             #("messages_tab_read_only_enabled", json.bool(False)),
+          ]),
+        ),
+        #(
+          "assistant_view",
+          json.object([
+            #(
+              "assistant_description",
+              json.string("Exercises slackline's assistant methods"),
+            ),
           ]),
         ),
         #(
@@ -281,7 +295,17 @@ fn manifest_json(socket: Bool) -> String {
                   "app_home_opened", "app_mention", "channel_created",
                   "link_shared", "member_joined_channel", "message.channels",
                   "message.groups", "message.im", "pin_added", "reaction_added",
-                  "reaction_removed",
+                  "reaction_removed", "member_left_channel", "channel_rename",
+                  "channel_archive", "channel_unarchive", "channel_left",
+                  "channel_deleted", "channel_history_changed", "pin_removed",
+                  "file_shared", "file_created", "file_deleted", "file_public",
+                  "file_change", "file_unshared", "subteam_created",
+                  "subteam_updated", "subteam_members_changed", "user_change",
+                  "team_join", "emoji_changed", "dnd_updated_user",
+                  "app_uninstalled", "tokens_revoked", "group_rename",
+                  "assistant_thread_started", "assistant_thread_context_changed",
+                  "message.mpim", "app_home_opened", "user_profile_changed",
+                  "call_rejected", "channel_id_changed", "channel_shared",
                 ]),
               ),
             ],

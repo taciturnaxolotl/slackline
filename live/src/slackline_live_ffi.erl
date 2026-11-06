@@ -1,5 +1,5 @@
 -module(slackline_live_ffi).
--export([getenv/1, write_file/2, read_file/1, halt/1, unique/0]).
+-export([getenv/1, write_file/2, read_file/1, halt/1, unique/0, list_files/1]).
 
 getenv(Name) ->
     case os:getenv(binary_to_list(Name)) of
@@ -23,3 +23,10 @@ read_file(Path) ->
     end.
 
 unique() -> erlang:unique_integer([positive, monotonic]).
+
+list_files(Dir) ->
+    case file:list_dir(Dir) of
+        {ok, Names} ->
+            lists:sort([unicode:characters_to_binary(filename:join(Dir, N)) || N <- Names]);
+        {error, _} -> []
+    end.
