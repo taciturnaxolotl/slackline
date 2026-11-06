@@ -19,9 +19,10 @@ import slackline.{type Call, type Client, type Error, type ResponseMetadata}
 pub fn send(call: Call(m, a), client: Client) -> Result(a, Error) {
   use response <- result.try(
     slackline.request(call, client)
-    |> httpc.send
+    |> httpc.send_bits
     |> result.map_error(slackline.transport_error),
   )
+  use response <- result.try(text(response))
   slackline.response(call, response)
 }
 
@@ -35,9 +36,10 @@ pub fn send_with(
 ) -> Result(a, Error) {
   use response <- result.try(
     slackline.request(call, client)
-    |> httpc.dispatch(config, _)
+    |> httpc.dispatch_bits(config, _)
     |> result.map_error(slackline.transport_error),
   )
+  use response <- result.try(text(response))
   slackline.response(call, response)
 }
 
@@ -98,4 +100,19 @@ pub fn webhook(url: String, body: json.Json) -> Result(Nil, Error) {
     |> result.map_error(slackline.transport_error),
   )
   slackline.webhook_response(response)
+}
+
+/// Slack answers Web API calls with json, so a body that is not UTF-8 is
+/// unexpected.
+fn text(
+  response: response.Response(BitArray),
+) -> Result(response.Response(String), Error) {
+  case bit_array.to_string(response.body) {
+    Ok(body) -> Ok(response.set_body(response, body))
+    Error(Nil) ->
+      Error(slackline.UnexpectedResponse(
+        status: response.status,
+        body: "a body that is not UTF-8",
+      ))
+  }
 }

@@ -12,6 +12,7 @@ import gleam/bit_array
 import gleam/int
 import gleam/io
 import gleam/json
+import gleam/list
 import gleam/option.{None, Some}
 import gleam/string
 import slackline.{type Client}
@@ -29,9 +30,12 @@ import slackline/api/conversations/kick
 import slackline/api/dnd
 import slackline/api/files
 import slackline/api/files/complete_upload_external
+import slackline/api/files/remote_add
 import slackline/api/files/remote_info
 import slackline/api/files/remote_remove
+import slackline/api/files/remote_share
 import slackline/api/files/remote_update
+import slackline/api/files/upload
 import slackline/api/team
 import slackline/api/usergroups
 import slackline/api/usergroups/create as usergroups_create
@@ -59,7 +63,7 @@ pub fn main() -> Nil {
   usergroup(user, tokens, n)
   profile(user, tokens)
   public_file(bot, user, posts)
-  remote_file(bot, n)
+  remote_file(bot, n, posts)
   Nil
 }
 
@@ -367,35 +371,74 @@ fn public_file(bot: Client, user: Client, channel: String) -> Nil {
   Nil
 }
 
-fn remote_file(bot: Client, n: String) -> Nil {
+fn remote_file(bot: Client, n: String, channel: String) -> Nil {
   let id = "slackline-life-" <> n
+  let assert Ok(png) = bit_array.base64_decode(pink_png)
+  let preview =
+    slackline.FileUpload(
+      filename: "preview.png",
+      content_type: "image/png",
+      contents: png,
+    )
+  let terms =
+    slackline.FileUpload(
+      filename: "terms.txt",
+      content_type: "text/plain",
+      contents: <<"gleam slackline multipart":utf8>>,
+    )
   let _ =
     files.remote_add(
       external_id: id,
       external_url: "https://gleam.run",
       title: "before",
     )
+    |> remote_add.preview_image(preview)
+    |> remote_add.indexable_file_contents(terms)
     |> httpc.send(bot)
-    |> show("files.remote.add")
+    |> show("files.remote.add (multipart)")
   let _ =
     files.remote_update()
     |> remote_update.external_id(id)
     |> remote_update.title("after")
+    |> remote_update.preview_image(preview)
     |> httpc.send(bot)
-    |> show("files.remote.update")
+    |> show("files.remote.update (multipart)")
   let _ =
+    files.remote_share(channels: [channel])
+    |> remote_share.external_id(id)
+    |> httpc.send(bot)
+    |> show("files.remote.share")
+  case
     files.remote_info()
     |> remote_info.external_id(id)
     |> httpc.send(bot)
     |> show("files.remote.info")
+  {
+    Ok(files.RemoteInfoResponse(file: Some(found))) ->
+      io.println(
+        "         preview kept: "
+        <> string.inspect(option.is_some(found.thumb_64)),
+      )
+    _ -> Nil
+  }
   let _ =
     files.remote_remove()
     |> remote_remove.external_id(id)
     |> httpc.send(bot)
     |> show("files.remote.remove")
-  let _ = auth.test_
+  let _ =
+    files.upload()
+    |> upload.file(terms)
+    |> upload.channels([channel])
+    |> httpc.send(bot)
+    |> show("files.upload (multipart, retired)")
   Nil
 }
+
+/// A 400 by 300 pink checkerboard PNG for multipart uploads. Slack rejects
+/// smaller previews, such as 256 by 256, with `invalid_preview_dimensions`.
+const pink_png =
+  "iVBORw0KGgoAAAANSUhEUgAAAZAAAAEsCAIAAABi1XKVAAAHO0lEQVR42u3UQQ0AIAwEQWTjCnEIAAX0Sy+ZpAqmmxtn7o63Wh4rVqy+3oAlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWMJixYqVwRIWK1asDJawWLEyWMJixYqVwRIWK1as3oPlhXJnxSrEymAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihWrYrC8UO6sWIVYGSxhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJVDJYXyp0VqxArgyUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqyKwfJCubNiFWJlsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFilUxWF4od1asQqwMlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymAJixUrVgZLWKxYsTJYwmLFymAJixUrVgZLWKxYsXreBePHN2NOUzi7AAAAAElFTkSuQmCC"
 
 fn show(
   result: Result(a, slackline.Error),

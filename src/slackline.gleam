@@ -44,6 +44,7 @@
 ////
 //// `httpc.fold_pages` and `fetch.fold_pages` do the whole loop.
 
+import gleam/bit_array
 import gleam/dynamic/decode.{type Decoder}
 import gleam/http
 import gleam/http/request.{type Request}
@@ -55,6 +56,8 @@ import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import gleam/uri
+import multipartkit
+import multipartkit/form
 import slackline/value.{type Value}
 
 /// The default Web API base url.
@@ -118,8 +121,22 @@ pub opaque type Call(method, a) {
   Call(
     method: String,
     params: List(#(String, String)),
+    files: List(#(String, FileUpload)),
     decoder: Decoder(a),
     authenticated: Bool,
+  )
+}
+
+/// File contents a call sends as a `multipart/form-data` part, such as the
+/// `image` of `users.setPhoto`. For ordinary file sharing use
+/// `files.getUploadURLExternal` instead, which takes plain bytes.
+pub type FileUpload {
+  FileUpload(
+    /// The name Slack shows for the file, such as `"avatar.png"`.
+    filename: String,
+    /// The media type, such as `"image/png"`.
+    content_type: String,
+    contents: BitArray,
   )
 }
 
@@ -131,7 +148,7 @@ pub fn call(
   params: List(#(String, String)),
   decoder: Decoder(a),
 ) -> Call(method, a) {
-  Call(method:, params:, decoder:, authenticated: True)
+  Call(method:, params:, files: [], decoder:, authenticated: True)
 }
 
 @internal
@@ -166,6 +183,21 @@ pub fn with_param(call: Call(m, a), key: String, value: String) -> Call(m, a) {
   Call(..call, params: list.key_set(call.params, key, value))
 }
 
+/// Adds or replaces a file argument. A call with files is sent as
+/// `multipart/form-data` instead of a urlencoded form.
+pub fn with_file(
+  call: Call(m, a),
+  key: String,
+  file: FileUpload,
+) -> Call(m, a) {
+  Call(..call, files: list.key_set(call.files, key, file))
+}
+
+/// The file arguments a call will send.
+pub fn files(call: Call(m, a)) -> List(#(String, FileUpload)) {
+  call.files
+}
+
 /// Transforms the decoded response.
 pub fn map(call: Call(m, a), with transform: fn(a) -> b) -> Call(m, b) {
   Call(..call, decoder: decode.map(call.decoder, transform))
@@ -176,9 +208,30 @@ pub fn decode_with(call: Call(m, a), decoder: Decoder(b)) -> Call(m, b) {
   Call(
     method: call.method,
     params: call.params,
+    files: call.files,
     decoder:,
     authenticated: call.authenticated,
   )
+}
+
+fn body(call: Call(m, a)) -> #(String, BitArray) {
+  case call.files {
+    [] -> #(
+      "application/x-www-form-urlencoded",
+      bit_array.from_string(uri.query_to_string(call.params)),
+    )
+    files -> {
+      let form =
+        list.fold(call.params, form.new(), fn(form, param) {
+          form.add_field(form, name: param.0, value: param.1)
+        })
+      list.fold(files, form, fn(form, entry) {
+        let #(name, FileUpload(filename:, content_type:, contents:)) = entry
+        form.add_file(form, name:, filename:, content_type:, body: contents)
+      })
+      |> multipartkit.encode_form
+    }
+  }
 }
 
 /// Everything that can go wrong calling the Web API.
@@ -198,17 +251,19 @@ pub type Error {
   TransportError(reason: String)
 }
 
-/// The HTTP request for a call.
-pub fn request(call: Call(m, a), client: Client) -> Request(String) {
+/// The HTTP request for a call. Calls without files are a urlencoded form;
+/// calls with files are `multipart/form-data`.
+pub fn request(call: Call(m, a), client: Client) -> Request(BitArray) {
   let assert Ok(base) =
     request.from_uri(
       uri.Uri(..client.base, path: client.base.path <> call.method),
     )
+  let #(content_type, body) = body(call)
   let base =
     base
     |> request.set_method(http.Post)
-    |> request.set_header("content-type", "application/x-www-form-urlencoded")
-    |> request.set_body(uri.query_to_string(call.params))
+    |> request.set_header("content-type", content_type)
+    |> request.set_body(body)
   let base =
     list.fold(list.reverse(client.headers), base, fn(acc, header) {
       request.set_header(acc, header.0, header.1)

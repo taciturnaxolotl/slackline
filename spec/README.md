@@ -167,8 +167,11 @@ method chat.postMessage {
 
 Types: `String`, `Int` (accepts numeric strings), `Float` (accepts
 integers), `Bool`, `Value` (any json), `List(T)`, `Dict(T)` (string keys),
-`List(T?)` / `Dict(T?)` (items that may be json `null`, as `Option(T)`), `ResponseMetadata` (from the
-hand-written `slackline` module), and any declared name. A type name may
+`List(T?)` / `Dict(T?)` (items that may be json `null`, as `Option(T)`),
+`ResponseMetadata` (from the hand-written `slackline` module), `Upload`
+(file contents, as `slackline.FileUpload`) and any declared name. `Upload`
+is only allowed for optional method arguments. Its setter adds a file part,
+and a call with a file part is sent as `multipart/form-data`. A type name may
 only be declared once across all specs, so each concept has one type. The
 generator rejects a second declaration. A bare name resolves to the type of
 that name in any module except an `api/*` module. A type declared in an

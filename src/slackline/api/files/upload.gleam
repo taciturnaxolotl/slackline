@@ -31,6 +31,14 @@ pub fn content(
   slackline.with_param(call, "content", content)
 }
 
+/// The file contents. Send this or `content`.
+pub fn file(
+  call: slackline.Call(files.Upload, r),
+  file: slackline.FileUpload,
+) -> slackline.Call(files.Upload, r) {
+  slackline.with_file(call, "file", file)
+}
+
 /// Filename of file.
 pub fn filename(
   call: slackline.Call(files.Upload, r),

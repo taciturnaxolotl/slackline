@@ -2,7 +2,10 @@ import gleam/dynamic/decode
 import gleam/http/request
 import gleam/http/response
 import gleam/option
+import gleam/string
 import gleeunit
+import multipartkit
+import multipartkit/part
 import slackline
 import slackline/value
 
@@ -99,4 +102,49 @@ pub fn describe_error_test() {
       value.Null,
     ))
     == "slack api error: not_in_channel"
+}
+
+pub fn urlencoded_body_test() {
+  let call = slackline.raw("chat.postMessage", [#("text", "a b&c")])
+  let req = slackline.request(call, slackline.new("xoxb-1"))
+  assert request.get_header(req, "content-type")
+    == Ok("application/x-www-form-urlencoded")
+  assert req.body == <<"text=a%20b%26c":utf8>>
+}
+
+pub fn multipart_body_test() {
+  let png = <<137, 80, 78, 71, 0, 255>>
+  let call =
+    slackline.raw("users.setPhoto", [#("crop_w", "100")])
+    |> slackline.with_file(
+      "image",
+      slackline.FileUpload(
+        filename: "avatar.png",
+        content_type: "image/png",
+        contents: png,
+      ),
+    )
+  let req = slackline.request(call, slackline.new("xoxb-1"))
+  let assert Ok(content_type) = request.get_header(req, "content-type")
+  assert string.starts_with(content_type, "multipart/form-data; boundary=")
+  let assert Ok([field, file]) = multipartkit.parse(req.body, content_type)
+  assert part.name(field) == option.Some("crop_w")
+  assert part.body(field) == <<"100":utf8>>
+  assert part.name(file) == option.Some("image")
+  assert part.filename(file) == option.Some("avatar.png")
+  assert part.content_type(file) == option.Some("image/png")
+  assert part.body(file) == png
+}
+
+pub fn with_file_replaces_test() {
+  let file = fn(name) {
+    slackline.FileUpload(filename: name, content_type: "text/plain", contents: <<
+      name:utf8,
+    >>)
+  }
+  let call =
+    slackline.raw("files.upload", [])
+    |> slackline.with_file("file", file("a.txt"))
+    |> slackline.with_file("file", file("b.txt"))
+  assert slackline.files(call) == [#("file", file("b.txt"))]
 }

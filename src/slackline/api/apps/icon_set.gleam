@@ -7,18 +7,18 @@
 ////
 //// ```gleam
 //// apps.icon_set(app_id: "app_id")
-//// |> icon_set.file("file")
+//// |> icon_set.file(file)
 //// ```
 
 import slackline
 import slackline/api/apps
 
-/// File contents via `multipart/form-data`
+/// The new app icon.
 pub fn file(
   call: slackline.Call(apps.IconSet, r),
-  file: String,
+  file: slackline.FileUpload,
 ) -> slackline.Call(apps.IconSet, r) {
-  slackline.with_param(call, "file", file)
+  slackline.with_file(call, "file", file)
 }
 
 /// URL of a publicly hosted image

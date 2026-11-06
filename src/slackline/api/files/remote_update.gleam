@@ -45,6 +45,22 @@ pub fn filetype(
   slackline.with_param(call, "filetype", filetype)
 }
 
+/// A text file of search terms that improve discovery of the file.
+pub fn indexable_file_contents(
+  call: slackline.Call(files.RemoteUpdate, r),
+  indexable_file_contents: slackline.FileUpload,
+) -> slackline.Call(files.RemoteUpdate, r) {
+  slackline.with_file(call, "indexable_file_contents", indexable_file_contents)
+}
+
+/// A preview image of the document.
+pub fn preview_image(
+  call: slackline.Call(files.RemoteUpdate, r),
+  preview_image: slackline.FileUpload,
+) -> slackline.Call(files.RemoteUpdate, r) {
+  slackline.with_file(call, "preview_image", preview_image)
+}
+
 /// Title of the file being shared.
 pub fn title(
   call: slackline.Call(files.RemoteUpdate, r),

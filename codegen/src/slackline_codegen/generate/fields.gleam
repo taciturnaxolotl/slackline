@@ -32,6 +32,54 @@ pub fn prepare(
   tag: Option(String),
   scope: Scope,
 ) -> Result(List(PField), String) {
+  use prepared <- result.try(prepare_any(fields, context, tag, scope))
+  case list.find(prepared, holds_file) {
+    Ok(field) ->
+      Error(
+        context
+        <> "."
+        <> field.key
+        <> ": Upload is only for method arguments",
+      )
+    Error(Nil) -> Ok(prepared)
+  }
+}
+
+/// Like `prepare`, for method arguments, which may be `Upload` but not hold
+/// one inside a list or dict.
+pub fn prepare_args(
+  fields: List(Field),
+  context: String,
+  scope: Scope,
+) -> Result(List(PField), String) {
+  use prepared <- result.try(prepare_any(fields, context, None, scope))
+  let nested =
+    list.find(prepared, fn(field) {
+      case field {
+        PField(type_: types.RFile, ..) -> False
+        _ -> holds_file(field)
+      }
+    })
+  case nested {
+    Ok(field) ->
+      Error(context <> "." <> field.key <> ": Upload cannot be inside a type")
+    Error(Nil) -> Ok(prepared)
+  }
+}
+
+fn holds_file(field: PField) -> Bool {
+  case field {
+    PField(type_:, ..) -> types.contains_file(type_)
+    PConst(..) -> False
+  }
+}
+
+fn prepare_any(
+  fields: List(Field),
+  context: String,
+  tag: Option(String),
+  scope: Scope,
+) -> Result(List(PField), String) {
   use named <- result.try(check_names(fields, context))
   list.try_map(named, fn(entry) {
     case entry {

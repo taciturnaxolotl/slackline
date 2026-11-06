@@ -28,6 +28,9 @@ pub type Resolved {
   RNullable(Resolved)
   /// A declared type: the module it lives in and its bare name.
   RNamed(path: String, name: String, kind: Kind)
+  /// `Upload`: file contents sent as a `multipart/form-data` part. Only
+  /// optional method arguments can have it.
+  RFile
 }
 
 /// What renderers need to know about where they are rendering.
@@ -83,7 +86,8 @@ pub fn resolve(
     "Float", [] -> Ok(RFloat)
     "Bool", [] -> Ok(RBool)
     "Value", [] -> Ok(RValue)
-    "String", _ | "Int", _ | "Float", _ | "Bool", _ | "Value", _ ->
+    "Upload", [] -> Ok(RFile)
+    "String", _ | "Int", _ | "Float", _ | "Bool", _ | "Value", _ | "Upload", _ ->
       Error(context <> ": " <> name <> " takes no type arguments")
     _, _ -> {
       use #(path, item) <- result.map(registry.lookup(
@@ -134,6 +138,7 @@ pub fn gleam_type(type_: Resolved, scope: Scope) -> String {
     RBool -> "Bool"
     RNamed(path, name, _) if path == scope.module_path -> name
     RNamed(path, name, _) -> alias(scope, path) <> "." <> name
+    RFile -> alias(scope, "slackline") <> ".FileUpload"
   }
 }
 
@@ -171,6 +176,7 @@ pub fn decoder(type_: Resolved, scope: Scope) -> String {
       if path == scope.module_path
     -> "decode.recursive(" <> names.snake(name) <> "_decoder)"
     RNamed(path, name, _) -> qualified(path, name, "_decoder", scope) <> "()"
+    RFile -> panic as "Upload is only for method arguments"
   }
 }
 
@@ -187,13 +193,14 @@ pub fn encoder(type_: Resolved, scope: Scope) -> String {
     RNullable(inner) ->
       codec(scope) <> ".nullable(" <> encoder(inner, scope) <> ")"
     RNamed(path, name, _) -> qualified(path, name, "_to_json", scope)
+    RFile -> panic as "Upload is only for method arguments"
   }
 }
 
 /// An expression of type `json.Json` that encodes `variable`.
 pub fn to_json(type_: Resolved, variable: String, scope: Scope) -> String {
   case type_ {
-    RString | RInt | RBool | RFloat | RValue | RNamed(..) ->
+    RString | RInt | RBool | RFloat | RValue | RNamed(..) | RFile ->
       encoder(type_, scope) <> "(" <> variable <> ")"
     RList(inner) ->
       "json.array(" <> variable <> ", " <> encoder(inner, scope) <> ")"
@@ -230,6 +237,11 @@ pub fn form_encoder(
   let json = encoding == Some(ir.JsonEncoding)
   let comma = encoding == Some(ir.CommaEncoding)
   case type_, json {
+    RFile, _ ->
+      Error(
+        scope.module_path
+        <> ": an Upload argument must be optional, so a setter sends it",
+      )
     RString, False -> Ok(Identity)
     RInt, False -> Ok(Call(codec <> ".form_int"))
     RFloat, False -> Ok(Call(codec <> ".form_float"))
@@ -271,6 +283,15 @@ pub fn form_value(
 
 fn comma_error(scope: Scope) -> Result(a, String) {
   Error(scope.module_path <> ": comma encoding only works for lists of scalars")
+}
+
+/// Whether a resolved type is or holds `File`.
+pub fn contains_file(type_: Resolved) -> Bool {
+  case type_ {
+    RFile -> True
+    RList(inner) | RDict(inner) | RNullable(inner) -> contains_file(inner)
+    _ -> False
+  }
 }
 
 /// The modules of the declared types a resolved type mentions.

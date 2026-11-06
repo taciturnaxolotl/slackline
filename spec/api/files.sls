@@ -97,8 +97,10 @@ method files.list {
 /// slackline cannot send yet, so they are left out.
 method files.remote.add {
   args {
-    -indexable_file_contents
-    -preview_image
+    /// A text file of search terms that improve discovery of the file.
+    indexable_file_contents: Upload?
+    /// A preview image of the document.
+    preview_image: Upload?
   }
   response {
     /// The remote file.
@@ -140,8 +142,10 @@ method files.remote.share {
 /// slackline cannot send yet, so they are left out.
 method files.remote.update {
   args {
-    -indexable_file_contents
-    -preview_image
+    /// A text file of search terms that improve discovery of the file.
+    indexable_file_contents: Upload?
+    /// A preview image of the document.
+    preview_image: Upload?
   }
   response {
     /// The updated remote file.
@@ -169,7 +173,8 @@ method files.sharedPublicURL {
 /// `get_upload_url_external` and `complete_upload_external`.
 method files.upload {
   args {
-    -file
+    /// The file contents. Send this or `content`.
+    file: Upload?
     /// Channel names or IDs where the file will be shared.
     channels: List(String)? comma
   }

@@ -19,7 +19,7 @@ import slackline.{type Call, type Client, type Error, type ResponseMetadata}
 @external(erlang, "slackline_ffi", "javascript_only")
 pub fn send(call: Call(m, a), client: Client) -> Promise(Result(a, Error)) {
   slackline.request(call, client)
-  |> fetch.send
+  |> fetch.send_bits
   |> promise.try_await(fetch.read_text_body)
   |> promise.map(fn(result) {
     result

@@ -13,6 +13,8 @@ import slackline/api/chat
 import slackline/api/chat/post_message
 import slackline/api/conversations
 import slackline/api/conversations/list as conversations_list
+import slackline/api/users
+import slackline/api/users/set_photo
 import slackline/api/views
 import slackline/api/views/open
 import slackline/app
@@ -180,4 +182,34 @@ pub fn pagination_test() {
   let assert Some(next) = slackline.next_page(first, Some(metadata))
   assert slackline.params(next)
     == [#("limit", "200"), #("cursor", "dGVhbTpDMDYxRkE1UEI=")]
+}
+
+pub fn set_photo(
+  user_client: slackline.Client,
+  png: BitArray,
+) -> Result(Nil, slackline.Error) {
+  users.set_photo()
+  |> set_photo.image(slackline.FileUpload(
+    filename: "avatar.png",
+    content_type: "image/png",
+    contents: png,
+  ))
+  |> httpc.send(user_client)
+}
+
+pub fn file_argument_test() {
+  let call =
+    users.set_photo()
+    |> set_photo.image(
+      slackline.FileUpload(
+        filename: "avatar.png",
+        content_type: "image/png",
+        contents: <<1, 2, 3>>,
+      ),
+    )
+  let assert [#("image", slackline.FileUpload(filename: "avatar.png", ..))] =
+    slackline.files(call)
+  let req = slackline.request(call, slackline.new("xoxp-1"))
+  let assert Ok("multipart/form-data; boundary=" <> _) =
+    request.get_header(req, "content-type")
 }

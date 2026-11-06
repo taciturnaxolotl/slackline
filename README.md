@@ -143,6 +143,25 @@ conversations.list()
 )
 ```
 
+### File arguments
+
+A few methods take file contents, such as `users.setPhoto` and the preview of `files.remote.add`. Their setters take a `slackline.FileUpload`, and the call is sent as `multipart/form-data`:
+
+```gleam
+import slackline/api/users
+import slackline/api/users/set_photo
+
+users.set_photo()
+|> set_photo.image(slackline.FileUpload(
+  filename: "avatar.png",
+  content_type: "image/png",
+  contents: png,
+))
+|> httpc.send(user_client)
+```
+
+To share a file in a conversation, use `files.getUploadURLExternal`, `httpc.upload` and `files.completeUploadExternal` instead.
+
 ---
 
 The canonical repo for this is hosted on tangled over at [`https://tangled.org/dunkirk.sh/slackline`](https://tangled.org/dunkirk.sh/slackline)

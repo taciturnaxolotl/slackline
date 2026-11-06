@@ -218,7 +218,7 @@ pub fn render(
     None -> #([], None, "")
   }
   use merged <- result.try(merge_args(docs, spec_args, context))
-  use args <- result.try(fields.prepare(merged, context, None, scope))
+  use args <- result.try(fields.prepare_args(merged, context, scope))
   use response <- result.try(case spec_response {
     None -> Ok(RawResponse)
     Some(ir.ResponseType(ir.TypeExpr("Nil", _))) -> Ok(NilResponse)
@@ -392,11 +392,14 @@ pub fn setter_lines(
   let call_type = slackline <> ".Call(" <> phantom <> ", r)"
   list.try_map(optional, fn(arg) {
     let gleam = fields.gleam_name(arg)
-    use #(key, value) <- result.map(form_entry(
-      arg,
-      setter_variable(gleam),
-      scope,
-    ))
+    let #(add, entry) = case arg {
+      fields.PField(key:, type_: types.RFile, ..) -> #(
+        "with_file",
+        Ok(#(key, setter_variable(gleam))),
+      )
+      _ -> #("with_param", form_entry(arg, setter_variable(gleam), scope))
+    }
+    use #(key, value) <- result.map(entry)
     let type_ = case arg {
       fields.PField(type_:, ..) -> types.gleam_type(type_, scope)
       fields.PConst(..) -> "String"
@@ -416,7 +419,9 @@ pub fn setter_lines(
           <> call_type
           <> " {",
         slackline
-          <> ".with_param(call, "
+          <> "."
+          <> add
+          <> "(call, "
           <> names.gleam_string(key)
           <> ", "
           <> value

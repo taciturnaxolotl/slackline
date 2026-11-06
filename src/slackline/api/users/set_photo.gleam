@@ -37,3 +37,11 @@ pub fn crop_y(
 ) -> slackline.Call(users.SetPhoto, r) {
   slackline.with_param(call, "crop_y", codec.form_int(crop_y))
 }
+
+/// The new profile photo.
+pub fn image(
+  call: slackline.Call(users.SetPhoto, r),
+  image: slackline.FileUpload,
+) -> slackline.Call(users.SetPhoto, r) {
+  slackline.with_file(call, "image", image)
+}

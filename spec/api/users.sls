@@ -176,7 +176,8 @@ method users.setActive {
 /// send yet, so it is left out.
 method users.setPhoto {
   args {
-    -image
+    /// The new profile photo.
+    image: Upload?
     /// Width and height of the square crop box.
     crop_w: Int?
     /// X coordinate of the top-left corner of the crop box.

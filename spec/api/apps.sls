@@ -165,6 +165,10 @@ method apps.event.authorizations.list {
 }
 
 method apps.icon.set {
+  args {
+    /// The new app icon.
+    file: Upload?
+  }
   response Nil
 }
 
