@@ -1377,6 +1377,12 @@ pub type FileMode {
   HiddenByLimit
   /// `list`
   ListFile
+  /// A canvas.
+  Quip
+  /// An email forwarded into Slack.
+  Email
+  /// A deleted file that still has a placeholder in a conversation.
+  Tombstone
   /// A value that this version of slackline does not know.
   UnknownFileMode(String)
 }
@@ -1391,6 +1397,9 @@ pub fn file_mode_to_string(it: FileMode) -> String {
     FileAccess -> "file_access"
     HiddenByLimit -> "hidden_by_limit"
     ListFile -> "list"
+    Quip -> "quip"
+    Email -> "email"
+    Tombstone -> "tombstone"
     UnknownFileMode(other) -> other
   }
 }
@@ -1405,6 +1414,9 @@ pub fn file_mode_from_string(string: String) -> FileMode {
     "file_access" -> FileAccess
     "hidden_by_limit" -> HiddenByLimit
     "list" -> ListFile
+    "quip" -> Quip
+    "email" -> Email
+    "tombstone" -> Tombstone
     other -> UnknownFileMode(other)
   }
 }

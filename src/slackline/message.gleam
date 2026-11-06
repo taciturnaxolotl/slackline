@@ -516,6 +516,12 @@ pub type MessageSubtype {
   ThreadBroadcast
   /// `unpinned_item`
   UnpinnedItem
+  /// A reply from Slackbot, such as a custom response.
+  SlackbotResponse
+  /// A canvas tab in the channel was updated.
+  TabbedCanvasUpdated
+  /// A deleted thread parent that remains as a placeholder for its replies.
+  Tombstone
   /// A value that this version of slackline does not know.
   UnknownMessageSubtype(String)
 }
@@ -557,6 +563,9 @@ pub fn message_subtype_to_string(it: MessageSubtype) -> String {
     ReplyBroadcast -> "reply_broadcast"
     ThreadBroadcast -> "thread_broadcast"
     UnpinnedItem -> "unpinned_item"
+    SlackbotResponse -> "slackbot_response"
+    TabbedCanvasUpdated -> "tabbed_canvas_updated"
+    Tombstone -> "tombstone"
     UnknownMessageSubtype(other) -> other
   }
 }
@@ -598,6 +607,9 @@ pub fn message_subtype_from_string(string: String) -> MessageSubtype {
     "reply_broadcast" -> ReplyBroadcast
     "thread_broadcast" -> ThreadBroadcast
     "unpinned_item" -> UnpinnedItem
+    "slackbot_response" -> SlackbotResponse
+    "tabbed_canvas_updated" -> TabbedCanvasUpdated
+    "tombstone" -> Tombstone
     other -> UnknownMessageSubtype(other)
   }
 }

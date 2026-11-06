@@ -58,6 +58,8 @@ enum TeamProfileFieldType {
   "tags" as TagsField
   "text" as TextField
   "user" as UserField
+  # Not in the docs, seen in a live `team.profile.get`.
+  "file" as FileField
   .. UnknownTeamProfileFieldType
 }
 

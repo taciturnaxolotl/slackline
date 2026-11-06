@@ -178,6 +178,13 @@ enum MessageSubtype {
   reply_broadcast
   thread_broadcast
   unpinned_item
+  # The next two are not in the docs but appear in live history.
+  /// A reply from Slackbot, such as a custom response.
+  slackbot_response
+  /// A canvas tab in the channel was updated.
+  tabbed_canvas_updated
+  /// A deleted thread parent that remains as a placeholder for its replies.
+  tombstone
   .. UnknownMessageSubtype
 }
 

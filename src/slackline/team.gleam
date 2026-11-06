@@ -220,6 +220,8 @@ pub type TeamProfileFieldType {
   TextField
   /// `user`
   UserField
+  /// `file`
+  FileField
   /// A value that this version of slackline does not know.
   UnknownTeamProfileFieldType(String)
 }
@@ -234,6 +236,7 @@ pub fn team_profile_field_type_to_string(it: TeamProfileFieldType) -> String {
     TagsField -> "tags"
     TextField -> "text"
     UserField -> "user"
+    FileField -> "file"
     UnknownTeamProfileFieldType(other) -> other
   }
 }
@@ -250,6 +253,7 @@ pub fn team_profile_field_type_from_string(
     "tags" -> TagsField
     "text" -> TextField
     "user" -> UserField
+    "file" -> FileField
     other -> UnknownTeamProfileFieldType(other)
   }
 }

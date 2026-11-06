@@ -336,6 +336,13 @@ enum FileMode {
   file_access
   hidden_by_limit
   list as ListFile
+  # The next three are not in the docs but appear in live responses.
+  /// A canvas.
+  quip
+  /// An email forwarded into Slack.
+  email
+  /// A deleted file that still has a placeholder in a conversation.
+  tombstone
   .. UnknownFileMode
 }
 
