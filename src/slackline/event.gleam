@@ -3304,6 +3304,32 @@ pub type MessageEvent {
     assistant_app_thread: Option(message.AssistantAppThreadInfo),
     event_ts: Option(String),
   )
+  /// An app was added to the channel.
+  BotAddMessage(
+    channel: Option(String),
+    user: Option(String),
+    text: Option(String),
+    ts: String,
+    /// The app's bot ID.
+    bot_id: Option(String),
+    /// A Slack link to the app, as `<url|name>`.
+    bot_link: Option(String),
+    channel_type: Option(MessageChannelType),
+    event_ts: Option(String),
+  )
+  /// An app was removed from the channel.
+  BotRemoveMessage(
+    channel: Option(String),
+    user: Option(String),
+    text: Option(String),
+    ts: String,
+    /// The app's bot ID.
+    bot_id: Option(String),
+    /// A Slack link to the app, as `<url|name>`.
+    bot_link: Option(String),
+    channel_type: Option(MessageChannelType),
+    event_ts: Option(String),
+  )
   /// A message was posted by an integration.
   BotMessage(
     channel: Option(String),
@@ -3791,6 +3817,62 @@ pub fn message_event_decoder() -> decode.Decoder(MessageEvent) {
         team: v_team,
         blocks: v_blocks,
         assistant_app_thread: v_assistant_app_thread,
+        event_ts: v_event_ts,
+      ))
+    }
+    "bot_add" -> {
+      use _ <- decode.optional_field(
+        "type",
+        "message",
+        codec.constant("message"),
+      )
+      use v_channel <- codec.optional_field("channel", decode.string)
+      use v_user <- codec.optional_field("user", decode.string)
+      use v_text <- codec.optional_field("text", decode.string)
+      use v_ts <- decode.field("ts", decode.string)
+      use v_bot_id <- codec.optional_field("bot_id", decode.string)
+      use v_bot_link <- codec.optional_field("bot_link", decode.string)
+      use v_channel_type <- codec.optional_field(
+        "channel_type",
+        message_channel_type_decoder(),
+      )
+      use v_event_ts <- codec.optional_field("event_ts", decode.string)
+      decode.success(BotAddMessage(
+        channel: v_channel,
+        user: v_user,
+        text: v_text,
+        ts: v_ts,
+        bot_id: v_bot_id,
+        bot_link: v_bot_link,
+        channel_type: v_channel_type,
+        event_ts: v_event_ts,
+      ))
+    }
+    "bot_remove" -> {
+      use _ <- decode.optional_field(
+        "type",
+        "message",
+        codec.constant("message"),
+      )
+      use v_channel <- codec.optional_field("channel", decode.string)
+      use v_user <- codec.optional_field("user", decode.string)
+      use v_text <- codec.optional_field("text", decode.string)
+      use v_ts <- decode.field("ts", decode.string)
+      use v_bot_id <- codec.optional_field("bot_id", decode.string)
+      use v_bot_link <- codec.optional_field("bot_link", decode.string)
+      use v_channel_type <- codec.optional_field(
+        "channel_type",
+        message_channel_type_decoder(),
+      )
+      use v_event_ts <- codec.optional_field("event_ts", decode.string)
+      decode.success(BotRemoveMessage(
+        channel: v_channel,
+        user: v_user,
+        text: v_text,
+        ts: v_ts,
+        bot_id: v_bot_id,
+        bot_link: v_bot_link,
+        channel_type: v_channel_type,
         event_ts: v_event_ts,
       ))
     }
@@ -4802,6 +4884,58 @@ pub fn message_event_to_json(it: MessageEvent) -> json.Json {
           "assistant_app_thread",
           v_assistant_app_thread,
           message.assistant_app_thread_info_to_json,
+        ),
+        codec.optional("event_ts", v_event_ts, json.string),
+      ])
+    BotAddMessage(
+      channel: v_channel,
+      user: v_user,
+      text: v_text,
+      ts: v_ts,
+      bot_id: v_bot_id,
+      bot_link: v_bot_link,
+      channel_type: v_channel_type,
+      event_ts: v_event_ts,
+    ) ->
+      codec.object([
+        codec.field("subtype", json.string("bot_add")),
+        codec.field("type", json.string("message")),
+        codec.optional("channel", v_channel, json.string),
+        codec.optional("user", v_user, json.string),
+        codec.optional("text", v_text, json.string),
+        codec.field("ts", json.string(v_ts)),
+        codec.optional("bot_id", v_bot_id, json.string),
+        codec.optional("bot_link", v_bot_link, json.string),
+        codec.optional(
+          "channel_type",
+          v_channel_type,
+          message_channel_type_to_json,
+        ),
+        codec.optional("event_ts", v_event_ts, json.string),
+      ])
+    BotRemoveMessage(
+      channel: v_channel,
+      user: v_user,
+      text: v_text,
+      ts: v_ts,
+      bot_id: v_bot_id,
+      bot_link: v_bot_link,
+      channel_type: v_channel_type,
+      event_ts: v_event_ts,
+    ) ->
+      codec.object([
+        codec.field("subtype", json.string("bot_remove")),
+        codec.field("type", json.string("message")),
+        codec.optional("channel", v_channel, json.string),
+        codec.optional("user", v_user, json.string),
+        codec.optional("text", v_text, json.string),
+        codec.field("ts", json.string(v_ts)),
+        codec.optional("bot_id", v_bot_id, json.string),
+        codec.optional("bot_link", v_bot_link, json.string),
+        codec.optional(
+          "channel_type",
+          v_channel_type,
+          message_channel_type_to_json,
         ),
         codec.optional("event_ts", v_event_ts, json.string),
       ])
@@ -5903,6 +6037,10 @@ pub type AssistantThreadContext {
     channel_id: Option(String),
     team_id: Option(String),
     enterprise_id: Option(String),
+    /// Where the user opened the thread, such as `chat`.
+    thread_entry_point: Option(String),
+    /// Whether the user asked the assistant to search.
+    force_search: Option(Bool),
   )
 }
 
@@ -5913,10 +6051,17 @@ pub fn assistant_thread_context_decoder() -> decode.Decoder(
   use v_channel_id <- codec.optional_field("channel_id", decode.string)
   use v_team_id <- codec.optional_field("team_id", decode.string)
   use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
+  use v_thread_entry_point <- codec.optional_field(
+    "thread_entry_point",
+    decode.string,
+  )
+  use v_force_search <- codec.optional_field("force_search", decode.bool)
   decode.success(AssistantThreadContext(
     channel_id: v_channel_id,
     team_id: v_team_id,
     enterprise_id: v_enterprise_id,
+    thread_entry_point: v_thread_entry_point,
+    force_search: v_force_search,
   ))
 }
 
@@ -5928,6 +6073,8 @@ pub fn assistant_thread_context_to_json(
     codec.optional("channel_id", it.channel_id, json.string),
     codec.optional("team_id", it.team_id, json.string),
     codec.optional("enterprise_id", it.enterprise_id, json.string),
+    codec.optional("thread_entry_point", it.thread_entry_point, json.string),
+    codec.optional("force_search", it.force_search, json.bool),
   ])
 }
 

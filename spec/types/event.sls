@@ -791,6 +791,35 @@ union MessageEvent tag "subtype" optional {
     assistant_app_thread: AssistantAppThreadInfo?
     event_ts: String?
   }
+  # bot_add and bot_remove are not in the docs but appear in live history.
+  /// An app was added to the channel.
+  bot_add BotAddMessage {
+    type = "message"
+    channel: String?
+    user: String?
+    text: String?
+    ts: String
+    /// The app's bot ID.
+    bot_id: String?
+    /// A Slack link to the app, as `<url|name>`.
+    bot_link: String?
+    channel_type: MessageChannelType?
+    event_ts: String?
+  }
+  /// An app was removed from the channel.
+  bot_remove BotRemoveMessage {
+    type = "message"
+    channel: String?
+    user: String?
+    text: String?
+    ts: String
+    /// The app's bot ID.
+    bot_id: String?
+    /// A Slack link to the app, as `<url|name>`.
+    bot_link: String?
+    channel_type: MessageChannelType?
+    event_ts: String?
+  }
   /// A message was posted by an integration.
   bot_message BotMessage {
     type = "message"
@@ -1242,6 +1271,11 @@ record AssistantThreadContext {
   channel_id: String?
   team_id: String?
   enterprise_id: String?
+  # The next two are not in the docs but appear in live events.
+  /// Where the user opened the thread, such as `chat`.
+  thread_entry_point: String?
+  /// Whether the user asked the assistant to search.
+  force_search: Bool?
 }
 
 /// The partial channel in `channel_created`, `channel_rename` and `group_rename`.
