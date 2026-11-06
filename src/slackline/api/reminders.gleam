@@ -21,6 +21,8 @@ pub type ReminderFrequency {
   Monthly
   /// `yearly`
   Yearly
+  /// A value that this version of slackline does not know.
+  UnknownReminderFrequency(String)
 }
 
 /// The json string of `ReminderFrequency`.
@@ -30,29 +32,24 @@ pub fn reminder_frequency_to_string(it: ReminderFrequency) -> String {
     Weekly -> "weekly"
     Monthly -> "monthly"
     Yearly -> "yearly"
+    UnknownReminderFrequency(other) -> other
   }
 }
 
 /// Parses `ReminderFrequency` from its json string.
-pub fn reminder_frequency_from_string(
-  string: String,
-) -> Result(ReminderFrequency, Nil) {
+pub fn reminder_frequency_from_string(string: String) -> ReminderFrequency {
   case string {
-    "daily" -> Ok(Daily)
-    "weekly" -> Ok(Weekly)
-    "monthly" -> Ok(Monthly)
-    "yearly" -> Ok(Yearly)
-    _ -> Error(Nil)
+    "daily" -> Daily
+    "weekly" -> Weekly
+    "monthly" -> Monthly
+    "yearly" -> Yearly
+    other -> UnknownReminderFrequency(other)
   }
 }
 
 /// Decodes `ReminderFrequency` from a json string.
 pub fn reminder_frequency_decoder() -> decode.Decoder(ReminderFrequency) {
-  use string <- decode.then(decode.string)
-  case reminder_frequency_from_string(string) {
-    Ok(parsed) -> decode.success(parsed)
-    Error(Nil) -> decode.failure(Daily, "ReminderFrequency")
-  }
+  decode.map(decode.string, reminder_frequency_from_string)
 }
 
 /// Encodes `ReminderFrequency` as a json string.
@@ -76,6 +73,8 @@ pub type ReminderWeekday {
   Saturday
   /// `sunday`
   Sunday
+  /// A value that this version of slackline does not know.
+  UnknownReminderWeekday(String)
 }
 
 /// The json string of `ReminderWeekday`.
@@ -88,32 +87,27 @@ pub fn reminder_weekday_to_string(it: ReminderWeekday) -> String {
     Friday -> "friday"
     Saturday -> "saturday"
     Sunday -> "sunday"
+    UnknownReminderWeekday(other) -> other
   }
 }
 
 /// Parses `ReminderWeekday` from its json string.
-pub fn reminder_weekday_from_string(
-  string: String,
-) -> Result(ReminderWeekday, Nil) {
+pub fn reminder_weekday_from_string(string: String) -> ReminderWeekday {
   case string {
-    "monday" -> Ok(Monday)
-    "tuesday" -> Ok(Tuesday)
-    "wednesday" -> Ok(Wednesday)
-    "thursday" -> Ok(Thursday)
-    "friday" -> Ok(Friday)
-    "saturday" -> Ok(Saturday)
-    "sunday" -> Ok(Sunday)
-    _ -> Error(Nil)
+    "monday" -> Monday
+    "tuesday" -> Tuesday
+    "wednesday" -> Wednesday
+    "thursday" -> Thursday
+    "friday" -> Friday
+    "saturday" -> Saturday
+    "sunday" -> Sunday
+    other -> UnknownReminderWeekday(other)
   }
 }
 
 /// Decodes `ReminderWeekday` from a json string.
 pub fn reminder_weekday_decoder() -> decode.Decoder(ReminderWeekday) {
-  use string <- decode.then(decode.string)
-  case reminder_weekday_from_string(string) {
-    Ok(parsed) -> decode.success(parsed)
-    Error(Nil) -> decode.failure(Monday, "ReminderWeekday")
-  }
+  decode.map(decode.string, reminder_weekday_from_string)
 }
 
 /// Encodes `ReminderWeekday` as a json string.

@@ -10,6 +10,7 @@ enum ReminderFrequency {
   weekly
   monthly
   yearly
+  .. UnknownReminderFrequency
 }
 
 /// A day of the week for weekly reminders.
@@ -21,6 +22,7 @@ enum ReminderWeekday {
   friday
   saturday
   sunday
+  .. UnknownReminderWeekday
 }
 
 /// The repeating behavior of a reminder.
