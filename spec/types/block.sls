@@ -1380,6 +1380,16 @@ record DataVisualizationBlock {
   block_id: String?
 }
 
+/// A Call registered with `calls.add`. Only messages and `chat.unfurl` can
+/// show it.
+/// https://docs.slack.dev/apis/web-api/using-the-calls-api
+record CallBlock {
+  type = "call"
+  /// The Call ID that `calls.add` returned.
+  call_id: String
+  block_id: String?
+}
+
 /// A visual separator.
 /// https://docs.slack.dev/reference/block-kit/blocks/divider-block
 record DividerBlock {
@@ -1631,6 +1641,7 @@ record VideoBlock {
 union Block builders {
   actions Actions(ActionsBlock)
   alert Alert(AlertBlock)
+  call Call(CallBlock)
   card Card(CardBlock)
   carousel Carousel(CarouselBlock)
   container Container(ContainerBlock)

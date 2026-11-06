@@ -5219,6 +5219,34 @@ pub fn data_visualization_block_to_json(
   ])
 }
 
+/// A Call registered with `calls.add`. Only messages and `chat.unfurl` can
+/// show it.
+/// https://docs.slack.dev/apis/web-api/using-the-calls-api
+pub type CallBlock {
+  CallBlock(
+    /// The Call ID that `calls.add` returned.
+    call_id: String,
+    block_id: Option(String),
+  )
+}
+
+/// Decodes `CallBlock` from json.
+pub fn call_block_decoder() -> decode.Decoder(CallBlock) {
+  use _ <- decode.optional_field("type", "call", codec.constant("call"))
+  use v_call_id <- decode.field("call_id", decode.string)
+  use v_block_id <- codec.optional_field("block_id", decode.string)
+  decode.success(CallBlock(call_id: v_call_id, block_id: v_block_id))
+}
+
+/// Encodes `CallBlock` as json.
+pub fn call_block_to_json(it: CallBlock) -> json.Json {
+  codec.object([
+    codec.field("type", json.string("call")),
+    codec.field("call_id", json.string(it.call_id)),
+    codec.optional("block_id", it.block_id, json.string),
+  ])
+}
+
 /// A visual separator.
 /// https://docs.slack.dev/reference/block-kit/blocks/divider-block
 pub type DividerBlock {
@@ -6092,6 +6120,7 @@ pub fn video_block_to_json(it: VideoBlock) -> json.Json {
 pub type Block {
   Actions(ActionsBlock)
   Alert(AlertBlock)
+  Call(CallBlock)
   Card(CardBlock)
   Carousel(CarouselBlock)
   Container(ContainerBlock)
@@ -6126,6 +6155,7 @@ pub fn block_decoder() -> decode.Decoder(Block) {
   case tag {
     "actions" -> decode.map(decode.recursive(actions_block_decoder), Actions)
     "alert" -> decode.map(decode.recursive(alert_block_decoder), Alert)
+    "call" -> decode.map(decode.recursive(call_block_decoder), Call)
     "card" -> decode.map(decode.recursive(card_block_decoder), Card)
     "carousel" -> decode.map(decode.recursive(carousel_block_decoder), Carousel)
     "container" ->
@@ -6167,6 +6197,7 @@ pub fn block_to_json(it: Block) -> json.Json {
   case it {
     Actions(inner) -> actions_block_to_json(inner)
     Alert(inner) -> alert_block_to_json(inner)
+    Call(inner) -> call_block_to_json(inner)
     Card(inner) -> card_block_to_json(inner)
     Carousel(inner) -> carousel_block_to_json(inner)
     Container(inner) -> container_block_to_json(inner)
@@ -6228,6 +6259,18 @@ pub fn actions(
 /// Attributes: `alert.level`, `alert.block_id`.
 pub fn alert(text text: Text, with attrs: List(Attr(AlertBlock))) -> Block {
   Alert(apply(AlertBlock(text: text, level: None, block_id: None), attrs))
+}
+
+/// A Call registered with `calls.add`. Only messages and `chat.unfurl` can
+/// show it.
+/// https://docs.slack.dev/apis/web-api/using-the-calls-api
+///
+/// Attributes: `call.block_id`.
+pub fn call(
+  call_id call_id: String,
+  with attrs: List(Attr(CallBlock)),
+) -> Block {
+  Call(apply(CallBlock(call_id: call_id, block_id: None), attrs))
 }
 
 /// Displays content in a card. At least one of `hero_image`, `title`,

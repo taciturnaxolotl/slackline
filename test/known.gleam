@@ -68,7 +68,8 @@ pub fn block(value: Block) -> Bool {
       && optional(it.accessory, element)
     block.TaskCard(it) ->
       optional(it.details, rich_text) && optional(it.output, rich_text)
-    block.Divider(_)
+    block.Call(_)
+    | block.Divider(_)
     | block.File(_)
     | block.Header(_)
     | block.Image(_)
