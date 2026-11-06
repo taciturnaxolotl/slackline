@@ -55,6 +55,30 @@ pub fn fold_pages(
   }
 }
 
+/// Runs `run` again while Slack answers `RateLimited`, waiting the
+/// `retry_after` seconds Slack asks for each time. Gives up after
+/// `attempts` tries in total and returns the last result. Other errors
+/// return at once.
+///
+/// ```gleam
+/// use <- fetch.retrying(attempts: 3)
+/// chat.post_message(channel:, text: "hi") |> fetch.send(client)
+/// ```
+@external(erlang, "slackline_ffi", "javascript_only")
+pub fn retrying(
+  attempts attempts: Int,
+  run run: fn() -> Promise(Result(a, Error)),
+) -> Promise(Result(a, Error)) {
+  use result <- promise.await(run())
+  case result {
+    Error(slackline.RateLimited(retry_after:)) if attempts > 1 -> {
+      use Nil <- promise.await(promise.wait(retry_after * 1000))
+      retrying(attempts - 1, run)
+    }
+    result -> promise.resolve(result)
+  }
+}
+
 /// Uploads file contents to an `upload_url` from
 /// `files.getUploadURLExternal`.
 @external(erlang, "slackline_ffi", "javascript_only")

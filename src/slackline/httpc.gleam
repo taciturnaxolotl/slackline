@@ -74,6 +74,33 @@ pub fn fold_pages(
   }
 }
 
+/// Runs `run` again while Slack answers `RateLimited`, waiting the
+/// `retry_after` seconds Slack asks for each time. Gives up after
+/// `attempts` tries in total and returns the last result. Other errors
+/// return at once.
+///
+/// ```gleam
+/// use <- httpc.retrying(attempts: 3)
+/// chat.post_message(channel:, text: "hi") |> httpc.send(client)
+/// ```
+@external(javascript, "../slackline_ffi.mjs", "erlang_only")
+pub fn retrying(
+  attempts attempts: Int,
+  run run: fn() -> Result(a, Error),
+) -> Result(a, Error) {
+  case run() {
+    Error(slackline.RateLimited(retry_after:)) if attempts > 1 -> {
+      sleep(retry_after * 1000)
+      retrying(attempts - 1, run)
+    }
+    result -> result
+  }
+}
+
+@external(erlang, "slackline_ffi", "sleep")
+@external(javascript, "../slackline_ffi.mjs", "erlang_only")
+fn sleep(milliseconds: Int) -> Nil
+
 /// Uploads file contents to an `upload_url` from
 /// `files.getUploadURLExternal`.
 @external(javascript, "../slackline_ffi.mjs", "erlang_only")

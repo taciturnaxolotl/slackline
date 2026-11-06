@@ -13,6 +13,7 @@
 //// event request url when the app is created.
 
 import argv
+import gleam/int
 import gleam/io
 import gleam/json
 import gleam/list
@@ -22,6 +23,7 @@ import slackline
 import slackline/api/apps
 import slackline/api/oauth as oauth_api
 import slackline/api/oauth/v2_access
+import slackline/api/tooling
 import slackline/httpc
 import slackline/manifest
 import slackline/oauth
@@ -35,6 +37,7 @@ pub fn main() -> Nil {
       io.println(install_url(app))
     }
     _, ["exchange", code] -> exchange(code)
+    _, ["rotate"] -> rotate()
     Error(Nil), _ ->
       fail("Set SLACK_CONFIG_TOKEN to an app configuration token.")
     Ok(token), ["create"] -> create(slackline.new(token), False)
@@ -42,10 +45,48 @@ pub fn main() -> Nil {
     Ok(token), ["update"] -> update(slackline.new(token), False)
     Ok(token), ["update", "socket"] -> update(slackline.new(token), True)
     Ok(token), ["delete"] -> delete(slackline.new(token))
+    Ok(token), ["throwaway"] -> throwaway(slackline.new(token))
     _, _ ->
       fail(
-        "Usage: setup create [socket] | update [socket] | delete | url | exchange <code>",
+        "Usage: setup create [socket] | update [socket] | delete | url | exchange <code> | rotate",
       )
+  }
+}
+
+/// Exchanges `SLACK_CONFIG_REFRESH` for a new configuration token pair with
+/// `tooling.tokens.rotate` and rewrites the env file. Configuration tokens
+/// last twelve hours; the old refresh token stops working after this.
+fn rotate() -> Nil {
+  let assert Ok(refresh) = env.getenv("SLACK_CONFIG_REFRESH")
+  case
+    tooling.tokens_rotate(refresh_token: refresh)
+    |> httpc.send(slackline.anonymous())
+  {
+    Error(error) -> fail("rotate: " <> describe(error))
+    Ok(rotated) -> {
+      let path = env.state_dir() <> "/env"
+      let kept = case env.read_file(path) {
+        Ok(text) ->
+          string.split(text, "\n")
+          |> list.filter(fn(line) {
+            !string.starts_with(line, "export SLACK_CONFIG_TOKEN=")
+            && !string.starts_with(line, "export SLACK_CONFIG_REFRESH=")
+            && line != ""
+          })
+        Error(Nil) -> []
+      }
+      let lines = [
+        "export SLACK_CONFIG_TOKEN=" <> rotated.token,
+        "export SLACK_CONFIG_REFRESH=" <> rotated.refresh_token,
+        ..kept
+      ]
+      let assert Ok(Nil) =
+        env.write_file(path, string.join(lines, "\n") <> "\n")
+      io.println(
+        "rotated; expires at "
+        <> option.map(rotated.exp, int.to_string) |> option.unwrap("?"),
+      )
+    }
   }
 }
 
@@ -88,6 +129,35 @@ fn update(client: slackline.Client, socket: Bool) -> Nil {
     Ok(exported) ->
       io.println("exported: " <> value.to_string(exported.manifest))
     Error(error) -> fail("export: " <> describe(error))
+  }
+}
+
+/// Creates a minimal second app, exports it, then deletes it, so
+/// `apps.manifest.create`, `export` and `delete` run without touching the
+/// test app.
+fn throwaway(client: slackline.Client) -> Nil {
+  let manifest =
+    json.object([
+      #(
+        "display_information",
+        json.object([#("name", json.string("slackline throwaway"))]),
+      ),
+    ])
+    |> json.to_string
+  let assert Ok(manifest) = json.parse(manifest, value.decoder())
+  case apps.manifest_create(manifest:) |> httpc.send(client) {
+    Error(error) -> fail("create: " <> describe(error))
+    Ok(created) -> {
+      io.println("created " <> created.app_id)
+      case apps.manifest_export(app_id: created.app_id) |> httpc.send(client) {
+        Ok(_) -> io.println("exported " <> created.app_id)
+        Error(error) -> io.println("export: " <> describe(error))
+      }
+      case apps.manifest_delete(app_id: created.app_id) |> httpc.send(client) {
+        Ok(Nil) -> io.println("deleted " <> created.app_id)
+        Error(error) -> fail("delete: " <> describe(error))
+      }
+    }
   }
 }
 
@@ -156,6 +226,8 @@ const bot_scopes = [
   "remote_files:share", "users:write", "usergroups:write", "groups:read",
   "channels:write.topic", "groups:write.topic", "assistant:write",
   "incoming-webhook", "emoji:read", "team.preferences:read",
+  "search:read.public", "lists:read", "lists:write", "skills:read",
+  "skills:write", "team.billing:read",
 ]
 
 const user_scopes = [
@@ -167,6 +239,8 @@ const user_scopes = [
   "stars:write", "users.profile:write", "users:write", "channels:write.topic",
   "usergroups:write", "files:write", "canvases:write", "chat:write",
   "channels:write", "groups:write", "im:write", "mpim:write",
+  "search:read.public", "lists:read", "lists:write", "skills:read",
+  "skills:write", "team.billing:read",
 ]
 
 /// Decodes the manifest with slackline's types, then encodes it again, so

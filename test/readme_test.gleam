@@ -227,3 +227,11 @@ pub fn share_report(
     |> complete_upload_external.initial_comment("this week's report")
   })
 }
+
+pub fn post_with_retries(
+  client: slackline.Client,
+  channel: String,
+) -> Result(chat.PostMessageResponse, slackline.Error) {
+  use <- httpc.retrying(attempts: 3)
+  chat.post_message(channel:, text: "hi") |> httpc.send(client)
+}

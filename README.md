@@ -143,6 +143,15 @@ conversations.list()
 )
 ```
 
+### Rate limits
+
+A call Slack rate limits fails with `RateLimited(retry_after:)`. `httpc.retrying` (or `fetch.retrying`) runs it again after waiting that long:
+
+```gleam
+use <- httpc.retrying(attempts: 3)
+chat.post_message(channel:, text: "hi") |> httpc.send(client)
+```
+
 ### File arguments
 
 A few methods take file contents, such as `users.setPhoto` and the preview of `files.remote.add`. Their setters take a `slackline.FileUpload`, and the call is sent as `multipart/form-data`:
