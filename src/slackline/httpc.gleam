@@ -10,9 +10,11 @@ import gleam/bit_array
 import gleam/http/response
 import gleam/httpc
 import gleam/json
+import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/result
 import slackline.{type Call, type Client, type Error, type ResponseMetadata}
+import slackline/api/files
 
 /// Sends a call and decodes its response.
 @external(javascript, "../slackline_ffi.mjs", "erlang_only")
@@ -86,6 +88,48 @@ pub fn upload(upload_url: String, contents: BitArray) -> Result(Nil, Error) {
   )
   let body = bit_array.to_string(response.body) |> result.unwrap("")
   slackline.upload_response(response.set_body(response, body))
+}
+
+/// Uploads files and shares them in one message: the three steps of
+/// `files.getUploadURLExternal`, `upload` and `files.completeUploadExternal`.
+/// `share` adjusts the last call, for example to set the channel:
+///
+/// ```gleam
+/// httpc.upload_files(client, [report], share: fn(call) {
+///   call
+///   |> complete_upload_external.channel_id(channel)
+///   |> complete_upload_external.initial_comment("this week's report")
+/// })
+/// ```
+///
+/// Without a channel the files are uploaded but not shared. Each file's
+/// `content_type` is not sent; Slack detects the type. Run the three steps
+/// yourself for `alt_txt`, `snippet_type`, or to retry only the upload.
+@external(javascript, "../slackline_ffi.mjs", "erlang_only")
+pub fn upload_files(
+  client: Client,
+  uploads: List(slackline.FileUpload),
+  share share: fn(
+    Call(files.CompleteUploadExternal, files.CompleteUploadExternalResponse),
+  ) -> Call(files.CompleteUploadExternal, files.CompleteUploadExternalResponse),
+) -> Result(files.CompleteUploadExternalResponse, Error) {
+  use uploaded <- result.try(
+    list.try_map(uploads, fn(file) {
+      let slackline.FileUpload(filename:, contents:, ..) = file
+      use target <- result.try(
+        files.get_upload_url_external(
+          length: bit_array.byte_size(contents),
+          filename:,
+        )
+        |> send(client),
+      )
+      use Nil <- result.map(upload(target.upload_url, contents))
+      files.UploadedFile(id: target.file_id, title: Some(filename))
+    }),
+  )
+  files.complete_upload_external(files: uploaded)
+  |> share
+  |> send(client)
 }
 
 /// Posts a message to an incoming webhook or `response_url`.

@@ -13,6 +13,8 @@ import slackline/api/chat
 import slackline/api/chat/post_message
 import slackline/api/conversations
 import slackline/api/conversations/list as conversations_list
+import slackline/api/files
+import slackline/api/files/complete_upload_external
 import slackline/api/users
 import slackline/api/users/set_photo
 import slackline/api/views
@@ -212,4 +214,16 @@ pub fn file_argument_test() {
   let req = slackline.request(call, slackline.new("xoxp-1"))
   let assert Ok("multipart/form-data; boundary=" <> _) =
     request.get_header(req, "content-type")
+}
+
+pub fn share_report(
+  client: slackline.Client,
+  report: slackline.FileUpload,
+  channel: String,
+) -> Result(files.CompleteUploadExternalResponse, slackline.Error) {
+  httpc.upload_files(client, [report], share: fn(call) {
+    call
+    |> complete_upload_external.channel_id(channel)
+    |> complete_upload_external.initial_comment("this week's report")
+  })
 }

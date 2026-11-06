@@ -160,7 +160,19 @@ users.set_photo()
 |> httpc.send(user_client)
 ```
 
-To share a file in a conversation, use `files.getUploadURLExternal`, `httpc.upload` and `files.completeUploadExternal` instead.
+To share files in a conversation, use `httpc.upload_files` (or `fetch.upload_files`). It runs Slack's three upload steps, `files.getUploadURLExternal`, the byte upload and `files.completeUploadExternal`, and shares every file in one message:
+
+```gleam
+import slackline/api/files/complete_upload_external
+
+httpc.upload_files(client, [report], share: fn(call) {
+  call
+  |> complete_upload_external.channel_id(channel)
+  |> complete_upload_external.initial_comment("this week's report")
+})
+```
+
+Run the three steps yourself to set `alt_txt` or `snippet_type`, to upload now and share later, or to retry only the byte upload.
 
 ---
 

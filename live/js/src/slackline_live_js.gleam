@@ -16,7 +16,7 @@ import gleam/io
 import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
-import gleam/option.{None, Some}
+import gleam/option.{Some}
 import gleam/string
 import slackline
 import slackline/api/auth
@@ -110,34 +110,25 @@ pub fn main() -> Promise(Nil) {
 }
 
 fn upload(client: slackline.Client, channel: String) -> Promise(Nil) {
-  let contents = bit_array.from_string("uploaded with fetch\n")
-  use target <- promise.await(
-    files.get_upload_url_external(
-      length: bit_array.byte_size(contents),
+  let file =
+    slackline.FileUpload(
       filename: "fetch.txt",
+      content_type: "text/plain",
+      contents: bit_array.from_string("uploaded with fetch\n"),
     )
-    |> fetch.send(client)
-    |> show("files.getUploadURLExternal"),
+  use shared <- promise.await(
+    fetch.upload_files(client, [file], share: fn(call) {
+      call |> complete_upload_external.channel_id(channel)
+    })
+    |> show("fetch.upload_files"),
   )
-  case target {
-    Error(_) -> promise.resolve(Nil)
-    Ok(target) -> {
-      use _ <- promise.await(
-        fetch.upload(target.upload_url, contents) |> show("upload"),
-      )
-      use _ <- promise.await(
-        files.complete_upload_external(files: [
-          files.UploadedFile(id: target.file_id, title: None),
-        ])
-        |> complete_upload_external.channel_id(channel)
-        |> fetch.send(client)
-        |> show("files.completeUploadExternal"),
-      )
-      files.delete(file: target.file_id)
+  case shared {
+    Ok(files.CompleteUploadExternalResponse(files: Some([done, ..]))) ->
+      files.delete(file: done.id)
       |> fetch.send(client)
       |> show("files.delete")
       |> promise.map(fn(_) { Nil })
-    }
+    _ -> promise.resolve(Nil)
   }
 }
 

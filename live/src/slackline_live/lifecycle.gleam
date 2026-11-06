@@ -64,6 +64,7 @@ pub fn main() -> Nil {
   profile(user, tokens)
   public_file(bot, user, posts)
   remote_file(bot, n, posts)
+  upload_files(bot, posts)
   Nil
 }
 
@@ -439,6 +440,44 @@ fn remote_file(bot: Client, n: String, channel: String) -> Nil {
 /// smaller previews, such as 256 by 256, with `invalid_preview_dimensions`.
 const pink_png =
   "iVBORw0KGgoAAAANSUhEUgAAAZAAAAEsCAIAAABi1XKVAAAHO0lEQVR42u3UQQ0AIAwEQWTjCnEIAAX0Sy+ZpAqmmxtn7o63Wh4rVqy+3oAlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwYIlLFasDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLFiZbCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWLCExYqVwRIWK1asDJawWLEyWMJixYqVwRIWK1asDJawWLEyWMJixYqVwRIWK1as3oPlhXJnxSrEymAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsGAJixUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqxYGSxhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihWrYrC8UO6sWIVYGSxhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMFixhsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFihUrgyUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJVDJYXyp0VqxArgyUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBgiUsVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsWJlsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqyKwfJCubNiFWJlsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYsITFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVqwMlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFilUxWF4od1asQqwMlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgYLlrBYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFipXBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymDBEhYrVgZLWKxYsTJYwmLFymAJixUrVgZLWKxYsTJYwmLFymAJixUrVgZLWKxYsXreBePHN2NOUzi7AAAAAElFTkSuQmCC"
+
+fn upload_files(bot: Client, channel: String) -> Nil {
+  let text = fn(name, body) {
+    slackline.FileUpload(
+      filename: name,
+      content_type: "text/plain",
+      contents: bit_array.from_string(body),
+    )
+  }
+  case
+    httpc.upload_files(
+      bot,
+      [text("one.txt", "first file\n"), text("two.txt", "second file\n")],
+      share: fn(call) {
+        call
+        |> complete_upload_external.channel_id(channel)
+        |> complete_upload_external.initial_comment(
+          "two files from httpc.upload_files",
+        )
+      },
+    )
+    |> show("httpc.upload_files")
+  {
+    Ok(files.CompleteUploadExternalResponse(files: Some(shared))) -> {
+      io.println(
+        "         shared " <> int.to_string(list.length(shared)) <> " files",
+      )
+      list.each(shared, fn(file) {
+        let _ =
+          files.delete(file: file.id)
+          |> httpc.send(bot)
+          |> show("files.delete")
+        Nil
+      })
+    }
+    _ -> Nil
+  }
+}
 
 fn show(
   result: Result(a, slackline.Error),
