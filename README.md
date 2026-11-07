@@ -183,6 +183,48 @@ httpc.upload_files(client, [report], share: fn(call) {
 
 Run the three steps yourself to set `alt_txt` or `snippet_type`, to upload now and share later, or to retry only the byte upload.
 
+### Streaming a reply
+
+`slackline/stream` allows you to stream a agent reply to Slack with `stream/httpc` on Erlang or `stream/fetch` on JavaScript.
+
+```gleam
+import slackline/stream
+import slackline/stream/httpc as reply
+
+let assert Ok(r) =
+  stream.new(client, channel: "C123")
+  |> stream.in_thread(thread_ts)
+  |> stream.to(user: "U123", team: "T123")
+  |> reply.open
+
+reply.title(r, "Fixing the flaky test")
+reply.text(r, "Looking at the failing test")
+reply.task(r, stream.Task("t1", "Run the tests", stream.Running, "", ""))
+reply.text(r, "Looking at the failing test. It races the clock.")
+reply.task(r, stream.Task("t1", "Run the tests", stream.Done, "", "24 passed"))
+
+let assert Ok(finished) = reply.finish(r, closing: "Changed 1 file")
+```
+
+On JavaScript, `fetch.open` returns the reply directly, and `fetch.finish` returns a promise.
+
+```gleam
+import slackline/stream/fetch as reply
+
+let r = stream.new(client, channel: "C123")
+  |> stream.to(user:, team:)
+  |> reply.open
+
+reply.text(r, "Looking at the failing test")
+use finished <- promise.await(reply.finish(r, closing: ""))
+```
+
+`text` should be passed the entire message and task additions will replace the given `id` with the new value.
+
+Slack only allows streamed messages to stay open for ten minutes and they must contain under 12,000 characters and 50 tasks. When a message hits either of those limits, slackline will close it, keeping the session marked as working, and continue in a new message. Text can't be changed once it has streamed.
+
+If Slack will refuse to stream, for example because the reply has no recipient or the app doesn't have the proper scopes, the reply falls back to a plan card and plain messages. `finish` then will return the error in `problem`. 
+
 ---
 
 The canonical repo for this is hosted on tangled over at [`https://tangled.org/dunkirk.sh/slackline`](https://tangled.org/dunkirk.sh/slackline)

@@ -29,6 +29,8 @@ import slackline/api/users
 import slackline/api/users/list as users_list
 import slackline/fetch
 import slackline/interaction
+import slackline/stream
+import slackline/stream/fetch as reply_fetch
 
 pub fn main() -> Promise(Nil) {
   let assert Ok(text) = read_state("tokens.json")
@@ -92,6 +94,7 @@ pub fn main() -> Promise(Nil) {
     Error(_) -> promise.resolve(Nil)
   })
   use _ <- promise.await(upload(client, channel))
+  use _ <- promise.await(reply(client, channel))
   case read_state("webhook") {
     Ok(url) ->
       fetch.webhook(
@@ -106,6 +109,43 @@ pub fn main() -> Promise(Nil) {
       |> show("incoming webhook")
       |> promise.map(fn(_) { Nil })
     Error(Nil) -> promise.resolve(io.println("no webhook saved"))
+  }
+}
+
+/// A reply through `stream/fetch`, in a thread of its own. There is no
+/// recipient here, so it falls back to a plan card and a message, which
+/// still runs every part of the driver.
+fn reply(client: slackline.Client, channel: String) -> Promise(Nil) {
+  use parent <- promise.await(
+    chat.post_message(channel:, text: "slackline/stream/fetch below")
+    |> fetch.send(client),
+  )
+  case parent {
+    Error(error) ->
+      promise.resolve(io.println(
+        "stream parent: " <> slackline.describe_error(error),
+      ))
+    Ok(parent) -> {
+      let r =
+        stream.new(client, channel:)
+        |> stream.in_thread(parent.ts)
+        |> stream.every(200)
+        |> reply_fetch.open
+      reply_fetch.title(r, "From the JavaScript target")
+      reply_fetch.text(r, "Streaming with promises.")
+      reply_fetch.task(r, stream.Task("a", "Say hello", stream.Done, "", ""))
+      use finished <- promise.map(reply_fetch.finish(r, closing: "_done_"))
+      io.println(
+        "stream/fetch: "
+        <> int.to_string(list.length(finished.messages))
+        <> " messages, streamed "
+        <> string.inspect(finished.streamed)
+        <> case finished.problem {
+          Some(problem) -> ", fell back: " <> problem
+          option.None -> ""
+        },
+      )
+    }
   }
 }
 

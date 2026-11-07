@@ -8,8 +8,10 @@
 //// ```
 
 import argv
+import gleam/erlang/process
 import gleam/int
 import gleam/io
+import gleam/list
 import gleam/option.{None, Some}
 import gleam/string
 import slackline
@@ -38,6 +40,8 @@ import slackline/api/users
 import slackline/block
 import slackline/common
 import slackline/httpc
+import slackline/stream
+import slackline/stream/httpc as reply
 import slackline/value
 import slackline_live/env
 
@@ -55,6 +59,7 @@ pub fn main() -> Nil {
 
   canvas(bot, channel)
   stream(bot, channel, tokens)
+  reply(bot, channel, tokens)
   call(bot, channel, tokens.user_id, id)
   remote_file(bot, channel, id)
   let _ =
@@ -180,6 +185,73 @@ fn stream(bot: slackline.Client, channel: String, tokens: env.Tokens) -> Nil {
         |> show("chat.stopStream")
       Nil
     }
+  }
+}
+
+/// `slackline/stream` with small limits, so one reply rolls over to a new
+/// message, updates a task, has text rewritten under it and closes. Then a
+/// reply without a recipient, which falls back to a plan card.
+fn reply(bot: slackline.Client, channel: String, tokens: env.Tokens) -> Nil {
+  let assert Ok(parent) =
+    chat.post_message(channel:, text: "slackline/stream below")
+    |> httpc.send(bot)
+    |> show("chat.postMessage (reply parent)")
+  let assert Ok(streamed) =
+    stream.new(bot, channel:)
+    |> stream.in_thread(parent.ts)
+    |> stream.to(user: tokens.user_id, team: tokens.team_id)
+    |> stream.every(200)
+    |> stream.limits(stream.Limits(text: 60, tasks: 2, life_ms: 540_000))
+    |> reply.open
+  let step = fn(id, status) { stream.Task(id, "step " <> id, status, "", "") }
+  reply.title(streamed, "Trying the stream helper")
+  reply.text(streamed, "Reading the docs.")
+  reply.task(streamed, step("a", stream.Running))
+  process.sleep(500)
+  reply.text(
+    streamed,
+    "Reading the docs. Then writing this sentence, which runs past sixty characters on purpose.",
+  )
+  reply.task(streamed, step("a", stream.Done))
+  reply.task(streamed, step("b", stream.Running))
+  reply.task(streamed, step("c", stream.Running))
+  process.sleep(500)
+  reply.task(streamed, step("b", stream.Done))
+  reply.task(streamed, step("c", stream.Done))
+  // A rewrite of what already streamed.
+  reply.text(streamed, "Reading the docs.\n\nA rewritten ending.")
+  report(
+    "stream.finish",
+    reply.finish(streamed, closing: "_streamed by slackline/stream_"),
+  )
+
+  let assert Ok(card) =
+    stream.new(bot, channel:)
+    |> stream.in_thread(parent.ts)
+    |> reply.open
+  reply.text(card, "No recipient, so no stream.")
+  reply.task(card, step("x", stream.Done))
+  report(
+    "stream.finish (fallback)",
+    reply.finish(card, closing: "_a card instead_"),
+  )
+}
+
+fn report(what: String, finished: Result(stream.Finished, Nil)) -> Nil {
+  case finished {
+    Ok(stream.Finished(messages:, streamed:, problem:)) ->
+      io.println(
+        what
+        <> ": "
+        <> int.to_string(list.length(messages))
+        <> " messages, streamed "
+        <> string.inspect(streamed)
+        <> case problem {
+          Some(problem) -> ", fell back: " <> problem
+          None -> ""
+        },
+      )
+    Error(Nil) -> io.println(what <> ": the reply had already finished")
   }
 }
 

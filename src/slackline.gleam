@@ -151,6 +151,18 @@ pub fn call(
   Call(method:, params:, files: [], decoder:, authenticated: True)
 }
 
+/// The same call, for code that sends different methods alike.
+@internal
+pub fn erase(call: Call(m, a)) -> Call(Nil, a) {
+  Call(
+    method: call.method,
+    params: call.params,
+    files: call.files,
+    decoder: call.decoder,
+    authenticated: call.authenticated,
+  )
+}
+
 @internal
 pub fn without_token(call: Call(m, a)) -> Call(m, a) {
   Call(..call, authenticated: False)
