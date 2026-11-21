@@ -207,7 +207,8 @@ pub type Add
 /// `permission_denied`, `restricted_action`, `slack_connect_blocked_file_type`,
 /// `slack_connect_clip_sharing_blocked`,
 /// `slack_connect_file_upload_sharing_blocked`, `too_many_bookmarks`,
-/// `too_many_requests`, `too_many_tabs`.
+/// `too_many_requests`, `too_many_tabs`, `found_existing_app`,
+/// `found_existing_shortcut`.
 pub fn add(
   title title: String,
   type_ type_: String,

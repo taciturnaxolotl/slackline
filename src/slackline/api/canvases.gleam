@@ -530,8 +530,9 @@ pub fn create_response_decoder() -> decode.Decoder(CreateResponse) {
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `canvas_creation_failed`, `canvas_disabled_user_team`,
-/// `free_team_canvas_tab_already_exists`,
-/// `free_teams_cannot_create_standalone_canvases`, `restricted_action`.
+/// `channel_not_found`, `free_team_canvas_tab_already_exists`,
+/// `free_teams_cannot_create_standalone_canvases`, `restricted_action`,
+/// `failed_adding_canvas_to_tab`.
 pub fn create() -> slackline.Call(Create, CreateResponse) {
   slackline.call("canvases.create", [], create_response_decoder())
 }

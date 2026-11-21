@@ -760,7 +760,7 @@ pub type McpServersList
 ///
 /// Rate limit tier: `t3`.
 ///
-/// Documented errors: `feature_not_enabled`, `invalid_cursor`,
+/// Documented errors: `feature_not_enabled`, `invalid_cursor`, `not_an_admin`,
 /// `not_an_enterprise`, `restricted_action`.
 pub fn mcp_servers_list() -> slackline.Call(McpServersList, value.Value) {
   slackline.call("admin.apps.mcp.servers.list", [], value.decoder())

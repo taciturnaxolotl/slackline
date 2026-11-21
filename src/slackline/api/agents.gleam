@@ -915,7 +915,8 @@ pub fn conversations_set_properties_response_decoder() -> decode.Decoder(
 /// Bot token scopes: `code_channels:manage`.
 ///
 /// Documented errors: `channel_not_found`, `invalid_status`, `invalid_title`,
-/// `no_properties_provided`, `not_agent_channel`, `not_authorized`.
+/// `no_properties_provided`, `not_agent_channel`, `not_authorized`,
+/// `summary_message_not_found`, `too_many_context_bar_items`.
 pub fn conversations_set_properties(
   channel_id channel_id: String,
 ) -> slackline.Call(
@@ -1095,7 +1096,8 @@ pub fn sessions_set_status_response_decoder() -> decode.Decoder(
 ///
 /// Documented errors: `channel_not_found`, `feature_disabled`,
 /// `invalid_status`, `not_authorized`, `thread_ts_not_allowed`,
-/// `thread_ts_required`, `user_not_found`.
+/// `thread_ts_required`, `user_not_found`,
+/// `missing_agent_session_stopped_event_subscription`.
 pub fn sessions_set_status(
   status status: AgentStatus,
 ) -> slackline.Call(SessionsSetStatus, SessionsSetStatusResponse) {

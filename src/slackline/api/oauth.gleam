@@ -459,7 +459,8 @@ pub type V2Access
 /// `cannot_install_an_org_installed_app`, `invalid_client_id`, `invalid_code`,
 /// `invalid_code_verifier`, `invalid_grant_type`, `invalid_refresh_token`,
 /// `no_scopes`, `oauth_authorization_url_mismatch`, `pkce_not_allowed`,
-/// `preview_feature_not_available`, `user_email_unverified`.
+/// `preview_feature_not_available`, `user_email_unverified`,
+/// `workspace_denied_app`, `slackbot_mcp_unavailable`.
 pub fn v2_access() -> slackline.Call(V2Access, OAuthV2AccessResponse) {
   slackline.call(
     "oauth.v2.access",
@@ -611,16 +612,27 @@ pub type V2UserAccess
 /// Documented errors: `app_not_admin_approved`, `app_not_org_installed`,
 /// `bad_client_secret`, `bad_redirect_uri`,
 /// `cannot_install_an_org_installed_app`, `client_id_mismatch`, `ema_disabled`,
-/// `ema_issuer_mismatch`, `ema_tenant_mismatch`, `invalid_aud_tenant`,
-/// `invalid_audience`, `invalid_client_id`, `invalid_code`, `invalid_email`,
-/// `invalid_grant_type`, `invalid_issuer`, `invalid_jti`,
-/// `invalid_refresh_token`, `invalid_resource`, `invalid_scope`, `invalid_sub`,
-/// `invalid_sub_id_format`, `missing_audience`, `missing_client_id`,
+/// `ema_issuer_mismatch`, `ema_tenant_mismatch`, `expired_token`,
+/// `idp_keys_unavailable`, `invalid_aud_tenant`, `invalid_audience`,
+/// `invalid_client_id`, `invalid_code`, `invalid_code_verifier`,
+/// `invalid_email`, `invalid_exp`, `invalid_grant_type`,
+/// `invalid_header_encoding`, `invalid_issuer`, `invalid_jti`, `invalid_jwks`,
+/// `invalid_jwt_format`, `invalid_openid_provider_metadata`,
+/// `invalid_payload_encoding`, `invalid_refresh_token`, `invalid_resource`,
+/// `invalid_scope`, `invalid_signature`, `invalid_sub`, `invalid_sub_id`,
+/// `invalid_sub_id_format`, `invalid_token`, `invalid_typ_header`,
+/// `jwks_uri_not_https`, `jwt_already_used`, `jwt_expired`, `missing_audience`,
+/// `missing_client_id`, `missing_email`, `missing_exp`, `missing_issuer`,
+/// `missing_jti`, `missing_sub`, `missing_sub_id`, `missing_sub_id_format`,
+/// `missing_sub_id_issuer`, `missing_sub_id_nameid`, `missing_typ_header`,
 /// `no_app_scopes_requested`, `no_approved_scopes_requested`, `no_assertion`,
 /// `no_idp_config_for_entity_id`, `no_scopes`, `no_user_scopes`,
 /// `not_implemented`, `oauth_authorization_url_mismatch`,
-/// `preview_feature_not_available`, `user_email_unverified`,
-/// `user_not_authenticated`.
+/// `openid_provider_issuer_mismatch`, `pkce_not_allowed`,
+/// `preview_feature_not_available`, `token_not_yet_valid`, `unknown_kid`,
+/// `unknown_saml_issuer_for_team`, `unsupported_sub_id_format`,
+/// `user_email_unverified`, `user_not_authenticated`, `user_not_found`,
+/// `well_known_url_not_https`, `workspace_denied_app`.
 pub fn v2_user_access() -> slackline.Call(V2UserAccess, OAuthV2AccessResponse) {
   slackline.call(
     "oauth.v2.user.access",

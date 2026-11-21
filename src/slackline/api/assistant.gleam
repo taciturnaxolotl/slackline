@@ -486,7 +486,8 @@ pub fn search_context_response_decoder() -> decode.Decoder(
 /// Documented errors: `assistant_search_context_disabled`,
 /// `context_channel_not_found`, `feature_not_enabled`, `invalid_action_token`,
 /// `invalid_cursor`, `missing_query`, `query_too_long`, `rate_limited`,
-/// `restricted_action`.
+/// `restricted_action`, `content_type_search_failed`,
+/// `search_page_limit_reached`.
 pub fn search_context(
   query query: String,
 ) -> slackline.Call(SearchContext, SearchContextResponse) {

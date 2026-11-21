@@ -926,7 +926,8 @@ pub fn triggers_types_permissions_lookup_response_decoder() -> decode.Decoder(
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `restricted_action`, `trigger_type_id_not_found`.
+/// Documented errors: `restricted_action`, `trigger_type_id_not_found`,
+/// `one_or_more_trigger_type_ids_not_found`.
 pub fn triggers_types_permissions_lookup(
   trigger_type_ids trigger_type_ids: List(String),
 ) -> slackline.Call(

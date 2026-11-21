@@ -49,7 +49,8 @@ pub fn anomaly_allow_get_item_response_decoder() -> decode.Decoder(
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `endpoint_unavailable`, `not_an_enterprise`,
+/// Documented errors: `endpoint_unavailable`, `insufficient_permissions`,
+/// `not_an_admin`, `not_an_enterprise`, `team_is_restricted`,
 /// `unsupported_action_describe`, `unsupported_action_put`.
 pub fn anomaly_allow_get_item() -> slackline.Call(
   AnomalyAllowGetItem,
@@ -79,9 +80,10 @@ pub type AnomalyAllowUpdateItem
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `endpoint_unavailable`, `invalid_field_or_data`,
-/// `unable_to_process_post_request`, `unsupported_action_describe`,
-/// `unsupported_action_put`.
+/// Documented errors: `endpoint_unavailable`, `insufficient_permissions`,
+/// `invalid_field_or_data`, `not_an_admin`, `not_an_enterprise`,
+/// `team_is_restricted`, `unable_to_process_post_request`,
+/// `unsupported_action_describe`, `unsupported_action_put`.
 pub fn anomaly_allow_update_item() -> slackline.Call(
   AnomalyAllowUpdateItem,
   Nil,

@@ -3,6 +3,7 @@
 //// Admin analytics: Enterprise member and public channel analytics, and
 //// message activity.
 
+import gleam/dict
 import gleam/dynamic/decode
 import gleam/json
 import gleam/list
@@ -946,6 +947,438 @@ pub fn analytics_file_type_to_json(it: AnalyticsFileType) -> json.Json {
   json.string(analytics_file_type_to_string(it))
 }
 
+/// A kind of member to include in member analytics.
+pub type AnalyticsMemberType {
+  /// `regular_members`
+  RegularMembers
+  /// `single_channel_guests`
+  SingleChannelGuests
+  /// `multi_channel_guests`
+  MultiChannelGuests
+  /// `frontline_members`
+  FrontlineMembers
+  /// `org_owners`
+  OrgOwners
+  /// `org_admins`
+  OrgAdmins
+  /// `workspace_owners`
+  WorkspaceOwners
+  /// `workspace_admins`
+  WorkspaceAdmins
+  /// `invited`
+  Invited
+}
+
+/// The json string of `AnalyticsMemberType`.
+pub fn analytics_member_type_to_string(it: AnalyticsMemberType) -> String {
+  case it {
+    RegularMembers -> "regular_members"
+    SingleChannelGuests -> "single_channel_guests"
+    MultiChannelGuests -> "multi_channel_guests"
+    FrontlineMembers -> "frontline_members"
+    OrgOwners -> "org_owners"
+    OrgAdmins -> "org_admins"
+    WorkspaceOwners -> "workspace_owners"
+    WorkspaceAdmins -> "workspace_admins"
+    Invited -> "invited"
+  }
+}
+
+/// Parses `AnalyticsMemberType` from its json string.
+pub fn analytics_member_type_from_string(
+  string: String,
+) -> Result(AnalyticsMemberType, Nil) {
+  case string {
+    "regular_members" -> Ok(RegularMembers)
+    "single_channel_guests" -> Ok(SingleChannelGuests)
+    "multi_channel_guests" -> Ok(MultiChannelGuests)
+    "frontline_members" -> Ok(FrontlineMembers)
+    "org_owners" -> Ok(OrgOwners)
+    "org_admins" -> Ok(OrgAdmins)
+    "workspace_owners" -> Ok(WorkspaceOwners)
+    "workspace_admins" -> Ok(WorkspaceAdmins)
+    "invited" -> Ok(Invited)
+    _ -> Error(Nil)
+  }
+}
+
+/// Decodes `AnalyticsMemberType` from a json string.
+pub fn analytics_member_type_decoder() -> decode.Decoder(AnalyticsMemberType) {
+  use string <- decode.then(decode.string)
+  case analytics_member_type_from_string(string) {
+    Ok(parsed) -> decode.success(parsed)
+    Error(Nil) -> decode.failure(RegularMembers, "AnalyticsMemberType")
+  }
+}
+
+/// Encodes `AnalyticsMemberType` as a json string.
+pub fn analytics_member_type_to_json(it: AnalyticsMemberType) -> json.Json {
+  json.string(analytics_member_type_to_string(it))
+}
+
+/// The earliest and latest days that analytics can be requested for.
+pub type AnalyticsDateRange {
+  AnalyticsDateRange(
+    /// As `YYYY-MM-DD`.
+    start_date: Option(String),
+    /// As `YYYY-MM-DD`.
+    end_date: Option(String),
+  )
+}
+
+/// Decodes `AnalyticsDateRange` from json.
+pub fn analytics_date_range_decoder() -> decode.Decoder(AnalyticsDateRange) {
+  use v_start_date <- codec.optional_field("start_date", decode.string)
+  use v_end_date <- codec.optional_field("end_date", decode.string)
+  decode.success(AnalyticsDateRange(
+    start_date: v_start_date,
+    end_date: v_end_date,
+  ))
+}
+
+/// Encodes `AnalyticsDateRange` as json.
+pub fn analytics_date_range_to_json(it: AnalyticsDateRange) -> json.Json {
+  codec.object([
+    codec.optional("start_date", it.start_date, json.string),
+    codec.optional("end_date", it.end_date, json.string),
+  ])
+}
+
+/// One member's activity for the day, from `admin.analytics.members.activity`.
+pub type MemberActivity {
+  MemberActivity(
+    user_id: String,
+    team_id: Option(String),
+    enterprise_id: Option(String),
+    /// When the account was created (Unix time).
+    date_created: Option(Int),
+    /// The kind of account, such as `member`.
+    account_type: Option(String),
+    is_admin: Option(Bool),
+    is_owner: Option(Bool),
+    is_primary_owner: Option(Bool),
+    is_restricted: Option(Bool),
+    is_ultra_restricted: Option(Bool),
+    /// When the member was last active (Unix time).
+    date_last_active: Option(Int),
+    active_day_count: Option(Int),
+    message_count: Option(Int),
+    reaction_count: Option(Int),
+    /// How many times the member used Slack AI.
+    ai_usage_count: Option(Int),
+  )
+}
+
+/// Decodes `MemberActivity` from json.
+pub fn member_activity_decoder() -> decode.Decoder(MemberActivity) {
+  use v_user_id <- decode.field("user_id", decode.string)
+  use v_team_id <- codec.optional_field("team_id", decode.string)
+  use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_account_type <- codec.optional_field("account_type", decode.string)
+  use v_is_admin <- codec.optional_field("is_admin", decode.bool)
+  use v_is_owner <- codec.optional_field("is_owner", decode.bool)
+  use v_is_primary_owner <- codec.optional_field(
+    "is_primary_owner",
+    decode.bool,
+  )
+  use v_is_restricted <- codec.optional_field("is_restricted", decode.bool)
+  use v_is_ultra_restricted <- codec.optional_field(
+    "is_ultra_restricted",
+    decode.bool,
+  )
+  use v_date_last_active <- codec.optional_field(
+    "date_last_active",
+    codec.int_decoder(),
+  )
+  use v_active_day_count <- codec.optional_field(
+    "active_day_count",
+    codec.int_decoder(),
+  )
+  use v_message_count <- codec.optional_field(
+    "message_count",
+    codec.int_decoder(),
+  )
+  use v_reaction_count <- codec.optional_field(
+    "reaction_count",
+    codec.int_decoder(),
+  )
+  use v_ai_usage_count <- codec.optional_field(
+    "ai_usage_count",
+    codec.int_decoder(),
+  )
+  decode.success(MemberActivity(
+    user_id: v_user_id,
+    team_id: v_team_id,
+    enterprise_id: v_enterprise_id,
+    date_created: v_date_created,
+    account_type: v_account_type,
+    is_admin: v_is_admin,
+    is_owner: v_is_owner,
+    is_primary_owner: v_is_primary_owner,
+    is_restricted: v_is_restricted,
+    is_ultra_restricted: v_is_ultra_restricted,
+    date_last_active: v_date_last_active,
+    active_day_count: v_active_day_count,
+    message_count: v_message_count,
+    reaction_count: v_reaction_count,
+    ai_usage_count: v_ai_usage_count,
+  ))
+}
+
+/// Encodes `MemberActivity` as json.
+pub fn member_activity_to_json(it: MemberActivity) -> json.Json {
+  codec.object([
+    codec.field("user_id", json.string(it.user_id)),
+    codec.optional("team_id", it.team_id, json.string),
+    codec.optional("enterprise_id", it.enterprise_id, json.string),
+    codec.optional("date_created", it.date_created, json.int),
+    codec.optional("account_type", it.account_type, json.string),
+    codec.optional("is_admin", it.is_admin, json.bool),
+    codec.optional("is_owner", it.is_owner, json.bool),
+    codec.optional("is_primary_owner", it.is_primary_owner, json.bool),
+    codec.optional("is_restricted", it.is_restricted, json.bool),
+    codec.optional("is_ultra_restricted", it.is_ultra_restricted, json.bool),
+    codec.optional("date_last_active", it.date_last_active, json.int),
+    codec.optional("active_day_count", it.active_day_count, json.int),
+    codec.optional("message_count", it.message_count, json.int),
+    codec.optional("reaction_count", it.reaction_count, json.int),
+    codec.optional("ai_usage_count", it.ai_usage_count, json.int),
+  ])
+}
+
+/// One member's profile, from `admin.analytics.members.metadata`.
+pub type MemberMetadata {
+  MemberMetadata(
+    user_id: String,
+    team_id: Option(String),
+    enterprise_id: Option(String),
+    /// When the account was created (Unix time).
+    date_created: Option(Int),
+    username: Option(String),
+    real_name: Option(String),
+    display_name: Option(String),
+    user_title: Option(String),
+    /// Left out when the organization hides email addresses.
+    email: Option(String),
+    /// Workspace names keyed by workspace ID.
+    workspaces: Option(dict.Dict(String, String)),
+    department: Option(String),
+    cost_center: Option(String),
+    country: Option(String),
+  )
+}
+
+/// Decodes `MemberMetadata` from json.
+pub fn member_metadata_decoder() -> decode.Decoder(MemberMetadata) {
+  use v_user_id <- decode.field("user_id", decode.string)
+  use v_team_id <- codec.optional_field("team_id", decode.string)
+  use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
+  use v_date_created <- codec.optional_field(
+    "date_created",
+    codec.int_decoder(),
+  )
+  use v_username <- codec.optional_field("username", decode.string)
+  use v_real_name <- codec.optional_field("real_name", decode.string)
+  use v_display_name <- codec.optional_field("display_name", decode.string)
+  use v_user_title <- codec.optional_field("user_title", decode.string)
+  use v_email <- codec.optional_field("email", decode.string)
+  use v_workspaces <- codec.optional_field(
+    "workspaces",
+    decode.dict(decode.string, decode.string),
+  )
+  use v_department <- codec.optional_field("department", decode.string)
+  use v_cost_center <- codec.optional_field("cost_center", decode.string)
+  use v_country <- codec.optional_field("country", decode.string)
+  decode.success(MemberMetadata(
+    user_id: v_user_id,
+    team_id: v_team_id,
+    enterprise_id: v_enterprise_id,
+    date_created: v_date_created,
+    username: v_username,
+    real_name: v_real_name,
+    display_name: v_display_name,
+    user_title: v_user_title,
+    email: v_email,
+    workspaces: v_workspaces,
+    department: v_department,
+    cost_center: v_cost_center,
+    country: v_country,
+  ))
+}
+
+/// Encodes `MemberMetadata` as json.
+pub fn member_metadata_to_json(it: MemberMetadata) -> json.Json {
+  codec.object([
+    codec.field("user_id", json.string(it.user_id)),
+    codec.optional("team_id", it.team_id, json.string),
+    codec.optional("enterprise_id", it.enterprise_id, json.string),
+    codec.optional("date_created", it.date_created, json.int),
+    codec.optional("username", it.username, json.string),
+    codec.optional("real_name", it.real_name, json.string),
+    codec.optional("display_name", it.display_name, json.string),
+    codec.optional("user_title", it.user_title, json.string),
+    codec.optional("email", it.email, json.string),
+    codec.optional("workspaces", it.workspaces, codec.dict(json.string)),
+    codec.optional("department", it.department, json.string),
+    codec.optional("cost_center", it.cost_center, json.string),
+    codec.optional("country", it.country, json.string),
+  ])
+}
+
+/// One Slackbot skill a member used.
+pub type SlackbotSkillUsage {
+  SlackbotSkillUsage(
+    /// The skill's file ID.
+    id: String,
+    name: Option(String),
+    use_count: Option(Int),
+    added_count: Option(Int),
+    shared_count: Option(Int),
+  )
+}
+
+/// Decodes `SlackbotSkillUsage` from json.
+pub fn slackbot_skill_usage_decoder() -> decode.Decoder(SlackbotSkillUsage) {
+  use v_id <- decode.field("id", decode.string)
+  use v_name <- codec.optional_field("name", decode.string)
+  use v_use_count <- codec.optional_field("use_count", codec.int_decoder())
+  use v_added_count <- codec.optional_field("added_count", codec.int_decoder())
+  use v_shared_count <- codec.optional_field(
+    "shared_count",
+    codec.int_decoder(),
+  )
+  decode.success(SlackbotSkillUsage(
+    id: v_id,
+    name: v_name,
+    use_count: v_use_count,
+    added_count: v_added_count,
+    shared_count: v_shared_count,
+  ))
+}
+
+/// Encodes `SlackbotSkillUsage` as json.
+pub fn slackbot_skill_usage_to_json(it: SlackbotSkillUsage) -> json.Json {
+  codec.object([
+    codec.field("id", json.string(it.id)),
+    codec.optional("name", it.name, json.string),
+    codec.optional("use_count", it.use_count, json.int),
+    codec.optional("added_count", it.added_count, json.int),
+    codec.optional("shared_count", it.shared_count, json.int),
+  ])
+}
+
+/// A member's Slackbot skill usage for one day.
+pub type MemberSkillUsage {
+  MemberSkillUsage(
+    date: Option(String),
+    enterprise_id: Option(String),
+    user_id: String,
+    /// Left out when the organization hides guest email addresses.
+    email_address: Option(String),
+    skills: Option(List(SlackbotSkillUsage)),
+  )
+}
+
+/// Decodes `MemberSkillUsage` from json.
+pub fn member_skill_usage_decoder() -> decode.Decoder(MemberSkillUsage) {
+  use v_date <- codec.optional_field("date", decode.string)
+  use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
+  use v_user_id <- decode.field("user_id", decode.string)
+  use v_email_address <- codec.optional_field("email_address", decode.string)
+  use v_skills <- codec.optional_field(
+    "skills",
+    decode.list(decode.recursive(slackbot_skill_usage_decoder)),
+  )
+  decode.success(MemberSkillUsage(
+    date: v_date,
+    enterprise_id: v_enterprise_id,
+    user_id: v_user_id,
+    email_address: v_email_address,
+    skills: v_skills,
+  ))
+}
+
+/// Encodes `MemberSkillUsage` as json.
+pub fn member_skill_usage_to_json(it: MemberSkillUsage) -> json.Json {
+  codec.object([
+    codec.optional("date", it.date, json.string),
+    codec.optional("enterprise_id", it.enterprise_id, json.string),
+    codec.field("user_id", json.string(it.user_id)),
+    codec.optional("email_address", it.email_address, json.string),
+    codec.optional(
+      "skills",
+      it.skills,
+      codec.list(slackbot_skill_usage_to_json),
+    ),
+  ])
+}
+
+/// One Slackbot tool a member used.
+pub type SlackbotToolUsage {
+  SlackbotToolUsage(name: String, use_count: Option(Int))
+}
+
+/// Decodes `SlackbotToolUsage` from json.
+pub fn slackbot_tool_usage_decoder() -> decode.Decoder(SlackbotToolUsage) {
+  use v_name <- decode.field("name", decode.string)
+  use v_use_count <- codec.optional_field("use_count", codec.int_decoder())
+  decode.success(SlackbotToolUsage(name: v_name, use_count: v_use_count))
+}
+
+/// Encodes `SlackbotToolUsage` as json.
+pub fn slackbot_tool_usage_to_json(it: SlackbotToolUsage) -> json.Json {
+  codec.object([
+    codec.field("name", json.string(it.name)),
+    codec.optional("use_count", it.use_count, json.int),
+  ])
+}
+
+/// A member's Slackbot tool usage for one day.
+pub type MemberToolUsage {
+  MemberToolUsage(
+    date: Option(String),
+    enterprise_id: Option(String),
+    user_id: String,
+    /// Left out when the organization hides guest email addresses.
+    email_address: Option(String),
+    tools: Option(List(SlackbotToolUsage)),
+  )
+}
+
+/// Decodes `MemberToolUsage` from json.
+pub fn member_tool_usage_decoder() -> decode.Decoder(MemberToolUsage) {
+  use v_date <- codec.optional_field("date", decode.string)
+  use v_enterprise_id <- codec.optional_field("enterprise_id", decode.string)
+  use v_user_id <- decode.field("user_id", decode.string)
+  use v_email_address <- codec.optional_field("email_address", decode.string)
+  use v_tools <- codec.optional_field(
+    "tools",
+    decode.list(decode.recursive(slackbot_tool_usage_decoder)),
+  )
+  decode.success(MemberToolUsage(
+    date: v_date,
+    enterprise_id: v_enterprise_id,
+    user_id: v_user_id,
+    email_address: v_email_address,
+    tools: v_tools,
+  ))
+}
+
+/// Encodes `MemberToolUsage` as json.
+pub fn member_tool_usage_to_json(it: MemberToolUsage) -> json.Json {
+  codec.object([
+    codec.optional("date", it.date, json.string),
+    codec.optional("enterprise_id", it.enterprise_id, json.string),
+    codec.field("user_id", json.string(it.user_id)),
+    codec.optional("email_address", it.email_address, json.string),
+    codec.optional("tools", it.tools, codec.list(slackbot_tool_usage_to_json)),
+  ])
+}
+
 /// Identifies `admin.analytics.getFile` in the `slackline.Call` that `get_file`
 /// returns.
 pub type GetFile
@@ -978,6 +1411,138 @@ pub fn get_file(
       #("type", analytics_file_type_to_string(type_)),
     ],
     value.decoder(),
+  )
+}
+
+/// Identifies `admin.analytics.members.activity` in the `slackline.Call` that
+/// `members_activity` returns.
+pub type MembersActivity
+
+/// A successful response from `admin.analytics.members.activity`.
+pub type MembersActivityResponse {
+  MembersActivityResponse(
+    /// The day the metrics count, as `YYYY-MM-DD`.
+    date: Option(String),
+    available_date_range: Option(AnalyticsDateRange),
+    members: Option(List(MemberActivity)),
+    total_count: Option(Int),
+    response_metadata: Option(slackline.ResponseMetadata),
+  )
+}
+
+/// Decodes the response from `admin.analytics.members.activity`.
+pub fn members_activity_response_decoder() -> decode.Decoder(
+  MembersActivityResponse,
+) {
+  use v_date <- codec.optional_field("date", decode.string)
+  use v_available_date_range <- codec.optional_field(
+    "available_date_range",
+    decode.recursive(analytics_date_range_decoder),
+  )
+  use v_members <- codec.optional_field(
+    "members",
+    decode.list(decode.recursive(member_activity_decoder)),
+  )
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
+  use v_response_metadata <- codec.optional_field(
+    "response_metadata",
+    slackline.response_metadata_decoder(),
+  )
+  decode.success(MembersActivityResponse(
+    date: v_date,
+    available_date_range: v_available_date_range,
+    members: v_members,
+    total_count: v_total_count,
+    response_metadata: v_response_metadata,
+  ))
+}
+
+/// [`admin.analytics.members.activity`](https://docs.slack.dev/reference/methods/admin.analytics.members.activity):
+/// Retrieves activity metrics for each member of an organization or workspace
+/// for one day.
+///
+/// `analytics.MembersActivity` identifies this method in `slackline.Call`.
+///
+/// Set optional arguments with the functions in
+/// `slackline/api/admin/analytics/members_activity`.
+///
+/// User token scopes: `admin.analytics:read`.
+///
+/// Rate limit tier: `t2`.
+///
+/// Documented errors: `admin_analytics_disabled`, `analytics_unavailable`,
+/// `data_not_available_for_date`, `date_before_created_date`,
+/// `feature_not_available`, `incomplete_analytics`, `invalid_cursor`,
+/// `member_analytics_disabled`, `not_an_admin`, `rate_limited`,
+/// `team_not_on_org`.
+pub fn members_activity() -> slackline.Call(
+  MembersActivity,
+  MembersActivityResponse,
+) {
+  slackline.call(
+    "admin.analytics.members.activity",
+    [],
+    members_activity_response_decoder(),
+  )
+}
+
+/// Identifies `admin.analytics.members.metadata` in the `slackline.Call` that
+/// `members_metadata` returns.
+pub type MembersMetadata
+
+/// A successful response from `admin.analytics.members.metadata`.
+pub type MembersMetadataResponse {
+  MembersMetadataResponse(
+    members: Option(List(MemberMetadata)),
+    total_count: Option(Int),
+    response_metadata: Option(slackline.ResponseMetadata),
+  )
+}
+
+/// Decodes the response from `admin.analytics.members.metadata`.
+pub fn members_metadata_response_decoder() -> decode.Decoder(
+  MembersMetadataResponse,
+) {
+  use v_members <- codec.optional_field(
+    "members",
+    decode.list(decode.recursive(member_metadata_decoder)),
+  )
+  use v_total_count <- codec.optional_field("total_count", codec.int_decoder())
+  use v_response_metadata <- codec.optional_field(
+    "response_metadata",
+    slackline.response_metadata_decoder(),
+  )
+  decode.success(MembersMetadataResponse(
+    members: v_members,
+    total_count: v_total_count,
+    response_metadata: v_response_metadata,
+  ))
+}
+
+/// [`admin.analytics.members.metadata`](https://docs.slack.dev/reference/methods/admin.analytics.members.metadata):
+/// Retrieves profile metadata for each member of an organization or workspace.
+///
+/// `analytics.MembersMetadata` identifies this method in `slackline.Call`.
+///
+/// Set optional arguments with the functions in
+/// `slackline/api/admin/analytics/members_metadata`.
+///
+/// User token scopes: `admin.analytics:read`.
+///
+/// Rate limit tier: `t2`.
+///
+/// Documented errors: `admin_analytics_disabled`, `feature_not_available`,
+/// `incomplete_analytics`, `invalid_cursor`, `member_analytics_disabled`,
+/// `not_an_admin`, `rate_limited`, `team_not_on_org`,
+/// `too_many_search_results`.
+pub fn members_metadata() -> slackline.Call(
+  MembersMetadata,
+  MembersMetadataResponse,
+) {
+  slackline.call(
+    "admin.analytics.members.metadata",
+    [],
+    members_metadata_response_decoder(),
   )
 }
 
@@ -1023,8 +1588,8 @@ pub fn messages_activity_response_decoder() -> decode.Decoder(
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `channel_not_found`, `not_an_enterprise`, `rate_limited`,
-/// `restricted_action`, `restricted_plan_level`.
+/// Documented errors: `channel_not_found`, `not_an_admin`, `not_an_enterprise`,
+/// `rate_limited`, `restricted_action`, `restricted_plan_level`.
 pub fn messages_activity(
   channel channel: String,
 ) -> slackline.Call(MessagesActivity, MessagesActivityResponse) {
@@ -1081,7 +1646,7 @@ pub fn messages_metadata_response_decoder() -> decode.Decoder(
 ///
 /// Documented errors: `admin_analytics_disabled`, `analytics_unavailable`,
 /// `channel_not_found`, `different_team_owns_message_metadata_for_channel`,
-/// `not_an_enterprise`, `rate_limited`, `restricted_action`,
+/// `not_an_admin`, `not_an_enterprise`, `rate_limited`, `restricted_action`,
 /// `restricted_plan_level`.
 pub fn messages_metadata(
   channel channel: String,
@@ -1092,6 +1657,135 @@ pub fn messages_metadata(
       #("channel", channel),
     ],
     messages_metadata_response_decoder(),
+  )
+}
+
+/// Identifies `admin.analytics.slackbot.skills` in the `slackline.Call` that
+/// `slackbot_skills` returns.
+pub type SlackbotSkills
+
+/// A successful response from `admin.analytics.slackbot.skills`.
+pub type SlackbotSkillsResponse {
+  SlackbotSkillsResponse(
+    date: Option(String),
+    available_date_range: Option(AnalyticsDateRange),
+    skill_usage: Option(List(MemberSkillUsage)),
+    response_metadata: Option(slackline.ResponseMetadata),
+  )
+}
+
+/// Decodes the response from `admin.analytics.slackbot.skills`.
+pub fn slackbot_skills_response_decoder() -> decode.Decoder(
+  SlackbotSkillsResponse,
+) {
+  use v_date <- codec.optional_field("date", decode.string)
+  use v_available_date_range <- codec.optional_field(
+    "available_date_range",
+    decode.recursive(analytics_date_range_decoder),
+  )
+  use v_skill_usage <- codec.optional_field(
+    "skill_usage",
+    decode.list(decode.recursive(member_skill_usage_decoder)),
+  )
+  use v_response_metadata <- codec.optional_field(
+    "response_metadata",
+    slackline.response_metadata_decoder(),
+  )
+  decode.success(SlackbotSkillsResponse(
+    date: v_date,
+    available_date_range: v_available_date_range,
+    skill_usage: v_skill_usage,
+    response_metadata: v_response_metadata,
+  ))
+}
+
+/// [`admin.analytics.slackbot.skills`](https://docs.slack.dev/reference/methods/admin.analytics.slackbot.skills):
+/// Retrieve per-user Slackbot skill usage for an Enterprise organization on a
+/// single date.
+///
+/// `analytics.SlackbotSkills` identifies this method in `slackline.Call`.
+///
+/// Set optional arguments with the functions in
+/// `slackline/api/admin/analytics/slackbot_skills`.
+///
+/// User token scopes: `admin.analytics:read`.
+///
+/// Rate limit tier: `t3`.
+///
+/// Documented errors: `data_not_available_for_date`,
+/// `date_before_created_date`, `feature_not_available`, `invalid_cursor`,
+/// `not_an_enterprise`, `restricted_action`, `restricted_plan_level`.
+pub fn slackbot_skills() -> slackline.Call(
+  SlackbotSkills,
+  SlackbotSkillsResponse,
+) {
+  slackline.call(
+    "admin.analytics.slackbot.skills",
+    [],
+    slackbot_skills_response_decoder(),
+  )
+}
+
+/// Identifies `admin.analytics.slackbot.tools` in the `slackline.Call` that
+/// `slackbot_tools` returns.
+pub type SlackbotTools
+
+/// A successful response from `admin.analytics.slackbot.tools`.
+pub type SlackbotToolsResponse {
+  SlackbotToolsResponse(
+    date: Option(String),
+    available_date_range: Option(AnalyticsDateRange),
+    tool_usage: Option(List(MemberToolUsage)),
+    response_metadata: Option(slackline.ResponseMetadata),
+  )
+}
+
+/// Decodes the response from `admin.analytics.slackbot.tools`.
+pub fn slackbot_tools_response_decoder() -> decode.Decoder(
+  SlackbotToolsResponse,
+) {
+  use v_date <- codec.optional_field("date", decode.string)
+  use v_available_date_range <- codec.optional_field(
+    "available_date_range",
+    decode.recursive(analytics_date_range_decoder),
+  )
+  use v_tool_usage <- codec.optional_field(
+    "tool_usage",
+    decode.list(decode.recursive(member_tool_usage_decoder)),
+  )
+  use v_response_metadata <- codec.optional_field(
+    "response_metadata",
+    slackline.response_metadata_decoder(),
+  )
+  decode.success(SlackbotToolsResponse(
+    date: v_date,
+    available_date_range: v_available_date_range,
+    tool_usage: v_tool_usage,
+    response_metadata: v_response_metadata,
+  ))
+}
+
+/// [`admin.analytics.slackbot.tools`](https://docs.slack.dev/reference/methods/admin.analytics.slackbot.tools):
+/// Retrieve per-user Slackbot tool usage for an Enterprise organization on a
+/// single date.
+///
+/// `analytics.SlackbotTools` identifies this method in `slackline.Call`.
+///
+/// Set optional arguments with the functions in
+/// `slackline/api/admin/analytics/slackbot_tools`.
+///
+/// User token scopes: `admin.analytics:read`.
+///
+/// Rate limit tier: `t3`.
+///
+/// Documented errors: `data_not_available_for_date`,
+/// `date_before_created_date`, `feature_not_available`, `invalid_cursor`,
+/// `not_an_enterprise`, `restricted_action`, `restricted_plan_level`.
+pub fn slackbot_tools() -> slackline.Call(SlackbotTools, SlackbotToolsResponse) {
+  slackline.call(
+    "admin.analytics.slackbot.tools",
+    [],
+    slackbot_tools_response_decoder(),
   )
 }
 

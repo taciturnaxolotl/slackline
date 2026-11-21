@@ -596,7 +596,7 @@ pub fn append_stream_response_decoder() -> decode.Decoder(AppendStreamResponse) 
 /// `slack_connect_file_link_sharing_blocked`,
 /// `slack_connect_lists_sharing_blocked`, `stopped_by_user`,
 /// `streaming_mode_mismatch`, `team_not_found`, `too_many_attachments`,
-/// `too_many_contact_cards`.
+/// `too_many_contact_cards`, `message_truncated`.
 pub fn append_stream(
   channel channel: String,
   ts ts: String,
@@ -917,7 +917,7 @@ pub fn post_message_response_decoder() -> decode.Decoder(PostMessageResponse) {
 /// `slack_connect_canvas_sharing_blocked`,
 /// `slack_connect_file_link_sharing_blocked`,
 /// `slack_connect_lists_sharing_blocked`, `team_not_found`,
-/// `too_many_attachments`, `too_many_contact_cards`.
+/// `too_many_attachments`, `too_many_contact_cards`, `message_truncated`.
 pub fn post_message(
   channel channel: String,
   text text: String,
@@ -991,14 +991,14 @@ pub fn schedule_message_response_decoder() -> decode.Decoder(
 /// Documented errors: `channel_not_found`, `invalid_blocks`,
 /// `invalid_blocks_format`, `invalid_metadata_format`,
 /// `invalid_metadata_schema`, `invalid_time`, `invalid_token`, `is_archived`,
-/// `markdown_text_conflict`, `message_limit_exceeded`,
-/// `metadata_must_be_sent_from_app`, `metadata_too_large`, `msg_too_long`,
-/// `no_text`, `not_in_channel`, `posting_to_channel_denied`, `rate_limited`,
-/// `restricted_action`, `restricted_action_non_threadable_channel`,
+/// `message_limit_exceeded`, `metadata_must_be_sent_from_app`,
+/// `metadata_too_large`, `msg_too_long`, `no_text`, `not_in_channel`,
+/// `posting_to_channel_denied`, `rate_limited`, `restricted_action`,
+/// `restricted_action_non_threadable_channel`,
 /// `restricted_action_read_only_channel`,
 /// `restricted_action_thread_only_channel`, `restricted_too_many`,
 /// `slack_connect_file_link_sharing_blocked`, `time_in_past`, `time_too_far`,
-/// `too_many_attachments`.
+/// `too_many_attachments`, `message_truncated`.
 pub fn schedule_message(
   channel channel: String,
   post_at post_at: Int,
@@ -1125,7 +1125,8 @@ pub fn start_stream_response_decoder() -> decode.Decoder(StartStreamResponse) {
 /// `restricted_action_thread_only_channel`,
 /// `slack_connect_canvas_sharing_blocked`,
 /// `slack_connect_file_link_sharing_blocked`,
-/// `slack_connect_lists_sharing_blocked`, `team_not_found`, `user_not_found`.
+/// `slack_connect_lists_sharing_blocked`, `team_not_found`, `user_not_found`,
+/// `message_truncated`.
 pub fn start_stream(
   channel channel: String,
 ) -> slackline.Call(StartStream, StartStreamResponse) {
@@ -1202,7 +1203,8 @@ pub fn stop_stream_response_decoder() -> decode.Decoder(StopStreamResponse) {
 /// `slack_connect_canvas_sharing_blocked`,
 /// `slack_connect_file_link_sharing_blocked`,
 /// `slack_connect_lists_sharing_blocked`, `streaming_mode_mismatch`,
-/// `team_not_found`, `too_many_attachments`, `too_many_contact_cards`.
+/// `team_not_found`, `too_many_attachments`, `too_many_contact_cards`,
+/// `message_truncated`.
 pub fn stop_stream(
   channel channel: String,
   ts ts: String,
@@ -1306,7 +1308,7 @@ pub fn update_response_decoder() -> decode.Decoder(UpdateResponse) {
 /// `slack_connect_file_link_sharing_blocked`,
 /// `slack_connect_file_upload_sharing_blocked`, `streaming_state_conflict`,
 /// `team_not_found`, `too_many_attachments`, `unable_to_share_files`,
-/// `update_failed`.
+/// `update_failed`, `message_truncated`, `some_files_not_deleted`.
 pub fn update(
   channel channel: String,
   ts ts: String,

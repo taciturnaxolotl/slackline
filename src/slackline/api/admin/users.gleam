@@ -435,10 +435,11 @@ pub type Assign
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `feature_not_enabled`, `invalid_role_for_user`,
-/// `invited_user_not_created`, `invited_user_not_reactivated`,
-/// `inviter_email_not_verified`, `invitor_cannot_see_channel`, `not_an_admin`,
-/// `team_not_found`, `too_many_channels`, `user_already_team_member`,
+/// Documented errors: `feature_not_enabled`, `invalid_channel_for_ura`,
+/// `invalid_role_for_user`, `invited_user_not_created`,
+/// `invited_user_not_reactivated`, `inviter_email_not_verified`,
+/// `invitor_cannot_see_channel`, `not_an_admin`, `team_not_found`,
+/// `too_many_channels`, `user_already_team_member`,
 /// `user_cannot_be_added_to_workspace`, `user_is_bot`, `user_not_found`.
 pub fn assign(
   team_id team_id: String,
@@ -987,8 +988,8 @@ pub type SetOwner
 /// Documented errors: `cannot_modify_primary_owner`,
 /// `failed_to_set_owner_on_workspaces`, `failed_to_set_user_to_owner`,
 /// `feature_not_enabled`, `invalid_role_for_user`, `not_an_admin`,
-/// `not_supported`, `team_not_found`, `user_must_be_in_workspace`,
-/// `user_not_found`.
+/// `not_an_enterprise`, `not_supported`, `restricted_action`, `team_not_found`,
+/// `user_must_be_in_workspace`, `user_not_found`.
 pub fn set_owner(
   team_id team_id: String,
   user_id user_id: String,
@@ -1019,9 +1020,10 @@ pub type SetRegular
 /// Documented errors: `cannot_modify_primary_owner`,
 /// `cannot_set_org_admin_to_regular_at_workspace_level`,
 /// `cannot_set_this_guest_to_regular_at_team_level`,
-/// `failed_to_set_user_to_regular`, `feature_not_enabled`,
-/// `invalid_role_for_user`, `inviter_email_not_verified`, `not_an_admin`,
-/// `team_not_found`, `user_not_found`.
+/// `failed_to_set_regular_on_workspaces`, `failed_to_set_user_to_regular`,
+/// `feature_not_enabled`, `invalid_role_for_user`,
+/// `inviter_email_not_verified`, `not_an_admin`, `team_not_found`,
+/// `user_not_found`.
 pub fn set_regular(
   team_id team_id: String,
   user_id user_id: String,
@@ -1054,7 +1056,7 @@ pub type UnsupportedVersionsExport
 ///
 /// Rate limit tier: `t1`.
 ///
-/// Documented errors: `could_not_export`, `invalid_team_id`,
+/// Documented errors: `could_not_export`, `invalid_team_id`, `not_an_admin`,
 /// `not_an_enterprise`.
 pub fn unsupported_versions_export() -> slackline.Call(
   UnsupportedVersionsExport,

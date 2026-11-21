@@ -221,8 +221,11 @@ pub fn create_response_decoder() -> decode.Decoder(CreateResponse) {
 ///
 /// Rate limit tier: `t1`.
 ///
-/// Documented errors: `feature_not_enabled`, `handle_already_exists`,
-/// `name_already_exists`, `not_an_enterprise`, `restricted_action`.
+/// Documented errors: `bad_handle`, `description_too_long`, `empty_name`,
+/// `feature_not_enabled`, `forbidden_handle`, `forbidden_name`,
+/// `handle_already_exists`, `handle_too_long`, `missing_subteam_name`,
+/// `name_already_exists`, `name_too_long`, `not_an_enterprise`,
+/// `restricted_action`.
 pub fn create(name name: String) -> slackline.Call(Create, CreateResponse) {
   slackline.call(
     "admin.usergroups.create",
@@ -434,9 +437,11 @@ pub fn update_response_decoder() -> decode.Decoder(UpdateResponse) {
 ///
 /// Rate limit tier: `t1`.
 ///
-/// Documented errors: `cannot_modify_pref_after_creation`,
-/// `feature_not_enabled`, `handle_already_exists`, `invalid_usergroup`,
-/// `name_already_exists`, `not_an_enterprise`, `restricted_action`,
+/// Documented errors: `bad_handle`, `cannot_modify_pref_after_creation`,
+/// `description_too_long`, `empty_name`, `feature_not_enabled`,
+/// `forbidden_handle`, `forbidden_name`, `handle_already_exists`,
+/// `handle_too_long`, `invalid_usergroup`, `name_already_exists`,
+/// `name_too_long`, `not_an_enterprise`, `restricted_action`,
 /// `too_many_usergroup_members_to_make_visible`, `user_channel_limit_exceeded`,
 /// `visible_group_needs_handle`.
 pub fn update(id id: String) -> slackline.Call(Update, UpdateResponse) {

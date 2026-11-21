@@ -22,7 +22,9 @@ pub fn app_ids(
   slackline.with_param(call, "app_ids", string.join(app_ids, ","))
 }
 
-/// return apps with the corresponding rich link preview layouts
+/// return apps with the corresponding rich link preview layouts _Acceptable
+/// values:_ `all_details` `limited_details` `no_preview`
+/// `default_to_global_setting`
 pub fn rich_link_preview_types(
   call: slackline.Call(apps.ConfigLookup, r),
   rich_link_preview_types: List(String),

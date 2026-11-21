@@ -49,6 +49,24 @@ import slackline/api/users as api_users
 import slackline/api/views
 import slackline/api/workflows as api_workflows
 
+/// admin.analytics.members.activity: A page of members, sorted by user ID, with their activity metrics for the day.
+pub fn admin_analytics_members_activity_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"available_date_range\":{\"end_date\":\"2026-09-30\",\"start_date\":\"2025-11-01\"},\"date\":\"2026-09-30\",\"members\":[{\"account_type\":\"member\",\"active_day_count\":1,\"ai_usage_count\":2,\"date_created\":1600000000,\"date_last_active\":1760054400,\"enterprise_id\":\"E0123ABCD\",\"is_admin\":false,\"is_owner\":false,\"is_primary_owner\":false,\"is_restricted\":false,\"is_ultra_restricted\":false,\"message_count\":14,\"reaction_count\":3,\"team_id\":\"E0123ABCD\",\"user_id\":\"U0123ABCD\"}],\"ok\":true,\"response_metadata\":{\"next_cursor\":\"Y3Vyc29yX21hcms6QW9JSUtqWTA=\"},\"total_count\":1250}",
+      analytics.members_activity_response_decoder(),
+    )
+}
+
+/// admin.analytics.members.metadata: A page of members, sorted by user ID, with their profile metadata.
+pub fn admin_analytics_members_metadata_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"members\":[{\"cost_center\":\"CC-1234\",\"country\":\"US\",\"date_created\":1600000000,\"department\":\"Platform\",\"display_name\":\"jane\",\"email\":\"jane.doe@example.com\",\"enterprise_id\":\"E0123ABCD\",\"real_name\":\"Jane Doe\",\"team_id\":\"E0123ABCD\",\"user_id\":\"U0123ABCD\",\"user_title\":\"Staff Engineer\",\"username\":\"jane.doe\",\"workspaces\":{\"T0123ABCD\":\"Engineering\",\"T0456EFGH\":\"Design\"}}],\"ok\":true,\"response_metadata\":{\"next_cursor\":\"Y3Vyc29yX21hcms6QW9JSUtqWTA=\"},\"total_count\":1250}",
+      analytics.members_metadata_response_decoder(),
+    )
+}
+
 /// admin.analytics.messages.activity: Typical success response
 pub fn admin_analytics_messages_activity_0_test() {
   let assert Ok(_) =
@@ -64,6 +82,24 @@ pub fn admin_analytics_messages_metadata_0_test() {
     json.parse(
       "{\"messages\":[{\"files\":[{\"created\":1234567890,\"filetype\":\"png\",\"id\":\"F123ABC456\",\"mimetype\":\"image/png\",\"pretty_type\":\"PNG\",\"timestamp\":1234567890}],\"reactions\":[{\"count\":5,\"name\":\"thumbsup\"}],\"subtype\":\"bot_message\",\"text_character_count\":42,\"thread_ts\":\"1234567890.123456\",\"ts\":\"1234567890.123456\",\"type\":\"message\",\"user_id\":\"U123ABC456\"}],\"ok\":true,\"response_metadata\":{\"next_cursor\":\"abcd...\"}}",
       analytics.messages_metadata_response_decoder(),
+    )
+}
+
+/// admin.analytics.slackbot.skills: Successful response with one page of per-user skill usage. The second row omits email_address because the organization hides guest email addresses.
+pub fn admin_analytics_slackbot_skills_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"available_date_range\":{\"end_date\":\"2026-09-13\",\"start_date\":\"2025-09-14\"},\"date\":\"2026-09-13\",\"ok\":true,\"response_metadata\":{\"next_cursor\":\"rINXW545qlMoCHsOvVoSbLyn\"},\"skill_usage\":[{\"date\":\"2026-09-13\",\"email_address\":\"person@acme.com\",\"enterprise_id\":\"E123ABC456\",\"skills\":[{\"added_count\":2,\"id\":\"F111AAA111\",\"name\":\"Summarize Channel\",\"shared_count\":1,\"use_count\":5},{\"added_count\":1,\"id\":\"F222BBB222\",\"name\":\"Draft Reply\",\"shared_count\":0,\"use_count\":3}],\"user_id\":\"W111AAA111\"},{\"date\":\"2026-09-13\",\"enterprise_id\":\"E123ABC456\",\"skills\":[{\"added_count\":0,\"id\":\"F111AAA111\",\"name\":\"Summarize Channel\",\"shared_count\":0,\"use_count\":1}],\"user_id\":\"W222BBB222\"}]}",
+      analytics.slackbot_skills_response_decoder(),
+    )
+}
+
+/// admin.analytics.slackbot.tools: Successful response with one page of per-user tool usage. The second row omits email_address because the organization hides guest email addresses.
+pub fn admin_analytics_slackbot_tools_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"available_date_range\":{\"end_date\":\"2026-09-13\",\"start_date\":\"2025-09-14\"},\"date\":\"2026-09-13\",\"ok\":true,\"response_metadata\":{\"next_cursor\":\"rINXW545qlMoCHsOvVoSbLyn\"},\"tool_usage\":[{\"date\":\"2026-09-13\",\"email_address\":\"person@acme.com\",\"enterprise_id\":\"E123ABC456\",\"tools\":[{\"name\":\"Web Search\",\"use_count\":5},{\"name\":\"Update Slack Canvas\",\"use_count\":3}],\"user_id\":\"W111AAA111\"},{\"date\":\"2026-09-13\",\"enterprise_id\":\"E123ABC456\",\"tools\":[{\"name\":\"Web Search\",\"use_count\":1}],\"user_id\":\"W222BBB222\"}]}",
+      analytics.slackbot_tools_response_decoder(),
     )
 }
 

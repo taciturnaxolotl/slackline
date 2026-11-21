@@ -565,7 +565,8 @@ pub type BulkArchive
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `action_already_in_progress`, `invalid_enterprise`,
-/// `no_valid_channels`, `restricted_action`, `team_not_found`.
+/// `no_valid_channels`, `not_an_admin`, `not_an_enterprise`,
+/// `restricted_action`, `team_not_found`.
 pub fn bulk_archive(
   channel_ids channel_ids: List(String),
 ) -> slackline.Call(BulkArchive, BulkActionResponse) {
@@ -592,7 +593,7 @@ pub type BulkDelete
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `action_already_in_progress`, `no_valid_channels`,
-/// `restricted_action`.
+/// `not_an_admin`, `not_an_enterprise`, `restricted_action`.
 pub fn bulk_delete(
   channel_ids channel_ids: List(String),
 ) -> slackline.Call(BulkDelete, BulkActionResponse) {
@@ -649,7 +650,9 @@ pub type BulkSetExcludeFromSlackAi
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `action_already_in_progress`, `disallowed_action`,
-/// `feature_not_enabled`, `no_valid_channels`, `restricted_action`.
+/// `no_valid_channels`, `not_an_admin`, `not_an_enterprise`,
+/// `restricted_action`, `restricted_plan_level`, `toggle_check_failed`,
+/// `unsupported_environment_variant`.
 pub fn bulk_set_exclude_from_slack_ai(
   channel_ids channel_ids: List(String),
   exclude exclude: Bool,
@@ -679,8 +682,9 @@ pub type BulkSetProperties
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `action_already_in_progress`, `disallowed_action`,
-/// `feature_not_enabled`, `no_valid_channels`, `property_not_allowed`,
-/// `restricted_action`, `restricted_plan_level`, `too_many_properties`.
+/// `feature_not_enabled`, `no_valid_channels`, `not_an_admin`,
+/// `not_an_enterprise`, `property_not_allowed`, `restricted_action`,
+/// `restricted_plan_level`, `too_many_properties`.
 pub fn bulk_set_properties(
   channel_ids channel_ids: List(String),
   property property: value.Value,
@@ -774,7 +778,8 @@ pub type Create
 ///
 /// Documented errors: `could_not_create_channel`, `feature_not_enabled`,
 /// `invalid_name`, `invalid_team`, `name_taken`, `no_local_user_on_team`,
-/// `restricted_action`, `team_id_or_org_required`, `team_not_found`.
+/// `restricted_action`, `target_team_not_on_org`, `team_id_or_org_required`,
+/// `team_not_found`.
 pub fn create(
   name name: String,
   is_private is_private: Bool,
@@ -868,7 +873,8 @@ pub type DisconnectShared
 /// `default_org_wide_channel`, `external_channel_migrating`,
 /// `feature_not_enabled`, `leaving_team_not_in_channel`,
 /// `leaving_team_required`, `no_teams_to_disconnect`, `not_an_admin`,
-/// `not_an_enterprise`, `not_supported`, `restricted_action`, `team_not_found`.
+/// `not_an_enterprise`, `not_supported`, `restricted_action`,
+/// `target_team_not_on_org`, `team_not_found`.
 pub fn disconnect_shared(
   channel_id channel_id: String,
 ) -> slackline.Call(DisconnectShared, Nil) {
@@ -1115,7 +1121,7 @@ pub type Invite
 ///
 /// Documented errors: `channel_not_found`, `channel_type_not_supported`,
 /// `default_org_wide_channel`, `failed_for_some_users`, `feature_not_enabled`,
-/// `restricted_action`, `user_must_be_admin`.
+/// `restricted_action`, `target_team_not_on_org`, `user_must_be_admin`.
 pub fn invite(
   user_ids user_ids: List(String),
   channel_id channel_id: String,
@@ -1180,7 +1186,8 @@ pub fn kick_response_decoder() -> decode.Decoder(KickResponse) {
 ///
 /// Documented errors: `channel_not_found`, `channel_type_not_supported`,
 /// `external_channel_migrating`, `failed_for_all_users`, `not_supported`,
-/// `permission_denied`, `restricted_action`, `too_many_users`.
+/// `permission_denied`, `restricted_action`, `target_team_not_on_org`,
+/// `too_many_users`, `failed_for_some_users`.
 pub fn kick(
   channel_id channel_id: String,
   user_ids user_ids: List(String),
@@ -1270,7 +1277,7 @@ pub fn lookup_response_decoder() -> decode.Decoder(LookupResponse) {
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `feature_not_enabled`, `invalid_cursor`,
-/// `no_valid_teams`.
+/// `no_valid_teams`, `not_an_admin`, `not_an_enterprise`, `restricted_action`.
 pub fn lookup(
   team_ids team_ids: List(String),
   last_message_activity_before last_message_activity_before: Int,
@@ -1542,7 +1549,7 @@ pub type SetConversationPrefs
 /// Documented errors: `channel_mention_sync_required`, `channel_not_found`,
 /// `channel_type_not_supported`, `could_not_set_channel_pref`,
 /// `default_org_wide_channel`, `feature_not_enabled`, `invalid_value`,
-/// `not_an_admin`, `restricted_action`.
+/// `not_an_admin`, `restricted_action`, `target_team_not_on_org`.
 pub fn set_conversation_prefs(
   channel_id channel_id: String,
   prefs prefs: String,

@@ -241,3 +241,146 @@ enum AnalyticsFileType {
   member
   public_channel
 }
+
+/// A kind of member to include in member analytics.
+enum AnalyticsMemberType {
+  regular_members
+  single_channel_guests
+  multi_channel_guests
+  frontline_members
+  org_owners
+  org_admins
+  workspace_owners
+  workspace_admins
+  invited
+}
+
+/// The earliest and latest days that analytics can be requested for.
+record AnalyticsDateRange {
+  /// As `YYYY-MM-DD`.
+  start_date: String?
+  /// As `YYYY-MM-DD`.
+  end_date: String?
+}
+
+/// One member's activity for the day, from `admin.analytics.members.activity`.
+record MemberActivity {
+  user_id: String
+  team_id: String?
+  enterprise_id: String?
+  /// When the account was created (Unix time).
+  date_created: Int?
+  /// The kind of account, such as `member`.
+  account_type: String?
+  is_admin: Bool?
+  is_owner: Bool?
+  is_primary_owner: Bool?
+  is_restricted: Bool?
+  is_ultra_restricted: Bool?
+  /// When the member was last active (Unix time).
+  date_last_active: Int?
+  active_day_count: Int?
+  message_count: Int?
+  reaction_count: Int?
+  /// How many times the member used Slack AI.
+  ai_usage_count: Int?
+}
+
+/// One member's profile, from `admin.analytics.members.metadata`.
+record MemberMetadata {
+  user_id: String
+  team_id: String?
+  enterprise_id: String?
+  /// When the account was created (Unix time).
+  date_created: Int?
+  username: String?
+  real_name: String?
+  display_name: String?
+  user_title: String?
+  /// Left out when the organization hides email addresses.
+  email: String?
+  /// Workspace names keyed by workspace ID.
+  workspaces: Dict(String)?
+  department: String?
+  cost_center: String?
+  country: String?
+}
+
+/// One Slackbot skill a member used.
+record SlackbotSkillUsage {
+  /// The skill's file ID.
+  id: String
+  name: String?
+  use_count: Int?
+  added_count: Int?
+  shared_count: Int?
+}
+
+/// A member's Slackbot skill usage for one day.
+record MemberSkillUsage {
+  date: String?
+  enterprise_id: String?
+  user_id: String
+  /// Left out when the organization hides guest email addresses.
+  email_address: String?
+  skills: List(SlackbotSkillUsage)?
+}
+
+/// One Slackbot tool a member used.
+record SlackbotToolUsage {
+  name: String
+  use_count: Int?
+}
+
+/// A member's Slackbot tool usage for one day.
+record MemberToolUsage {
+  date: String?
+  enterprise_id: String?
+  user_id: String
+  /// Left out when the organization hides guest email addresses.
+  email_address: String?
+  tools: List(SlackbotToolUsage)?
+}
+
+method admin.analytics.members.activity {
+  args {
+    member_types: List(AnalyticsMemberType)?
+  }
+  response {
+    /// The day the metrics count, as `YYYY-MM-DD`.
+    date: String?
+    available_date_range: AnalyticsDateRange?
+    members: List(MemberActivity)?
+    total_count: Int?
+    response_metadata: ResponseMetadata?
+  }
+}
+
+method admin.analytics.members.metadata {
+  args {
+    member_types: List(AnalyticsMemberType)?
+  }
+  response {
+    members: List(MemberMetadata)?
+    total_count: Int?
+    response_metadata: ResponseMetadata?
+  }
+}
+
+method admin.analytics.slackbot.skills {
+  response {
+    date: String?
+    available_date_range: AnalyticsDateRange?
+    skill_usage: List(MemberSkillUsage)?
+    response_metadata: ResponseMetadata?
+  }
+}
+
+method admin.analytics.slackbot.tools {
+  response {
+    date: String?
+    available_date_range: AnalyticsDateRange?
+    tool_usage: List(MemberToolUsage)?
+    response_metadata: ResponseMetadata?
+  }
+}

@@ -251,11 +251,11 @@ pub fn skills_create_response_decoder() -> decode.Decoder(SkillsCreateResponse) 
 ///
 /// Documented errors: `already_a_skill`, `canvas_creation_failed`,
 /// `canvas_disabled_user_team`, `canvas_editing_locked`, `canvas_not_found`,
-/// `description_too_long`, `display_name_too_long`, `example_prompt_too_long`,
-/// `feature_not_enabled`, `free_teams_cannot_create_standalone_canvases`,
-/// `instructions_too_large`, `invalid_category`, `is_a_template`,
-/// `mcp_server_not_found`, `not_canvas_owner`, `restricted_action`,
-/// `too_many_mcp_servers`.
+/// `category_inactive`, `description_too_long`, `display_name_too_long`,
+/// `example_prompt_too_long`, `feature_not_enabled`,
+/// `free_teams_cannot_create_standalone_canvases`, `instructions_too_large`,
+/// `invalid_category`, `is_a_template`, `mcp_server_not_found`,
+/// `not_canvas_owner`, `restricted_action`, `too_many_mcp_servers`.
 pub fn skills_create(
   display_name display_name: String,
 ) -> slackline.Call(SkillsCreate, SkillsCreateResponse) {
@@ -477,10 +477,11 @@ pub fn skills_update_response_decoder() -> decode.Decoder(SkillsUpdateResponse) 
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `canvas_editing_failed`, `canvas_editing_locked`,
-/// `description_too_long`, `display_name_too_long`, `example_prompt_too_long`,
-/// `feature_not_enabled`, `instructions_too_large`, `invalid_category`,
-/// `mcp_server_not_found`, `method_not_supported_for_skill_type`,
-/// `restricted_action`, `skill_not_found`, `too_many_mcp_servers`.
+/// `category_inactive`, `description_too_long`, `display_name_too_long`,
+/// `example_prompt_too_long`, `feature_not_enabled`, `instructions_too_large`,
+/// `invalid_category`, `mcp_server_not_found`,
+/// `method_not_supported_for_skill_type`, `restricted_action`,
+/// `skill_not_found`, `too_many_mcp_servers`.
 pub fn skills_update(
   skill_id skill_id: String,
 ) -> slackline.Call(SkillsUpdate, SkillsUpdateResponse) {

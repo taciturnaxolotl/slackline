@@ -851,7 +851,8 @@ pub fn canvases_create_response_decoder() -> decode.Decoder(
 /// `canvas_tab_creation_failed`, `channel_canvas_already_exists`,
 /// `channel_canvas_creation_failed`, `channel_not_found`,
 /// `free_team_canvas_tab_already_exists`, `posting_to_channel_denied`,
-/// `restricted_action`, `team_tier_cannot_create_channel_canvases`.
+/// `restricted_action`, `team_tier_cannot_create_channel_canvases`,
+/// `failed_adding_canvas_to_tab`.
 pub fn canvases_create(
   channel_id channel_id: String,
 ) -> slackline.Call(CanvasesCreate, CanvasesCreateResponse) {
@@ -1129,7 +1130,8 @@ pub fn info_response_decoder() -> decode.Decoder(InfoResponse) {
 ///
 /// Rate limit tier: `t3`.
 ///
-/// Documented errors: `channel_is_limited_access`, `channel_not_found`.
+/// Documented errors: `channel_is_limited_access`, `channel_not_found`,
+/// `external_channel_migrating`.
 pub fn info(channel channel: String) -> slackline.Call(Info, InfoResponse) {
   slackline.call(
     "conversations.info",
@@ -1312,7 +1314,7 @@ pub fn join_response_decoder() -> decode.Decoder(JoinResponse) {
 ///
 /// Documented errors: `app_cannot_join_channel`, `channel_is_limited_access`,
 /// `channel_not_found`, `is_archived`, `method_not_supported_for_channel_type`,
-/// `too_many_members`.
+/// `not_workspace_member`, `too_many_members`.
 pub fn join(channel channel: String) -> slackline.Call(Join, JoinResponse) {
   slackline.call(
     "conversations.join",
@@ -1354,8 +1356,9 @@ pub fn kick_response_decoder() -> decode.Decoder(KickResponse) {
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `cant_kick_from_general`, `cant_kick_self`,
-/// `channel_not_found`, `method_not_supported_for_channel_type`, `no_user`,
-/// `not_in_channel`, `not_supported`, `restricted_action`, `user_not_found`.
+/// `channel_not_found`, `leave_failed`,
+/// `method_not_supported_for_channel_type`, `no_user`, `not_in_channel`,
+/// `not_supported`, `restricted_action`, `user_not_found`.
 pub fn kick(channel channel: String) -> slackline.Call(Kick, KickResponse) {
   slackline.call(
     "conversations.kick",
@@ -1584,8 +1587,9 @@ pub fn members_response_decoder() -> decode.Decoder(MembersResponse) {
 ///
 /// Rate limit tier: `t4`.
 ///
-/// Documented errors: `channel_not_found`, `fetch_members_failed`,
-/// `invalid_cursor`, `invalid_limit`, `method_not_supported_for_channel_type`.
+/// Documented errors: `channel_not_found`, `external_channel_migrating`,
+/// `fetch_members_failed`, `invalid_cursor`, `invalid_limit`,
+/// `method_not_supported_for_channel_type`.
 pub fn members(
   channel channel: String,
 ) -> slackline.Call(Members, MembersResponse) {
@@ -1643,7 +1647,8 @@ pub fn open_response_decoder() -> decode.Decoder(OpenResponse) {
 /// Documented errors: `app_cannot_join_channel`, `channel_not_found`,
 /// `invalid_user_combination`, `method_not_supported_for_channel_type`,
 /// `not_enough_users`, `restricted_action`, `too_many_users`, `user_disabled`,
-/// `user_not_found`, `user_not_visible`, `users_list_not_supplied`.
+/// `user_not_found`, `user_not_visible`, `users_list_not_supplied`,
+/// `already_open`, `no_op`.
 pub fn open() -> slackline.Call(Open, OpenResponse) {
   slackline.call("conversations.open", [], open_response_decoder())
 }
@@ -2034,7 +2039,7 @@ pub type Unarchive
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `channel_not_found`,
+/// Documented errors: `channel_frozen`, `channel_not_found`,
 /// `method_not_supported_for_channel_type`, `not_archived`.
 pub fn unarchive(channel channel: String) -> slackline.Call(Unarchive, Nil) {
   slackline.call(

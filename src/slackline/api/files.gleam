@@ -164,10 +164,13 @@ pub fn complete_upload_external_response_decoder() -> decode.Decoder(
 ///
 /// Rate limit tier: `t4`.
 ///
-/// Documented errors: `channel_not_found`, `channels_limit_exceeded`,
-/// `file_not_found`, `file_type_not_allowed`, `file_update_failed`,
-/// `file_uploads_except_images_disabled`, `invalid_blocks`, `invalid_channel`,
-/// `not_in_channel`, `posting_to_channel_denied`, `user_is_external_guest`.
+/// Documented errors: `blocked_file_type`, `channel_not_found`,
+/// `channels_limit_exceeded`, `file_not_found`, `file_type_not_allowed`,
+/// `file_update_failed`, `file_uploads_except_images_disabled`,
+/// `invalid_blocks`, `invalid_channel`, `msg_too_long`, `not_in_channel`,
+/// `posting_to_channel_denied`, `slack_connect_blocked_file_type`,
+/// `slack_connect_clip_sharing_blocked`,
+/// `slack_connect_file_upload_sharing_blocked`, `user_is_external_guest`.
 pub fn complete_upload_external(
   files files: List(UploadedFile),
 ) -> slackline.Call(CompleteUploadExternal, CompleteUploadExternalResponse) {

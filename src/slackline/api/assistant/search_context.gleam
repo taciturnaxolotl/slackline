@@ -26,7 +26,8 @@ pub fn action_token(
 }
 
 /// Mix and match channel types by providing a comma-separated list of any
-/// combination of `public_channel`, `private_channel`, `mpim`, `im`. Defaults
+/// combination of `public_channel`, `private_channel`, `mpim`, `im`.
+/// _Acceptable values:_ `public_channel` `private_channel` `mpim` `im` Defaults
 /// to `public_channel`.
 pub fn channel_types(
   call: slackline.Call(assistant.SearchContext, r),
@@ -36,7 +37,8 @@ pub fn channel_types(
 }
 
 /// Content types to include, a comma-separated list of any combination of
-/// `messages`, `files`, `channels`, `users`. Defaults to `messages`.
+/// `messages`, `files`, `channels`, `users`. _Acceptable values:_ `messages`
+/// `files` `enterprise` `channels` `users` Defaults to `messages`.
 pub fn content_types(
   call: slackline.Call(assistant.SearchContext, r),
   content_types: List(String),

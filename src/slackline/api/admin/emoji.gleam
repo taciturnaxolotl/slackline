@@ -62,8 +62,8 @@ pub type Add
 /// `error_lower_case_names_only`, `error_missing_name`, `error_name_taken`,
 /// `error_name_taken_i18n`, `error_no_image`, `error_too_big`,
 /// `failed_to_add_emoji`, `failed_to_fetch_active_team`, `feature_not_enabled`,
-/// `no_image_uploaded`, `not_an_admin`, `resized_but_still_too_large`,
-/// `too_many_frames`.
+/// `no_image_uploaded`, `not_an_admin`, `not_an_enterprise`,
+/// `resized_but_still_too_large`, `too_many_frames`.
 pub fn add(name name: String, url url: String) -> slackline.Call(Add, Nil) {
   slackline.call(
     "admin.emoji.add",
@@ -91,7 +91,7 @@ pub type AddAlias
 /// Documented errors: `emoji_limit_reached`, `error_bad_name_i18n`,
 /// `error_invalid_alias`, `error_missing_name`, `error_name_taken`,
 /// `error_name_taken_i18n`, `failed_to_alias_emoji`, `feature_not_enabled`,
-/// `no_alias_selected`, `not_an_admin`.
+/// `no_alias_selected`, `not_an_admin`, `not_an_enterprise`.
 pub fn add_alias(
   name name: String,
   alias_for alias_for: String,
@@ -169,7 +169,8 @@ pub type Remove
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `emoji_not_found`, `failed_to_remove_emoji`,
-/// `failure_removing_emoji`, `feature_not_enabled`, `not_an_admin`.
+/// `failure_removing_emoji`, `feature_not_enabled`, `not_an_admin`,
+/// `not_an_enterprise`.
 pub fn remove(name name: String) -> slackline.Call(Remove, Nil) {
   slackline.call(
     "admin.emoji.remove",
@@ -196,7 +197,8 @@ pub type Rename
 /// Documented errors: `cannot_resolve_alias`, `error_bad_name_i18n`,
 /// `error_invalid_emoji_to_rename`, `error_missing_name`, `error_name_taken`,
 /// `error_name_taken_i18n`, `failed_to_fetch_active_team`,
-/// `failed_to_rename_emoji`, `feature_not_enabled`, `not_an_admin`.
+/// `failed_to_rename_emoji`, `feature_not_enabled`, `not_an_admin`,
+/// `not_an_enterprise`.
 pub fn rename(
   name name: String,
   new_name new_name: String,

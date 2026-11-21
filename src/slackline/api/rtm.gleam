@@ -142,7 +142,8 @@ pub type Start
 ///
 /// Rate limit tier: `t1`.
 ///
-/// Documented errors: `migration_in_progress`, `rtm_connect_required`.
+/// Documented errors: `migration_in_progress`, `rtm_connect_required`,
+/// `member_list_truncated`.
 @deprecated("Deprecated: Starts a Real Time Messaging session. Use rtm.connect instead.")
 pub fn start() -> slackline.Call(Start, RtmConnectResponse) {
   slackline.call(

@@ -184,8 +184,8 @@ pub type FeaturedAdd
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `error_modifying_workflows`, `method_not_supported`,
-/// `restricted_action`.
+/// Documented errors: `channel_not_found`, `error_modifying_workflows`,
+/// `method_not_supported`, `restricted_action`.
 pub fn featured_add(
   channel_id channel_id: String,
   trigger_ids trigger_ids: List(String),
@@ -259,8 +259,8 @@ pub type FeaturedRemove
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `error_modifying_workflows`, `method_not_supported`,
-/// `restricted_action`.
+/// Documented errors: `channel_not_found`, `error_modifying_workflows`,
+/// `method_not_supported`, `restricted_action`.
 pub fn featured_remove(
   channel_id channel_id: String,
   trigger_ids trigger_ids: List(String),
@@ -289,8 +289,8 @@ pub type FeaturedSet
 ///
 /// Rate limit tier: `t2`.
 ///
-/// Documented errors: `error_modifying_workflows`, `method_not_supported`,
-/// `restricted_action`.
+/// Documented errors: `channel_not_found`, `error_modifying_workflows`,
+/// `method_not_supported`, `restricted_action`.
 pub fn featured_set(
   channel_id channel_id: String,
   trigger_ids trigger_ids: List(String),
@@ -422,8 +422,7 @@ pub type TriggersPermissionsSet
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `channel_not_found`, `connected_org_denied`,
-/// `connected_team_denied`, `connected_user_denied`,
-/// `external_workspace_denied`, `invalid_permission_type`,
+/// `connected_team_denied`, `connected_user_denied`, `invalid_permission_type`,
 /// `named_entities_cannot_be_empty`, `no_valid_named_entities`,
 /// `org_not_connected`, `org_not_found`, `shared_channel_denied`,
 /// `team_not_connected`, `team_not_found`, `too_many_named_entities`,

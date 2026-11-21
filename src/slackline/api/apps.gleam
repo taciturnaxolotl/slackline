@@ -864,7 +864,7 @@ pub type IconSet
 ///
 /// User token scopes: `app_configurations:write`.
 ///
-/// Rate limit tier: `t1`.
+/// Rate limit tier: `t2`.
 ///
 /// Documented errors: `app_edit_disabled`, `app_not_owned_by_manager_app`,
 /// `error_bad_format`, `icon_not_accessible`, `invalid_app`, `invalid_app_id`,
@@ -952,7 +952,7 @@ pub fn manifest_create_response_decoder() -> decode.Decoder(
 /// Set optional arguments with the functions in
 /// `slackline/api/apps/manifest_create`.
 ///
-/// Rate limit tier: `t1`.
+/// Rate limit tier: `t2`.
 ///
 /// Documented errors: `dynamic_client_registration_failed`,
 /// `dynamic_client_registration_invalid_redirect_uri`,
@@ -986,7 +986,7 @@ pub type ManifestDelete
 ///
 /// `apps.ManifestDelete` identifies this method in `slackline.Call`.
 ///
-/// Rate limit tier: `t1`.
+/// Rate limit tier: `t2`.
 ///
 /// Documented errors: `app_not_eligible`, `app_not_found`,
 /// `app_not_owned_by_manager_app`, `invalid_app_id`, `published_app_only`.
@@ -1078,7 +1078,7 @@ pub fn manifest_update_response_decoder() -> decode.Decoder(
 ///
 /// `apps.ManifestUpdate` identifies this method in `slackline.Call`.
 ///
-/// Rate limit tier: `t1`.
+/// Rate limit tier: `t2`.
 ///
 /// Documented errors: `app_edit_disabled`, `app_not_eligible`, `app_not_found`,
 /// `app_not_owned_by_manager_app`, `dynamic_client_registration_failed`,

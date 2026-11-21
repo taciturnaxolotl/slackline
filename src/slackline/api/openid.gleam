@@ -59,7 +59,7 @@ pub fn connect_token_response_decoder() -> decode.Decoder(ConnectTokenResponse) 
 /// `invalid_client_id`, `invalid_code`, `invalid_grant`, `invalid_grant_type`,
 /// `invalid_refresh_token`, `invalid_request`,
 /// `oauth_authorization_url_mismatch`, `preview_feature_not_available`,
-/// `unsupported_grant_type`.
+/// `unsupported_grant_type`, `workspace_denied_app`.
 pub fn connect_token() -> slackline.Call(ConnectToken, ConnectTokenResponse) {
   slackline.call("openid.connect.token", [], connect_token_response_decoder())
   |> slackline.without_token

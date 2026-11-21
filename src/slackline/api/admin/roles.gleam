@@ -62,7 +62,7 @@ pub type AddAssignments
 /// Documented errors: `cannot_modify_role_admin`, `failed_for_some_entities`,
 /// `failed_for_some_users`, `failed_for_some_users_and_entities`,
 /// `feature_not_enabled`, `invalid_actor`, `invalid_role_id`,
-/// `no_valid_entities`, `no_valid_users`, `too_many_entities`,
+/// `no_valid_entities`, `no_valid_users`, `not_permitted`, `too_many_entities`,
 /// `too_many_users`.
 pub fn add_assignments(
   role_id role_id: String,
@@ -152,7 +152,7 @@ pub type RemoveAssignments
 /// Documented errors: `cannot_modify_role_admin`, `failed_for_some_entities`,
 /// `failed_for_some_users`, `failed_for_some_users_and_entities`,
 /// `feature_not_enabled`, `invalid_actor`, `invalid_role_id`,
-/// `no_valid_entities`, `no_valid_users`, `too_many_entities`,
+/// `no_valid_entities`, `no_valid_users`, `not_permitted`, `too_many_entities`,
 /// `too_many_users`.
 pub fn remove_assignments(
   role_id role_id: String,

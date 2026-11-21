@@ -78,7 +78,7 @@ fn error(code: String, description: String) -> Json {
 
 pub fn responses(body: String) -> List(Json) {
   let assert Ok(example) =
-    regexp.from_string("(?sm)^#### (.*?)\\n\\n```\\n(.*?)\\n```")
+    regexp.from_string("(?sm)^#### (.*?)\\n\\n```[a-z]*\\n(.*?)\\n```")
   regexp.scan(example, section.find(body, "Response"))
   |> list.filter_map(fn(match) {
     case match {
@@ -86,7 +86,12 @@ pub fn responses(body: String) -> List(Json) {
         Ok(
           json.object([
             #("title", json.string(string.trim(option.unwrap(title, "")))),
-            #("body", json.string(string.trim(option.unwrap(body, "")))),
+            #(
+              "body",
+              json.string(string.trim(
+                option.unwrap(body, "") |> string.replace("\n", ""),
+              )),
+            ),
           ]),
         )
       _ -> Error(Nil)
