@@ -124,6 +124,12 @@ method oauth.access unauthenticated {
     installer_user: OAuthWorkspaceAppUser?
     /// Granted scopes by context (`app_home`, `team`, `channel`, ...), for legacy workspace apps.
     scopes: Dict(List(String))?
+    /// Seconds until the access token expires, with token rotation.
+    expires_in: Int?
+    refresh_token: String?
+    single_channel_id: String?
+    team: Value?
+    user: Value?
   }
 }
 

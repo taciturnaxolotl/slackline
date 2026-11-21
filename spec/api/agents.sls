@@ -218,6 +218,8 @@ method agents.sessions.rename {
   response {
     /// The new title of the session.
     title: String?
+    /// The channel, when an agent channel was renamed.
+    channel_id: String?
   }
 }
 

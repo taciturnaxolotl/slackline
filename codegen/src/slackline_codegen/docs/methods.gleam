@@ -1,6 +1,7 @@
 //// Builds `spec/methods.json` from the method pages in a docs directory.
 
 import filepath
+import gleam/dict
 import gleam/json.{type Json}
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -9,9 +10,15 @@ import gleam/string
 import simplifile
 import slackline_codegen/docs/args
 import slackline_codegen/docs/frontmatter.{type Meta}
+import slackline_codegen/docs/method_json.{type MethodJson}
 import slackline_codegen/docs/page
 
 pub const output = "spec/methods.json"
+
+/// The json docs.slack.dev renders a method page from.
+pub fn json_url(method: String) -> String {
+  "https://docs.slack.dev/reference/methods/" <> method <> ".json"
+}
 
 /// Extract every method page under `<docs>/reference/methods` and write the
 /// index to `output`. Returns the number of methods.
@@ -25,8 +32,16 @@ pub fn extract(docs: String) -> Result(Int, String) {
     |> list.filter(string.ends_with(_, ".md"))
     |> list.sort(string.compare)
     |> list.try_map(fn(file) {
+      let json_file =
+        filepath.join(directory, string.remove_suffix(file, ".md") <> ".json")
+      let rendered =
+        simplifile.read(json_file)
+        |> result.try(fn(text) {
+          method_json.parse(text) |> result.replace_error(simplifile.Eio)
+        })
+        |> option.from_result
       simplifile.read(filepath.join(directory, file))
-      |> result.map(method(file, _))
+      |> result.map(method(file, _, rendered))
       |> result.map_error(describe)
     }),
   )
@@ -51,7 +66,7 @@ fn describe(error: simplifile.FileError) -> String {
   simplifile.describe_error(error)
 }
 
-fn method(file: String, text: String) -> Json {
+fn method(file: String, text: String, rendered: Option(MethodJson)) -> Json {
   let #(meta, body) = frontmatter.parse(text)
   let summary = get(meta, "summary", "")
   let name = case get(meta, "method_name", "") {
@@ -73,18 +88,48 @@ fn method(file: String, text: String) -> Json {
     ),
     #("url", json.string(get(meta, "url", ""))),
     #("http_method", json.string(get(meta, "http_method", "POST"))),
-    #("rate_limit", nullable(frontmatter.get(meta, "rate_limit"))),
+    #(
+      "rate_limit",
+      nullable(option.or(
+        frontmatter.get(meta, "rate_limit"),
+        option.then(rendered, fn(r) { r.rate_limit }),
+      )),
+    ),
     #(
       "scopes",
       json.object([
         #("bot", json.preprocessed_array(list.map(meta.bot, json.string))),
         #("user", json.preprocessed_array(list.map(meta.user, json.string))),
+        #(
+          "configuration",
+          json.array(
+            option.map(rendered, fn(r) { r.configuration_scopes })
+              |> option.unwrap([]),
+            json.string,
+          ),
+        ),
       ]),
     ),
     #("content_types", json.preprocessed_array(page.content_types(body))),
-    #("args", json.preprocessed_array(args.parse(body))),
+    #(
+      "args",
+      json.preprocessed_array(
+        args.parse(body, fn(arg) {
+          option.then(rendered, fn(r) {
+            dict.get(r.arg_types, arg) |> option.from_result
+          })
+        }),
+      ),
+    ),
     #("errors", json.preprocessed_array(page.errors(body))),
     #("response_examples", json.preprocessed_array(page.responses(body))),
+    #(
+      "response_fields",
+      json.nullable(
+        option.then(rendered, fn(r) { r.response_fields }),
+        json.array(_, json.string),
+      ),
+    ),
   ])
 }
 

@@ -7,7 +7,7 @@ the files in this directory. Edit the specs, then run:
 cd codegen
 gleam run -m slackline_codegen/generate             # regenerate src/ and test/slackline_examples_test.gleam
 gleam run -m slackline_codegen/generate -- --check  # fail if any generated file is stale
-gleam run -m slackline_codegen/generate -- --report # methods that still return raw json
+gleam run -m slackline_codegen/generate -- --report # untyped responses, and response fields the docs schema lists but no spec types
 cd ..
 gleam build && gleam test                           # Erlang
 gleam test --target javascript                      # JavaScript
@@ -23,7 +23,10 @@ Generated files start with
 The source of truth is the official reference at <https://docs.slack.dev>.
 In `codegen/`, `gleam run -m slackline_codegen/docs fetch` downloads it into `.docs/`, one
 markdown file per page (`gleam run -m slackline_codegen/docs split <file> [dir]`
-does the same from a local copy of `llms-full-platform.txt`). For example
+does the same from a local copy of `llms-full-platform.txt`). It also downloads
+the json each method page is rendered from, such as
+`https://docs.slack.dev/reference/methods/chat.postMessage.json`, next to the
+page (`docs fetch-json` downloads only that). For example
 `.docs/reference/methods/chat.postMessage.md` or
 `.docs/reference/block-kit/blocks/section-block.md`. Read those pages, not
 other SDKs, when deciding what a type looks like. Other SDKs (including
@@ -31,8 +34,11 @@ slack-edge) are known to be incomplete or wrong in places.
 
 `methods.json` is extracted from the method pages by
 `gleam run -m slackline_codegen/docs extract [docs-dir]` (default `.docs`): names,
-descriptions, arguments, argument types, scopes, rate limits, errors and
-response examples. The extractor writes one method per line, so a change to
+descriptions, arguments, argument types, scopes, rate limits, errors,
+response examples and the top-level fields of the response schema. Prose and
+examples come from the markdown. The json fills in what the page leaves out:
+argument types the page shows without one, configuration token scopes, rate
+tiers given per surface, and the response schema. The extractor writes one method per line, so a change to
 one method changes one line. Do not edit the file by hand. Run the extractor
 again.
 

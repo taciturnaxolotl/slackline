@@ -44,5 +44,10 @@ method auth.test {
     enterprise_id: String?
     /// Whether the app is installed on an entire organization.
     is_enterprise_install: Bool?
+    /// The app the token belongs to.
+    app_id: String?
+    app_name: String?
+    /// Seconds until the token expires, for rotating tokens.
+    expires_in: Int?
   }
 }

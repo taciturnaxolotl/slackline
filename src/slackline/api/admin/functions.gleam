@@ -254,6 +254,8 @@ pub type PermissionsLookupResponse {
     permissions: Option(dict.Dict(String, value.Value)),
     /// Errors found during the lookup, keyed by function ID.
     errors: Option(dict.Dict(String, value.Value)),
+    /// Per-function details keyed by function ID, such as `workflows_using`.
+    metadata: Option(value.Value),
   )
 }
 
@@ -269,9 +271,11 @@ pub fn permissions_lookup_response_decoder() -> decode.Decoder(
     "errors",
     decode.dict(decode.string, value.decoder()),
   )
+  use v_metadata <- codec.optional_field("metadata", value.decoder())
   decode.success(PermissionsLookupResponse(
     permissions: v_permissions,
     errors: v_errors,
+    metadata: v_metadata,
   ))
 }
 

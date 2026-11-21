@@ -416,13 +416,22 @@ pub type UpdateResponse {
   UpdateResponse(
     /// The updated user group.
     subteam: usergroup.Usergroup,
+    /// Users who would exceed their channel limit.
+    channel_limit_user_ids: Option(List(String)),
   )
 }
 
 /// Decodes the response from `admin.usergroups.update`.
 pub fn update_response_decoder() -> decode.Decoder(UpdateResponse) {
   use v_subteam <- decode.field("subteam", usergroup.usergroup_decoder())
-  decode.success(UpdateResponse(subteam: v_subteam))
+  use v_channel_limit_user_ids <- codec.optional_field(
+    "channel_limit_user_ids",
+    decode.list(decode.string),
+  )
+  decode.success(UpdateResponse(
+    subteam: v_subteam,
+    channel_limit_user_ids: v_channel_limit_user_ids,
+  ))
 }
 
 /// [`admin.usergroups.update`](https://docs.slack.dev/reference/methods/admin.usergroups.update):

@@ -504,7 +504,11 @@ fn method_docs(
       ])
   }
   let scopes =
-    [#("Bot", docs.bot_scopes), #("User", docs.user_scopes)]
+    [
+      #("Bot", docs.bot_scopes),
+      #("User", docs.user_scopes),
+      #("Configuration", docs.configuration_scopes),
+    ]
     |> list.filter_map(fn(entry) {
       case entry.1 {
         [] -> Error(Nil)

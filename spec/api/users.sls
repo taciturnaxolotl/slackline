@@ -130,6 +130,7 @@ method users.info {
   response {
     /// The user.
     user: User?
+    users: List(User)?
   }
 }
 
@@ -140,6 +141,7 @@ method users.list {
     /// Unix timestamp of when the list was generated.
     cache_ts: Int?
     response_metadata: ResponseMetadata?
+    offset: String?
   }
 }
 
@@ -165,6 +167,9 @@ method users.profile.set {
   response {
     /// The user's complete profile.
     profile: UserProfile?
+    /// An email change waiting for confirmation.
+    email_pending: String?
+    username: String?
   }
 }
 

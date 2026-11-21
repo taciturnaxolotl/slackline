@@ -692,6 +692,8 @@ pub type AcceptSharedInviteResponse {
     channel_id: Option(String),
     /// The ID of the accepted invite.
     invite_id: Option(String),
+    /// Whether the acceptor can send the inviter a Slack Connect DM.
+    can_open_scdm: Option(Bool),
   )
 }
 
@@ -705,10 +707,12 @@ pub fn accept_shared_invite_response_decoder() -> decode.Decoder(
   )
   use v_channel_id <- codec.optional_field("channel_id", decode.string)
   use v_invite_id <- codec.optional_field("invite_id", decode.string)
+  use v_can_open_scdm <- codec.optional_field("can_open_scdm", decode.bool)
   decode.success(AcceptSharedInviteResponse(
     implicit_approval: v_implicit_approval,
     channel_id: v_channel_id,
     invite_id: v_invite_id,
+    can_open_scdm: v_can_open_scdm,
   ))
 }
 
@@ -1043,6 +1047,21 @@ pub type HistoryResponse {
     /// messages exist beyond the limit.
     is_limited: Option(Bool),
     response_metadata: Option(slackline.ResponseMetadata),
+    channel_actions_count: Option(Int),
+    channel_actions_ts: Option(Int),
+    /// When the calling user joined the channel (Unix time).
+    date_joined: Option(Int),
+    /// Timestamps of deleted messages.
+    deleted: Option(List(String)),
+    deleted_overflow: Option(Bool),
+    latest_updates: Option(value.Value),
+    mutation_timestamps: Option(value.Value),
+    next_ts: Option(Int),
+    oldest: Option(String),
+    unchanged_messages: Option(List(String)),
+    unread_count_display: Option(Int),
+    users: Option(value.Value),
+    warnings: Option(List(String)),
   )
 }
 
@@ -1060,6 +1079,40 @@ pub fn history_response_decoder() -> decode.Decoder(HistoryResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_channel_actions_count <- codec.optional_field(
+    "channel_actions_count",
+    codec.int_decoder(),
+  )
+  use v_channel_actions_ts <- codec.optional_field(
+    "channel_actions_ts",
+    codec.int_decoder(),
+  )
+  use v_date_joined <- codec.optional_field("date_joined", codec.int_decoder())
+  use v_deleted <- codec.optional_field("deleted", decode.list(decode.string))
+  use v_deleted_overflow <- codec.optional_field(
+    "deleted_overflow",
+    decode.bool,
+  )
+  use v_latest_updates <- codec.optional_field(
+    "latest_updates",
+    value.decoder(),
+  )
+  use v_mutation_timestamps <- codec.optional_field(
+    "mutation_timestamps",
+    value.decoder(),
+  )
+  use v_next_ts <- codec.optional_field("next_ts", codec.int_decoder())
+  use v_oldest <- codec.optional_field("oldest", decode.string)
+  use v_unchanged_messages <- codec.optional_field(
+    "unchanged_messages",
+    decode.list(decode.string),
+  )
+  use v_unread_count_display <- codec.optional_field(
+    "unread_count_display",
+    codec.int_decoder(),
+  )
+  use v_users <- codec.optional_field("users", value.decoder())
+  use v_warnings <- codec.optional_field("warnings", decode.list(decode.string))
   decode.success(HistoryResponse(
     messages: v_messages,
     has_more: v_has_more,
@@ -1067,6 +1120,19 @@ pub fn history_response_decoder() -> decode.Decoder(HistoryResponse) {
     latest: v_latest,
     is_limited: v_is_limited,
     response_metadata: v_response_metadata,
+    channel_actions_count: v_channel_actions_count,
+    channel_actions_ts: v_channel_actions_ts,
+    date_joined: v_date_joined,
+    deleted: v_deleted,
+    deleted_overflow: v_deleted_overflow,
+    latest_updates: v_latest_updates,
+    mutation_timestamps: v_mutation_timestamps,
+    next_ts: v_next_ts,
+    oldest: v_oldest,
+    unchanged_messages: v_unchanged_messages,
+    unread_count_display: v_unread_count_display,
+    users: v_users,
+    warnings: v_warnings,
   ))
 }
 
@@ -1108,13 +1174,22 @@ pub type InfoResponse {
   InfoResponse(
     /// The conversation.
     channel: conversation.Conversation,
+    /// The App Home of the conversation, for app DMs.
+    app_home: Option(value.Value),
+    home_view: Option(value.Value),
   )
 }
 
 /// Decodes the response from `conversations.info`.
 pub fn info_response_decoder() -> decode.Decoder(InfoResponse) {
   use v_channel <- decode.field("channel", conversation.conversation_decoder())
-  decode.success(InfoResponse(channel: v_channel))
+  use v_app_home <- codec.optional_field("app_home", value.decoder())
+  use v_home_view <- codec.optional_field("home_view", value.decoder())
+  decode.success(InfoResponse(
+    channel: v_channel,
+    app_home: v_app_home,
+    home_view: v_home_view,
+  ))
 }
 
 /// [`conversations.info`](https://docs.slack.dev/reference/methods/conversations.info):
@@ -1153,6 +1228,8 @@ pub type InviteResponse {
     channel: conversation.Conversation,
     /// Users that could not be invited, when `force` is used.
     errors: Option(List(ConversationInviteError)),
+    /// The conversation, under the legacy name for private channels.
+    group: Option(conversation.Conversation),
   )
 }
 
@@ -1163,7 +1240,15 @@ pub fn invite_response_decoder() -> decode.Decoder(InviteResponse) {
     "errors",
     decode.list(decode.recursive(conversation_invite_error_decoder)),
   )
-  decode.success(InviteResponse(channel: v_channel, errors: v_errors))
+  use v_group <- codec.optional_field(
+    "group",
+    conversation.conversation_decoder(),
+  )
+  decode.success(InviteResponse(
+    channel: v_channel,
+    errors: v_errors,
+    group: v_group,
+  ))
 }
 
 /// [`conversations.invite`](https://docs.slack.dev/reference/methods/conversations.invite):
@@ -1614,6 +1699,9 @@ pub type OpenResponse {
     no_op: Option(Bool),
     /// `true` when the conversation was already open.
     already_open: Option(Bool),
+    /// The App Home of the conversation, for app DMs.
+    app_home: Option(value.Value),
+    home_view: Option(value.Value),
   )
 }
 
@@ -1622,10 +1710,14 @@ pub fn open_response_decoder() -> decode.Decoder(OpenResponse) {
   use v_channel <- decode.field("channel", conversation.conversation_decoder())
   use v_no_op <- codec.optional_field("no_op", decode.bool)
   use v_already_open <- codec.optional_field("already_open", decode.bool)
+  use v_app_home <- codec.optional_field("app_home", value.decoder())
+  use v_home_view <- codec.optional_field("home_view", value.decoder())
   decode.success(OpenResponse(
     channel: v_channel,
     no_op: v_no_op,
     already_open: v_already_open,
+    app_home: v_app_home,
+    home_view: v_home_view,
   ))
 }
 
@@ -1714,6 +1806,8 @@ pub type RepliesResponse {
     /// `true` when more messages exist in the requested time range.
     has_more: Option(Bool),
     response_metadata: Option(slackline.ResponseMetadata),
+    latest_updates: Option(value.Value),
+    unchanged_messages: Option(List(String)),
   )
 }
 
@@ -1728,10 +1822,20 @@ pub fn replies_response_decoder() -> decode.Decoder(RepliesResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_latest_updates <- codec.optional_field(
+    "latest_updates",
+    value.decoder(),
+  )
+  use v_unchanged_messages <- codec.optional_field(
+    "unchanged_messages",
+    decode.list(decode.string),
+  )
   decode.success(RepliesResponse(
     messages: v_messages,
     has_more: v_has_more,
     response_metadata: v_response_metadata,
+    latest_updates: v_latest_updates,
+    unchanged_messages: v_unchanged_messages,
   ))
 }
 
@@ -1777,6 +1881,8 @@ pub type RequestSharedInviteApproveResponse {
   RequestSharedInviteApproveResponse(
     /// The ID of the approved invitation request.
     invite_id: String,
+    confirmation_code: Option(String),
+    url: Option(String),
   )
 }
 
@@ -1785,7 +1891,16 @@ pub fn request_shared_invite_approve_response_decoder() -> decode.Decoder(
   RequestSharedInviteApproveResponse,
 ) {
   use v_invite_id <- decode.field("invite_id", decode.string)
-  decode.success(RequestSharedInviteApproveResponse(invite_id: v_invite_id))
+  use v_confirmation_code <- codec.optional_field(
+    "confirmation_code",
+    decode.string,
+  )
+  use v_url <- codec.optional_field("url", decode.string)
+  decode.success(RequestSharedInviteApproveResponse(
+    invite_id: v_invite_id,
+    confirmation_code: v_confirmation_code,
+    url: v_url,
+  ))
 }
 
 /// [`conversations.requestSharedInvite.approve`](https://docs.slack.dev/reference/methods/conversations.requestSharedInvite.approve):
@@ -1934,13 +2049,19 @@ pub type SetPurposeResponse {
   SetPurposeResponse(
     /// The new purpose.
     purpose: Option(String),
+    /// The updated conversation.
+    channel: Option(conversation.Conversation),
   )
 }
 
 /// Decodes the response from `conversations.setPurpose`.
 pub fn set_purpose_response_decoder() -> decode.Decoder(SetPurposeResponse) {
   use v_purpose <- codec.optional_field("purpose", decode.string)
-  decode.success(SetPurposeResponse(purpose: v_purpose))
+  use v_channel <- codec.optional_field(
+    "channel",
+    conversation.conversation_decoder(),
+  )
+  decode.success(SetPurposeResponse(purpose: v_purpose, channel: v_channel))
 }
 
 /// [`conversations.setPurpose`](https://docs.slack.dev/reference/methods/conversations.setPurpose):

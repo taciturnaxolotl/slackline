@@ -406,6 +406,8 @@ method slackLists.items.info {
     list: ListFile?
     record: ListItem
     subtasks: List(ListItem)?
+    /// The parent item, when the item is a subtask.
+    parent_task: ListItem?
   }
 }
 

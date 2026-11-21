@@ -146,6 +146,8 @@ method chat.postMessage {
     /// A warning, such as `message_truncated`.
     warning: String?
     response_metadata: ResponseMetadata?
+    /// Whether the message was a duplicate of one already sent.
+    is_duplicate: Bool?
   }
 }
 

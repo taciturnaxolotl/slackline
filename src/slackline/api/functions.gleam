@@ -266,6 +266,8 @@ pub type DistributionsPermissionsAdd
 /// Set optional arguments with the functions in
 /// `slackline/api/functions/distributions_permissions_add`.
 ///
+/// Configuration token scopes: `app_configurations:write`.
+///
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `app_edit_disabled`, `app_not_found`,
@@ -296,6 +298,8 @@ pub type DistributionsPermissionsList
 /// Set optional arguments with the functions in
 /// `slackline/api/functions/distributions_permissions_list`.
 ///
+/// Configuration token scopes: `app_configurations:read`.
+///
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `app_not_found`, `function_not_found`, `unknown_method`,
@@ -325,6 +329,8 @@ pub type DistributionsPermissionsRemove
 /// Set optional arguments with the functions in
 /// `slackline/api/functions/distributions_permissions_remove`.
 ///
+/// Configuration token scopes: `app_configurations:write`.
+///
 /// Rate limit tier: `t3`.
 ///
 /// Documented errors: `app_not_found`, `function_not_found`,
@@ -353,6 +359,8 @@ pub type DistributionsPermissionsSet
 ///
 /// Set optional arguments with the functions in
 /// `slackline/api/functions/distributions_permissions_set`.
+///
+/// Configuration token scopes: `app_configurations:write`.
 ///
 /// Rate limit tier: `t3`.
 ///

@@ -322,7 +322,7 @@ fn profile(user: Client, tokens: env.Tokens) -> Nil {
     |> httpc.send(user)
     |> show("users.profile.set (clear status)")
   case users.info() |> info.user(tokens.user_id) |> httpc.send(user) {
-    Ok(users.InfoResponse(user: Some(found))) ->
+    Ok(users.InfoResponse(user: Some(found), ..)) ->
       case found.profile {
         Some(profile) ->
           case profile.email {

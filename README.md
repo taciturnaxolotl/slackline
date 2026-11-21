@@ -235,7 +235,7 @@ Most of `src/` is generated from the Slack docs and annotated with schema specs 
 
 ```sh
 cd codegen
-gleam run -m slackline_codegen/docs fetch     # download the docs
+gleam run -m slackline_codegen/docs fetch     # download the docs and the json behind each method page
 gleam run -m slackline_codegen/docs extract   # rebuild spec/methods.json
 gleam run -m slackline_codegen/generate       # regenerate src/ from spec/
 ```

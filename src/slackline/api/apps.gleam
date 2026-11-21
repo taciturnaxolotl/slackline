@@ -52,6 +52,8 @@ pub fn app_credentials_to_json(it: AppCredentials) -> json.Json {
 /// A problem found in a manifest.
 pub type ManifestError {
   ManifestError(
+    /// A code for the problem.
+    code: Option(String),
     /// Description of the problem.
     message: Option(String),
     /// JSON pointer to the problem's location in the manifest.
@@ -61,14 +63,20 @@ pub type ManifestError {
 
 /// Decodes `ManifestError` from json.
 pub fn manifest_error_decoder() -> decode.Decoder(ManifestError) {
+  use v_code <- codec.optional_field("code", decode.string)
   use v_message <- codec.optional_field("message", decode.string)
   use v_pointer <- codec.optional_field("pointer", decode.string)
-  decode.success(ManifestError(message: v_message, pointer: v_pointer))
+  decode.success(ManifestError(
+    code: v_code,
+    message: v_message,
+    pointer: v_pointer,
+  ))
 }
 
 /// Encodes `ManifestError` as json.
 pub fn manifest_error_to_json(it: ManifestError) -> json.Json {
   codec.object([
+    codec.optional("code", it.code, json.string),
     codec.optional("message", it.message, json.string),
     codec.optional("pointer", it.pointer, json.string),
   ])
@@ -238,6 +246,8 @@ pub type AuthExternalGetResponse {
   AuthExternalGetResponse(
     /// The external access token.
     external_token: String,
+    /// Extra fields from the provider's token response.
+    token_response_extras: Option(value.Value),
   )
 }
 
@@ -246,7 +256,14 @@ pub fn auth_external_get_response_decoder() -> decode.Decoder(
   AuthExternalGetResponse,
 ) {
   use v_external_token <- decode.field("external_token", decode.string)
-  decode.success(AuthExternalGetResponse(external_token: v_external_token))
+  use v_token_response_extras <- codec.optional_field(
+    "token_response_extras",
+    value.decoder(),
+  )
+  decode.success(AuthExternalGetResponse(
+    external_token: v_external_token,
+    token_response_extras: v_token_response_extras,
+  ))
 }
 
 /// [`apps.auth.external.get`](https://docs.slack.dev/reference/methods/apps.auth.external.get):
@@ -806,6 +823,8 @@ pub type EventAuthorizationsListResponse {
     /// Installations of the app the event is visible to.
     authorizations: Option(List(EventAuthorization)),
     response_metadata: Option(slackline.ResponseMetadata),
+    /// The next pagination cursor.
+    cursor_next: Option(String),
   )
 }
 
@@ -821,9 +840,11 @@ pub fn event_authorizations_list_response_decoder() -> decode.Decoder(
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_cursor_next <- codec.optional_field("cursor_next", decode.string)
   decode.success(EventAuthorizationsListResponse(
     authorizations: v_authorizations,
     response_metadata: v_response_metadata,
+    cursor_next: v_cursor_next,
   ))
 }
 
@@ -889,6 +910,8 @@ pub type ManagedPermissionsSet
 ///
 /// `apps.ManagedPermissionsSet` identifies this method in `slackline.Call`.
 ///
+/// Configuration token scopes: `app_configurations:write`.
+///
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `app_not_found`, `app_not_managed`,
@@ -921,6 +944,11 @@ pub type ManifestCreateResponse {
     credentials: Option(AppCredentials),
     /// URL to install the app.
     oauth_authorize_url: Option(String),
+    app_token: Option(String),
+    /// The workspace the app was created in.
+    team_id: Option(String),
+    /// The domain of the workspace the app was created in.
+    team_domain: Option(String),
   )
 }
 
@@ -937,10 +965,16 @@ pub fn manifest_create_response_decoder() -> decode.Decoder(
     "oauth_authorize_url",
     decode.string,
   )
+  use v_app_token <- codec.optional_field("app_token", decode.string)
+  use v_team_id <- codec.optional_field("team_id", decode.string)
+  use v_team_domain <- codec.optional_field("team_domain", decode.string)
   decode.success(ManifestCreateResponse(
     app_id: v_app_id,
     credentials: v_credentials,
     oauth_authorize_url: v_oauth_authorize_url,
+    app_token: v_app_token,
+    team_id: v_team_id,
+    team_domain: v_team_domain,
   ))
 }
 
@@ -951,6 +985,8 @@ pub fn manifest_create_response_decoder() -> decode.Decoder(
 ///
 /// Set optional arguments with the functions in
 /// `slackline/api/apps/manifest_create`.
+///
+/// Configuration token scopes: `app_configurations:write`.
 ///
 /// Rate limit tier: `t2`.
 ///
@@ -985,6 +1021,8 @@ pub type ManifestDelete
 /// Permanently deletes an app created through app manifests
 ///
 /// `apps.ManifestDelete` identifies this method in `slackline.Call`.
+///
+/// Configuration token scopes: `app_configurations:write`.
 ///
 /// Rate limit tier: `t2`.
 ///
@@ -1026,6 +1064,8 @@ pub fn manifest_export_response_decoder() -> decode.Decoder(
 /// Export an app manifest from an existing app
 ///
 /// `apps.ManifestExport` identifies this method in `slackline.Call`.
+///
+/// Configuration token scopes: `app_configurations:read`.
 ///
 /// Rate limit tier: `t3`.
 ///
@@ -1078,6 +1118,8 @@ pub fn manifest_update_response_decoder() -> decode.Decoder(
 ///
 /// `apps.ManifestUpdate` identifies this method in `slackline.Call`.
 ///
+/// Configuration token scopes: `app_configurations:write`.
+///
 /// Rate limit tier: `t2`.
 ///
 /// Documented errors: `app_edit_disabled`, `app_not_eligible`, `app_not_found`,
@@ -1113,6 +1155,8 @@ pub type ManifestValidateResponse {
   ManifestValidateResponse(
     /// Problems found in the manifest. Empty when the manifest is valid.
     errors: Option(List(ManifestError)),
+    /// Problems that do not make the manifest invalid.
+    warnings: Option(List(ManifestError)),
   )
 }
 
@@ -1124,7 +1168,14 @@ pub fn manifest_validate_response_decoder() -> decode.Decoder(
     "errors",
     decode.list(decode.recursive(manifest_error_decoder)),
   )
-  decode.success(ManifestValidateResponse(errors: v_errors))
+  use v_warnings <- codec.optional_field(
+    "warnings",
+    decode.list(decode.recursive(manifest_error_decoder)),
+  )
+  decode.success(ManifestValidateResponse(
+    errors: v_errors,
+    warnings: v_warnings,
+  ))
 }
 
 /// [`apps.manifest.validate`](https://docs.slack.dev/reference/methods/apps.manifest.validate):
@@ -1134,6 +1185,8 @@ pub fn manifest_validate_response_decoder() -> decode.Decoder(
 ///
 /// Set optional arguments with the functions in
 /// `slackline/api/apps/manifest_validate`.
+///
+/// Configuration token scopes: `app_configurations:write`.
 ///
 /// Rate limit tier: `t3`.
 ///

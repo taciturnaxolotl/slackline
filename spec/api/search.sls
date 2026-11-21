@@ -164,6 +164,13 @@ method search.files {
     query: String?
     /// Matching files.
     files: SearchFiles?
+    /// Whether the user's preference to exclude bots was ignored.
+    ignored_exclude_bots_pref: Bool?
+    channels: Value?
+    groups: Value?
+    ims: Value?
+    teams: Value?
+    users: Value?
   }
 }
 
@@ -177,6 +184,12 @@ method search.messages {
     query: String?
     /// Matching messages.
     messages: SearchMessages?
+    /// Whether the user's preference to exclude bots was ignored.
+    ignored_exclude_bots_pref: Bool?
+    show_feedback: Bool?
+    bots: Value?
+    teams: Value?
+    users: Value?
   }
 }
 

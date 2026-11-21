@@ -51,6 +51,8 @@ method usergroups.update {
   response {
     /// The updated user group.
     usergroup: Usergroup?
+    /// Users who would exceed their channel limit.
+    channel_limit_user_ids: List(String)?
   }
 }
 

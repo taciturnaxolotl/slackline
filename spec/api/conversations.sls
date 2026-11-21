@@ -177,6 +177,8 @@ method conversations.acceptSharedInvite {
     channel_id: String?
     /// The ID of the accepted invite.
     invite_id: String?
+    /// Whether the acceptor can send the inviter a Slack Connect DM.
+    can_open_scdm: Bool?
   }
 }
 
@@ -241,6 +243,21 @@ method conversations.history {
     /// messages exist beyond the limit.
     is_limited: Bool?
     response_metadata: ResponseMetadata?
+    channel_actions_count: Int?
+    channel_actions_ts: Int?
+    /// When the calling user joined the channel (Unix time).
+    date_joined: Int?
+    /// Timestamps of deleted messages.
+    deleted: List(String)?
+    deleted_overflow: Bool?
+    latest_updates: Value?
+    mutation_timestamps: Value?
+    next_ts: Int?
+    oldest: String?
+    unchanged_messages: List(String)?
+    unread_count_display: Int?
+    users: Value?
+    warnings: List(String)?
   }
 }
 
@@ -248,6 +265,9 @@ method conversations.info {
   response {
     /// The conversation.
     channel: Conversation
+    /// The App Home of the conversation, for app DMs.
+    app_home: Value?
+    home_view: Value?
   }
 }
 
@@ -261,6 +281,8 @@ method conversations.invite {
     channel: Conversation
     /// Users that could not be invited, when `force` is used.
     errors: List(ConversationInviteError)?
+    /// The conversation, under the legacy name for private channels.
+    group: Conversation?
   }
 }
 
@@ -350,6 +372,9 @@ method conversations.open {
     no_op: Bool?
     /// `true` when the conversation was already open.
     already_open: Bool?
+    /// The App Home of the conversation, for app DMs.
+    app_home: Value?
+    home_view: Value?
   }
 }
 
@@ -367,6 +392,8 @@ method conversations.replies {
     /// `true` when more messages exist in the requested time range.
     has_more: Bool?
     response_metadata: ResponseMetadata?
+    latest_updates: Value?
+    unchanged_messages: List(String)?
   }
 }
 
@@ -378,6 +405,8 @@ method conversations.requestSharedInvite.approve {
   response {
     /// The ID of the approved invitation request.
     invite_id: String
+    confirmation_code: String?
+    url: String?
   }
 }
 
@@ -400,6 +429,8 @@ method conversations.setPurpose {
   response {
     /// The new purpose.
     purpose: String?
+    /// The updated conversation.
+    channel: Conversation?
   }
 }
 

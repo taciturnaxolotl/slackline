@@ -1823,6 +1823,8 @@ pub type ItemsInfoResponse {
     list: Option(ListFile),
     record: ListItem,
     subtasks: Option(List(ListItem)),
+    /// The parent item, when the item is a subtask.
+    parent_task: Option(ListItem),
   )
 }
 
@@ -1837,10 +1839,15 @@ pub fn items_info_response_decoder() -> decode.Decoder(ItemsInfoResponse) {
     "subtasks",
     decode.list(decode.recursive(list_item_decoder)),
   )
+  use v_parent_task <- codec.optional_field(
+    "parent_task",
+    decode.recursive(list_item_decoder),
+  )
   decode.success(ItemsInfoResponse(
     list: v_list,
     record: v_record,
     subtasks: v_subtasks,
+    parent_task: v_parent_task,
   ))
 }
 

@@ -446,6 +446,11 @@ pub type SearchContextResponse {
     /// Search results by content type.
     results: Option(SearchContextResults),
     response_metadata: Option(slackline.ResponseMetadata),
+    /// Requested content types whose search failed.
+    failed_content_types: Option(List(String)),
+    /// Whether this is the last page that can be fetched although more results
+    /// exist.
+    page_limit_reached: Option(Bool),
   )
 }
 
@@ -461,9 +466,19 @@ pub fn search_context_response_decoder() -> decode.Decoder(
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_failed_content_types <- codec.optional_field(
+    "failed_content_types",
+    decode.list(decode.string),
+  )
+  use v_page_limit_reached <- codec.optional_field(
+    "page_limit_reached",
+    decode.bool,
+  )
   decode.success(SearchContextResponse(
     results: v_results,
     response_metadata: v_response_metadata,
+    failed_content_types: v_failed_content_types,
+    page_limit_reached: v_page_limit_reached,
   ))
 }
 

@@ -8,6 +8,7 @@ import gleam/json
 import gleam/option.{type Option}
 import slackline
 import slackline/internal/codec
+import slackline/value
 
 /// The workspace an app was installed on. `null` for org-level installations.
 pub type OAuthTeam {
@@ -371,6 +372,12 @@ pub type AccessResponse {
     /// Granted scopes by context (`app_home`, `team`, `channel`, ...), for
     /// legacy workspace apps.
     scopes: Option(dict.Dict(String, List(String))),
+    /// Seconds until the access token expires, with token rotation.
+    expires_in: Option(Int),
+    refresh_token: Option(String),
+    single_channel_id: Option(String),
+    team: Option(value.Value),
+    user: Option(value.Value),
   )
 }
 
@@ -405,6 +412,14 @@ pub fn access_response_decoder() -> decode.Decoder(AccessResponse) {
     "scopes",
     decode.dict(decode.string, decode.list(decode.string)),
   )
+  use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
+  use v_refresh_token <- codec.optional_field("refresh_token", decode.string)
+  use v_single_channel_id <- codec.optional_field(
+    "single_channel_id",
+    decode.string,
+  )
+  use v_team <- codec.optional_field("team", value.decoder())
+  use v_user <- codec.optional_field("user", value.decoder())
   decode.success(AccessResponse(
     access_token: v_access_token,
     token_type: v_token_type,
@@ -420,6 +435,11 @@ pub fn access_response_decoder() -> decode.Decoder(AccessResponse) {
     authorizing_user: v_authorizing_user,
     installer_user: v_installer_user,
     scopes: v_scopes,
+    expires_in: v_expires_in,
+    refresh_token: v_refresh_token,
+    single_channel_id: v_single_channel_id,
+    team: v_team,
+    user: v_user,
   ))
 }
 

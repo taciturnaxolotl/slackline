@@ -16,6 +16,8 @@ method openid.connect.token unauthenticated {
     refresh_token: String?
     /// Seconds until `access_token` expires, when token rotation is enabled.
     expires_in: Int?
+    /// The `state` passed to the authorize step.
+    state: String?
   }
 }
 
@@ -52,6 +54,9 @@ method openid.connect.userInfo {
     "https://slack.com/team_image_230" as team_image_230: String?
     /// Whether the team image is a default one rather than an uploaded one.
     "https://slack.com/team_image_default" as team_image_default: Bool?
+    "https://slack.com/enterprise_id" as enterprise_id: String?
+    "https://slack.com/enterprise_name" as enterprise_name: String?
+    "https://slack.com/enterprise_domain" as enterprise_domain: String?
   }
 }
 

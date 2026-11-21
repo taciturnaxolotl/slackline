@@ -531,6 +531,13 @@ pub type FilesResponse {
     query: Option(String),
     /// Matching files.
     files: Option(SearchFiles),
+    /// Whether the user's preference to exclude bots was ignored.
+    ignored_exclude_bots_pref: Option(Bool),
+    channels: Option(value.Value),
+    groups: Option(value.Value),
+    ims: Option(value.Value),
+    teams: Option(value.Value),
+    users: Option(value.Value),
   )
 }
 
@@ -541,7 +548,25 @@ pub fn files_response_decoder() -> decode.Decoder(FilesResponse) {
     "files",
     decode.recursive(search_files_decoder),
   )
-  decode.success(FilesResponse(query: v_query, files: v_files))
+  use v_ignored_exclude_bots_pref <- codec.optional_field(
+    "ignored_exclude_bots_pref",
+    decode.bool,
+  )
+  use v_channels <- codec.optional_field("channels", value.decoder())
+  use v_groups <- codec.optional_field("groups", value.decoder())
+  use v_ims <- codec.optional_field("ims", value.decoder())
+  use v_teams <- codec.optional_field("teams", value.decoder())
+  use v_users <- codec.optional_field("users", value.decoder())
+  decode.success(FilesResponse(
+    query: v_query,
+    files: v_files,
+    ignored_exclude_bots_pref: v_ignored_exclude_bots_pref,
+    channels: v_channels,
+    groups: v_groups,
+    ims: v_ims,
+    teams: v_teams,
+    users: v_users,
+  ))
 }
 
 /// [`search.files`](https://docs.slack.dev/reference/methods/search.files):
@@ -577,6 +602,12 @@ pub type MessagesResponse {
     query: Option(String),
     /// Matching messages.
     messages: Option(SearchMessages),
+    /// Whether the user's preference to exclude bots was ignored.
+    ignored_exclude_bots_pref: Option(Bool),
+    show_feedback: Option(Bool),
+    bots: Option(value.Value),
+    teams: Option(value.Value),
+    users: Option(value.Value),
   )
 }
 
@@ -587,7 +618,23 @@ pub fn messages_response_decoder() -> decode.Decoder(MessagesResponse) {
     "messages",
     decode.recursive(search_messages_decoder),
   )
-  decode.success(MessagesResponse(query: v_query, messages: v_messages))
+  use v_ignored_exclude_bots_pref <- codec.optional_field(
+    "ignored_exclude_bots_pref",
+    decode.bool,
+  )
+  use v_show_feedback <- codec.optional_field("show_feedback", decode.bool)
+  use v_bots <- codec.optional_field("bots", value.decoder())
+  use v_teams <- codec.optional_field("teams", value.decoder())
+  use v_users <- codec.optional_field("users", value.decoder())
+  decode.success(MessagesResponse(
+    query: v_query,
+    messages: v_messages,
+    ignored_exclude_bots_pref: v_ignored_exclude_bots_pref,
+    show_feedback: v_show_feedback,
+    bots: v_bots,
+    teams: v_teams,
+    users: v_users,
+  ))
 }
 
 /// [`search.messages`](https://docs.slack.dev/reference/methods/search.messages):

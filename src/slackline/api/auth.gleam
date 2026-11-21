@@ -140,6 +140,11 @@ pub type TestResponse {
     enterprise_id: Option(String),
     /// Whether the app is installed on an entire organization.
     is_enterprise_install: Option(Bool),
+    /// The app the token belongs to.
+    app_id: Option(String),
+    app_name: Option(String),
+    /// Seconds until the token expires, for rotating tokens.
+    expires_in: Option(Int),
   )
 }
 
@@ -156,6 +161,9 @@ pub fn test_response_decoder() -> decode.Decoder(TestResponse) {
     "is_enterprise_install",
     decode.bool,
   )
+  use v_app_id <- codec.optional_field("app_id", decode.string)
+  use v_app_name <- codec.optional_field("app_name", decode.string)
+  use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
   decode.success(TestResponse(
     url: v_url,
     team: v_team,
@@ -165,6 +173,9 @@ pub fn test_response_decoder() -> decode.Decoder(TestResponse) {
     bot_id: v_bot_id,
     enterprise_id: v_enterprise_id,
     is_enterprise_install: v_is_enterprise_install,
+    app_id: v_app_id,
+    app_name: v_app_name,
+    expires_in: v_expires_in,
   ))
 }
 

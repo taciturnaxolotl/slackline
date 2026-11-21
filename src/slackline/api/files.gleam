@@ -10,6 +10,7 @@ import gleam/string
 import slackline
 import slackline/file
 import slackline/internal/codec
+import slackline/value
 
 /// A file to finish uploading with `files.completeUploadExternal`.
 pub type UploadedFile {
@@ -279,6 +280,10 @@ pub type InfoResponse {
     /// Page-based paging for the comments.
     paging: Option(FilesPaging),
     response_metadata: Option(slackline.ResponseMetadata),
+    /// The file's text, for text files and snippets.
+    content: Option(String),
+    content_html: Option(String),
+    content_highlight_html: Option(String),
   )
 }
 
@@ -297,11 +302,20 @@ pub fn info_response_decoder() -> decode.Decoder(InfoResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_content <- codec.optional_field("content", decode.string)
+  use v_content_html <- codec.optional_field("content_html", decode.string)
+  use v_content_highlight_html <- codec.optional_field(
+    "content_highlight_html",
+    decode.string,
+  )
   decode.success(InfoResponse(
     file: v_file,
     comments: v_comments,
     paging: v_paging,
     response_metadata: v_response_metadata,
+    content: v_content,
+    content_html: v_content_html,
+    content_highlight_html: v_content_highlight_html,
   ))
 }
 
@@ -661,6 +675,7 @@ pub type SharedPublicUrlResponse {
     comments: Option(List(file.FileComment)),
     /// Page-based paging for the comments.
     paging: Option(FilesPaging),
+    comment: Option(List(value.Value)),
   )
 }
 
@@ -677,10 +692,12 @@ pub fn shared_public_url_response_decoder() -> decode.Decoder(
     "paging",
     decode.recursive(files_paging_decoder),
   )
+  use v_comment <- codec.optional_field("comment", decode.list(value.decoder()))
   decode.success(SharedPublicUrlResponse(
     file: v_file,
     comments: v_comments,
     paging: v_paging,
+    comment: v_comment,
   ))
 }
 

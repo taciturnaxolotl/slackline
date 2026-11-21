@@ -53,6 +53,7 @@ method pins.list {
   response {
     /// The pinned items.
     items: List(PinnedItem)?
+    count: Int?
   }
 }
 

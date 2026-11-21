@@ -206,6 +206,7 @@ pub type ListResponse {
   ListResponse(
     /// The pinned items.
     items: Option(List(PinnedItem)),
+    count: Option(Int),
   )
 }
 
@@ -215,7 +216,8 @@ pub fn list_response_decoder() -> decode.Decoder(ListResponse) {
     "items",
     decode.list(decode.recursive(pinned_item_decoder)),
   )
-  decode.success(ListResponse(items: v_items))
+  use v_count <- codec.optional_field("count", codec.int_decoder())
+  decode.success(ListResponse(items: v_items, count: v_count))
 }
 
 /// [`pins.list`](https://docs.slack.dev/reference/methods/pins.list): Lists

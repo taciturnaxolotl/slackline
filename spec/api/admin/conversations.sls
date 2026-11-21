@@ -215,6 +215,8 @@ method admin.conversations.lookup {
     /// IDs of the matching channels.
     channels: List(String)?
     response_metadata: ResponseMetadata?
+    /// The matching channels.
+    channel_ids: List(String)?
   }
 }
 

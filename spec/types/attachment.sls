@@ -108,7 +108,8 @@ record AttachmentAction {
   url: String?
 }
 
-/// A timestamp. The docs use an integer, but Slack also sends strings.
+/// A timestamp: an integer on attachments apps post, and the linked message's
+/// `ts` string on message unfurls (`is_msg_unfurl`).
 oneof AttachmentTs {
   IntTs(Int)
   StringTs(String)

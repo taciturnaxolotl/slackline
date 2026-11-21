@@ -7,7 +7,11 @@ import gleam/regexp
 import gleam/string
 import slackline_codegen/docs/section
 
-pub fn parse(body: String) -> List(Json) {
+/// `fallback` gives a type for an argument the page shows without one.
+pub fn parse(
+  body: String,
+  fallback: fn(String) -> Option(String),
+) -> List(Json) {
   let assert Ok(arg) =
     regexp.from_string(
       "(?m)^\\*\\*`([^`]+)`\\*\\*(?:`([^`]*)`)?(Required|Optional)\\s*$",
@@ -16,20 +20,29 @@ pub fn parse(body: String) -> List(Json) {
   // between matches: [before, name, type, required, text, name, ...].
   regexp.split(arg, section.find(body, "Arguments"))
   |> list.drop(1)
-  |> entries
+  |> entries(fallback)
 }
 
-fn entries(pieces: List(String)) -> List(Json) {
+fn entries(
+  pieces: List(String),
+  fallback: fn(String) -> Option(String),
+) -> List(Json) {
   case pieces {
     [name, type_, required, chunk, ..rest] -> [
-      entry(name, type_, required, chunk),
-      ..entries(rest)
+      entry(name, type_, required, chunk, fallback),
+      ..entries(rest, fallback)
     ]
     _ -> []
   }
 }
 
-fn entry(name: String, type_: String, required: String, chunk: String) -> Json {
+fn entry(
+  name: String,
+  type_: String,
+  required: String,
+  chunk: String,
+  fallback: fn(String) -> Option(String),
+) -> Json {
   let chunk = section.before_line(chunk, "### ")
   let description =
     string.trim(chunk)
@@ -44,7 +57,7 @@ fn entry(name: String, type_: String, required: String, chunk: String) -> Json {
   json.object([
     #("name", json.string(name)),
     #("type", case type_ {
-      "" -> json.null()
+      "" -> nullable(fallback(name))
       _ -> json.string(type_)
     }),
     #("required", json.bool(required == "Required")),

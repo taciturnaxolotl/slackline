@@ -865,6 +865,8 @@ pub type PostMessageResponse {
     /// A warning, such as `message_truncated`.
     warning: Option(String),
     response_metadata: Option(slackline.ResponseMetadata),
+    /// Whether the message was a duplicate of one already sent.
+    is_duplicate: Option(Bool),
   )
 }
 
@@ -878,12 +880,14 @@ pub fn post_message_response_decoder() -> decode.Decoder(PostMessageResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_is_duplicate <- codec.optional_field("is_duplicate", decode.bool)
   decode.success(PostMessageResponse(
     channel: v_channel,
     ts: v_ts,
     message: v_message,
     warning: v_warning,
     response_metadata: v_response_metadata,
+    is_duplicate: v_is_duplicate,
   ))
 }
 

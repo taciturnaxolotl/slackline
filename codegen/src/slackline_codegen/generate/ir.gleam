@@ -174,9 +174,12 @@ pub type DocsMethod {
     rate_limit: Option(String),
     bot_scopes: List(String),
     user_scopes: List(String),
+    configuration_scopes: List(String),
     args: List(DocsArg),
     errors: List(String),
     examples: List(Example),
+    /// Top-level keys of the response schema behind the page, if any.
+    response_fields: Option(List(String)),
   )
 }
 

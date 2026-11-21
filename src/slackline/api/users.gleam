@@ -540,13 +540,15 @@ pub type InfoResponse {
   InfoResponse(
     /// The user.
     user: Option(user.User),
+    users: Option(List(user.User)),
   )
 }
 
 /// Decodes the response from `users.info`.
 pub fn info_response_decoder() -> decode.Decoder(InfoResponse) {
   use v_user <- codec.optional_field("user", user.user_decoder())
-  decode.success(InfoResponse(user: v_user))
+  use v_users <- codec.optional_field("users", decode.list(user.user_decoder()))
+  decode.success(InfoResponse(user: v_user, users: v_users))
 }
 
 /// [`users.info`](https://docs.slack.dev/reference/methods/users.info): Gets
@@ -577,6 +579,7 @@ pub type ListResponse {
     /// Unix timestamp of when the list was generated.
     cache_ts: Option(Int),
     response_metadata: Option(slackline.ResponseMetadata),
+    offset: Option(String),
   )
 }
 
@@ -591,10 +594,12 @@ pub fn list_response_decoder() -> decode.Decoder(ListResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_offset <- codec.optional_field("offset", decode.string)
   decode.success(ListResponse(
     members: v_members,
     cache_ts: v_cache_ts,
     response_metadata: v_response_metadata,
+    offset: v_offset,
   ))
 }
 
@@ -703,13 +708,22 @@ pub type ProfileSetResponse {
   ProfileSetResponse(
     /// The user's complete profile.
     profile: Option(user.UserProfile),
+    /// An email change waiting for confirmation.
+    email_pending: Option(String),
+    username: Option(String),
   )
 }
 
 /// Decodes the response from `users.profile.set`.
 pub fn profile_set_response_decoder() -> decode.Decoder(ProfileSetResponse) {
   use v_profile <- codec.optional_field("profile", user.user_profile_decoder())
-  decode.success(ProfileSetResponse(profile: v_profile))
+  use v_email_pending <- codec.optional_field("email_pending", decode.string)
+  use v_username <- codec.optional_field("username", decode.string)
+  decode.success(ProfileSetResponse(
+    profile: v_profile,
+    email_pending: v_email_pending,
+    username: v_username,
+  ))
 }
 
 /// [`users.profile.set`](https://docs.slack.dev/reference/methods/users.profile.set):

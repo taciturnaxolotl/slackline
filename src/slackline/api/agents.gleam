@@ -531,6 +531,8 @@ pub type ConversationsArchive
 ///
 /// Bot token scopes: `code_channels:manage`.
 ///
+/// Rate limit tier: `t2`.
+///
 /// Documented errors: `already_archived`, `channel_not_found`,
 /// `no_origin_link`, `not_agent_channel`, `not_authorized`,
 /// `origin_channel_not_found`, `origin_message_not_found`, `restricted_action`,
@@ -577,6 +579,8 @@ pub fn conversations_create_response_decoder() -> decode.Decoder(
 /// `slackline/api/agents/conversations_create`.
 ///
 /// Bot token scopes: `code_channels:manage`.
+///
+/// Rate limit tier: `t2`.
 ///
 /// Documented errors: `channel_creation_failed`, `channel_not_viewable`,
 /// `feature_disabled`, `invalid_agent`, `invalid_origin_link`, `invite_failed`,
@@ -697,6 +701,8 @@ pub fn conversations_list_views_response_decoder() -> decode.Decoder(
 ///
 /// Bot token scopes: `code_channels:manage`.
 ///
+/// Rate limit tier: `t3`.
+///
 /// Documented errors: `channel_not_found`, `not_agent_channel`,
 /// `not_authorized`.
 pub fn conversations_list_views(
@@ -745,6 +751,8 @@ pub fn conversations_remove_view_response_decoder() -> decode.Decoder(
 /// `slackline/api/agents/conversations_remove_view`.
 ///
 /// Bot token scopes: `code_channels:manage`.
+///
+/// Rate limit tier: `t3`.
 ///
 /// Documented errors: `channel_not_found`, `not_agent_channel`,
 /// `not_authorized`, `not_view_owner`, `view_not_found`, `view_remove_failed`.
@@ -858,6 +866,8 @@ pub fn conversations_set_commands_response_decoder() -> decode.Decoder(
 ///
 /// Bot token scopes: `code_channels:manage`.
 ///
+/// Rate limit tier: `t1`.
+///
 /// Documented errors: `agent_required`, `channel_not_found`,
 /// `colliding_with_builtin`, `duplicate_command`, `invalid_commands`,
 /// `no_actions_url`, `not_agent_channel`, `not_authorized`,
@@ -913,6 +923,8 @@ pub fn conversations_set_properties_response_decoder() -> decode.Decoder(
 /// `slackline/api/agents/conversations_set_properties`.
 ///
 /// Bot token scopes: `code_channels:manage`.
+///
+/// Rate limit tier: `t3`.
 ///
 /// Documented errors: `channel_not_found`, `invalid_status`, `invalid_title`,
 /// `no_properties_provided`, `not_agent_channel`, `not_authorized`,
@@ -988,6 +1000,8 @@ pub fn conversations_set_view_response_decoder() -> decode.Decoder(
 ///
 /// Bot token scopes: `code_channels:manage`.
 ///
+/// Rate limit tier: `t3`.
+///
 /// Documented errors: `canvas_not_found`, `channel_not_found`,
 /// `content_too_large`, `invalid_blocks`, `invalid_csp_domain`,
 /// `invalid_view_type`, `missing_required_arg`, `not_agent_channel`,
@@ -1014,6 +1028,8 @@ pub type SessionsRenameResponse {
   SessionsRenameResponse(
     /// The new title of the session.
     title: Option(String),
+    /// The channel, when an agent channel was renamed.
+    channel_id: Option(String),
   )
 }
 
@@ -1022,7 +1038,11 @@ pub fn sessions_rename_response_decoder() -> decode.Decoder(
   SessionsRenameResponse,
 ) {
   use v_title <- codec.optional_field("title", decode.string)
-  decode.success(SessionsRenameResponse(title: v_title))
+  use v_channel_id <- codec.optional_field("channel_id", decode.string)
+  decode.success(SessionsRenameResponse(
+    title: v_title,
+    channel_id: v_channel_id,
+  ))
 }
 
 /// [`agents.sessions.rename`](https://docs.slack.dev/reference/methods/agents.sessions.rename):

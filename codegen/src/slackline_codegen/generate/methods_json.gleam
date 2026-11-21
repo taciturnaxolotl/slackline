@@ -29,6 +29,16 @@ fn docs_method_decoder() -> decode.Decoder(ir.DocsMethod) {
     ["scopes", "user"],
     decode.list(decode.string),
   )
+  use configuration_scopes <- decode.optional_field(
+    "scopes",
+    [],
+    decode.optional_field(
+      "configuration",
+      [],
+      decode.list(decode.string),
+      decode.success,
+    ),
+  )
   use args <- decode.field("args", decode.list(docs_arg_decoder()))
   use errors <- decode.field(
     "errors",
@@ -42,6 +52,11 @@ fn docs_method_decoder() -> decode.Decoder(ir.DocsMethod) {
       decode.success(ir.Example(title:, body:))
     }),
   )
+  use response_fields <- decode.optional_field(
+    "response_fields",
+    None,
+    decode.optional(decode.list(decode.string)),
+  )
   decode.success(ir.DocsMethod(
     name:,
     summary:,
@@ -50,9 +65,11 @@ fn docs_method_decoder() -> decode.Decoder(ir.DocsMethod) {
     rate_limit:,
     bot_scopes:,
     user_scopes:,
+    configuration_scopes:,
     args:,
     errors:,
     examples:,
+    response_fields:,
   ))
 }
 

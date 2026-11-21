@@ -42,6 +42,8 @@ method admin.functions.permissions.lookup {
     permissions: Dict(Value)?
     /// Errors found during the lookup, keyed by function ID.
     errors: Dict(Value)?
+    /// Per-function details keyed by function ID, such as `workflows_using`.
+    metadata: Value?
   }
 }
 

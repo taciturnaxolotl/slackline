@@ -1,18 +1,22 @@
 //// Docs tooling for slackline's code generator.
 ////
 ////     gleam run -m slackline_codegen/docs fetch [out-dir]
+////     gleam run -m slackline_codegen/docs fetch-json [docs-dir]
 ////     gleam run -m slackline_codegen/docs split <llms-full-platform.txt> [out-dir]
 ////     gleam run -m slackline_codegen/docs extract [docs-dir]
 ////
 //// `fetch` downloads the Slack docs and splits them into one markdown page per
-//// file (default `.docs`), `split` does the same from a local copy, and
+//// file (default `.docs`), then downloads the json each method page is
+//// rendered from. `split` does the same from a local copy, and
 //// `extract` turns the method pages into `spec/methods.json`.
 
 import argv
+import filepath
 import gleam/http/request
 import gleam/httpc
 import gleam/int
 import gleam/io
+import gleam/list
 import gleam/result
 import gleam/string
 import simplifile
@@ -27,6 +31,8 @@ pub fn main() -> Nil {
   let result = case argv.load().arguments {
     ["fetch"] -> fetch(default_dir)
     ["fetch", out] -> fetch(out)
+    ["fetch-json"] -> fetch_json(default_dir)
+    ["fetch-json", out] -> fetch_json(out)
     ["split", file] -> split(file, default_dir)
     ["split", file, out] -> split(file, out)
     ["extract"] -> extract(default_dir)
@@ -46,6 +52,7 @@ const usage =
   "usage: gleam run -m slackline_codegen/docs <command>
 
   fetch [out-dir]                       download the Slack docs (default .docs)
+  fetch-json [docs-dir]                 download only the per-method json
   split <llms-full-platform.txt> [out]  split a local copy of the docs
   extract [docs-dir]                    write spec/methods.json from the docs"
 
@@ -62,9 +69,57 @@ fn fetch(out: String) -> Result(Nil, String) {
     }),
   )
   case response.status {
-    200 -> write_pages(response.body, out)
+    200 -> {
+      use _ <- result.try(write_pages(response.body, out))
+      fetch_json(out)
+    }
     status -> Error("unexpected HTTP status " <> int.to_string(status))
   }
+}
+
+/// Downloads the json that each method page is rendered from into
+/// `<out>/reference/methods/<method>.json`, next to the markdown page.
+fn fetch_json(out: String) -> Result(Nil, String) {
+  let directory = filepath.join(out, "reference/methods")
+  use files <- result.try(
+    simplifile.read_directory(directory)
+    |> result.map_error(simplifile.describe_error),
+  )
+  let names =
+    files
+    |> list.filter(string.ends_with(_, ".md"))
+    |> list.map(string.remove_suffix(_, ".md"))
+    |> list.sort(string.compare)
+  io.println(
+    "fetching json for " <> int.to_string(list.length(names)) <> " methods",
+  )
+  use _ <- result.map(
+    list.try_each(names, fn(name) {
+      let url = methods.json_url(name)
+      let assert Ok(request) = request.to(url)
+      use response <- result.try(
+        httpc.configure()
+        |> httpc.timeout(60_000)
+        |> httpc.dispatch(request)
+        |> result.map_error(fn(error) {
+          "could not download " <> url <> ": " <> string.inspect(error)
+        }),
+      )
+      case response.status {
+        200 ->
+          simplifile.write(
+            filepath.join(directory, name <> ".json"),
+            response.body,
+          )
+          |> result.map_error(simplifile.describe_error)
+        // A page without json still extracts from its markdown.
+        404 -> Ok(Nil)
+        status ->
+          Error(url <> ": unexpected HTTP status " <> int.to_string(status))
+      }
+    }),
+  )
+  io.println("wrote method json to " <> directory)
 }
 
 fn split(file: String, out: String) -> Result(Nil, String) {

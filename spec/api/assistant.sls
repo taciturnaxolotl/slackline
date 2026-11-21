@@ -127,6 +127,10 @@ method assistant.search.context {
     /// Search results by content type.
     results: SearchContextResults?
     response_metadata: ResponseMetadata?
+    /// Requested content types whose search failed.
+    failed_content_types: List(String)?
+    /// Whether this is the last page that can be fetched although more results exist.
+    page_limit_reached: Bool?
   }
 }
 

@@ -70,6 +70,65 @@ fn print_report(methods: List(ir.DocsMethod), built: module.Built) -> Nil {
     <> " methods have typed responses",
   )
   list.each(raw, fn(method) { io.println("  " <> method.name) })
+  print_untyped_fields(methods, built)
+}
+
+/// Response keys that the schema behind a method page lists but the
+/// method's spec does not type yet.
+fn print_untyped_fields(methods: List(ir.DocsMethod), built: module.Built) {
+  let gaps =
+    list.filter_map(methods, fn(method) {
+      case method.response_fields, dict.get(built.placement, method.name) {
+        Some(documented),
+          Ok(ir.Method(response: Some(ir.ResponseFields(fields)), ..))
+        -> {
+          let typed = list.map(fields, field_key)
+          case
+            list.filter(documented, fn(key) {
+              !list.contains(typed, key)
+              && !list.contains(envelope, key)
+              && !list.contains(schema_mistakes, #(method.name, key))
+            })
+          {
+            [] -> Error(Nil)
+            missing -> Ok(#(method.name, missing))
+          }
+        }
+        _, _ -> Error(Nil)
+      }
+    })
+  io.println(
+    int.to_string(list.length(gaps))
+    <> " typed responses leave out fields the docs schema lists",
+  )
+  list.each(gaps, fn(gap) {
+    io.println("  " <> gap.0 <> ": " <> string.join(gap.1, ", "))
+  })
+}
+
+/// Keys every response may carry, which slackline handles outside the
+/// generated types.
+const envelope = [
+  "ok",
+  "error",
+  "warning",
+  "response_metadata",
+  "needed",
+  "provided",
+  "callstack",
+]
+
+/// Keys the docs schema lists that live responses do not send.
+const schema_mistakes = [
+  // Live responses send `bot`, a single object.
+  #("bots.info", "bots"),
+]
+
+fn field_key(field: ir.Field) -> String {
+  case field {
+    ir.Field(key:, ..) | ir.Const(key:, ..) -> key
+    ir.Drop(key:) -> key
+  }
 }
 
 fn describe(

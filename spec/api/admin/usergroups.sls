@@ -51,6 +51,8 @@ method admin.usergroups.update {
   response {
     /// The updated user group.
     subteam: Usergroup
+    /// Users who would exceed their channel limit.
+    channel_limit_user_ids: List(String)?
   }
 }
 

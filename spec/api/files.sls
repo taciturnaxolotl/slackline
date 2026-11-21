@@ -74,6 +74,10 @@ method files.info {
     /// Page-based paging for the comments.
     paging: FilesPaging?
     response_metadata: ResponseMetadata?
+    /// The file's text, for text files and snippets.
+    content: String?
+    content_html: String?
+    content_highlight_html: String?
   }
 }
 
@@ -165,6 +169,7 @@ method files.sharedPublicURL {
     comments: List(FileComment)?
     /// Page-based paging for the comments.
     paging: FilesPaging?
+    comment: List(Value)?
   }
 }
 

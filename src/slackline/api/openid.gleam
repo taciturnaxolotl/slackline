@@ -24,6 +24,8 @@ pub type ConnectTokenResponse {
     refresh_token: Option(String),
     /// Seconds until `access_token` expires, when token rotation is enabled.
     expires_in: Option(Int),
+    /// The `state` passed to the authorize step.
+    state: Option(String),
   )
 }
 
@@ -34,12 +36,14 @@ pub fn connect_token_response_decoder() -> decode.Decoder(ConnectTokenResponse) 
   use v_id_token <- codec.optional_field("id_token", decode.string)
   use v_refresh_token <- codec.optional_field("refresh_token", decode.string)
   use v_expires_in <- codec.optional_field("expires_in", codec.int_decoder())
+  use v_state <- codec.optional_field("state", decode.string)
   decode.success(ConnectTokenResponse(
     access_token: v_access_token,
     token_type: v_token_type,
     id_token: v_id_token,
     refresh_token: v_refresh_token,
     expires_in: v_expires_in,
+    state: v_state,
   ))
 }
 
@@ -103,6 +107,9 @@ pub type ConnectUserInfoResponse {
     team_image_230: Option(String),
     /// Whether the team image is a default one rather than an uploaded one.
     team_image_default: Option(Bool),
+    enterprise_id: Option(String),
+    enterprise_name: Option(String),
+    enterprise_domain: Option(String),
   )
 }
 
@@ -198,6 +205,18 @@ pub fn connect_user_info_response_decoder() -> decode.Decoder(
     "https://slack.com/team_image_default",
     decode.bool,
   )
+  use v_enterprise_id <- codec.optional_field(
+    "https://slack.com/enterprise_id",
+    decode.string,
+  )
+  use v_enterprise_name <- codec.optional_field(
+    "https://slack.com/enterprise_name",
+    decode.string,
+  )
+  use v_enterprise_domain <- codec.optional_field(
+    "https://slack.com/enterprise_domain",
+    decode.string,
+  )
   decode.success(ConnectUserInfoResponse(
     sub: v_sub,
     user_id: v_user_id,
@@ -227,6 +246,9 @@ pub fn connect_user_info_response_decoder() -> decode.Decoder(
     team_image_132: v_team_image_132,
     team_image_230: v_team_image_230,
     team_image_default: v_team_image_default,
+    enterprise_id: v_enterprise_id,
+    enterprise_name: v_enterprise_name,
+    enterprise_domain: v_enterprise_domain,
   ))
 }
 

@@ -11,6 +11,8 @@ record AppCredentials {
 
 /// A problem found in a manifest.
 record ManifestError {
+  /// A code for the problem.
+  code: String?
   /// Description of the problem.
   message: String?
   /// JSON pointer to the problem's location in the manifest.
@@ -46,6 +48,8 @@ method apps.auth.external.get {
   response {
     /// The external access token.
     external_token: String
+    /// Extra fields from the provider's token response.
+    token_response_extras: Value?
   }
 }
 
@@ -161,6 +165,8 @@ method apps.event.authorizations.list {
     /// Installations of the app the event is visible to.
     authorizations: List(EventAuthorization)?
     response_metadata: ResponseMetadata?
+    /// The next pagination cursor.
+    cursor_next: String?
   }
 }
 
@@ -187,6 +193,11 @@ method apps.manifest.create {
     credentials: AppCredentials?
     /// URL to install the app.
     oauth_authorize_url: String?
+    app_token: String?
+    /// The workspace the app was created in.
+    team_id: String?
+    /// The domain of the workspace the app was created in.
+    team_domain: String?
   }
 }
 
@@ -221,6 +232,8 @@ method apps.manifest.validate {
   response {
     /// Problems found in the manifest. Empty when the manifest is valid.
     errors: List(ManifestError)?
+    /// Problems that do not make the manifest invalid.
+    warnings: List(ManifestError)?
   }
 }
 

@@ -21,6 +21,9 @@ pub type ListResponse {
     /// Unicode emoji categories, when `include_categories` is `true`. The
     /// docs do not describe its shape.
     categories: Option(value.Value),
+    /// When the emoji set last changed.
+    cache_ts: Option(String),
+    categories_version: Option(String),
   )
 }
 
@@ -31,7 +34,17 @@ pub fn list_response_decoder() -> decode.Decoder(ListResponse) {
     decode.dict(decode.string, decode.string),
   )
   use v_categories <- codec.optional_field("categories", value.decoder())
-  decode.success(ListResponse(emoji: v_emoji, categories: v_categories))
+  use v_cache_ts <- codec.optional_field("cache_ts", decode.string)
+  use v_categories_version <- codec.optional_field(
+    "categories_version",
+    decode.string,
+  )
+  decode.success(ListResponse(
+    emoji: v_emoji,
+    categories: v_categories,
+    cache_ts: v_cache_ts,
+    categories_version: v_categories_version,
+  ))
 }
 
 /// [`emoji.list`](https://docs.slack.dev/reference/methods/emoji.list): Lists

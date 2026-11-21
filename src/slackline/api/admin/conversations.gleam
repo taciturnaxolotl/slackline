@@ -1248,6 +1248,8 @@ pub type LookupResponse {
     /// IDs of the matching channels.
     channels: Option(List(String)),
     response_metadata: Option(slackline.ResponseMetadata),
+    /// The matching channels.
+    channel_ids: Option(List(String)),
   )
 }
 
@@ -1258,9 +1260,14 @@ pub fn lookup_response_decoder() -> decode.Decoder(LookupResponse) {
     "response_metadata",
     slackline.response_metadata_decoder(),
   )
+  use v_channel_ids <- codec.optional_field(
+    "channel_ids",
+    decode.list(decode.string),
+  )
   decode.success(LookupResponse(
     channels: v_channels,
     response_metadata: v_response_metadata,
+    channel_ids: v_channel_ids,
   ))
 }
 
