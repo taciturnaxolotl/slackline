@@ -224,7 +224,7 @@ pub fn render(
     Some(ir.ResponseType(ir.TypeExpr("Nil", _))) -> Ok(NilResponse)
     Some(ir.ResponseType(type_)) ->
       types.resolve(type_, scope, context) |> result.map(TypeResponse(_, type_))
-    Some(ir.ResponseFields(fields)) ->
+    Some(ir.ResponseFields(fields:, ..)) ->
       fields.prepare(fields, context <> " response", None, scope)
       |> result.map(FieldsResponse)
   })

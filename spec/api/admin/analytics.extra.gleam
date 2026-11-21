@@ -3,6 +3,7 @@ import gleam/json
 import gleam/list
 import gleam/string
 import slackline
+import slackline/internal/codec
 
 /// Decodes a decompressed `admin.analytics.getFile` body, which holds one json
 /// object per line, using a row decoder such as `member_analytics_decoder()`.
@@ -45,6 +46,6 @@ pub fn get_public_channel_metadata_file() -> slackline.Call(
   List(PublicChannelMetadata),
 ) {
   get_file(type_: PublicChannel)
-  |> slackline.with_param("metadata_only", "true")
+  |> slackline.with_param("metadata_only", codec.form_bool(True))
   |> slackline.decode_with(decode.list(public_channel_metadata_decoder()))
 }

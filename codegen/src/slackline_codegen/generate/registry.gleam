@@ -242,7 +242,7 @@ pub fn referenced_types(item: Item) -> List(String) {
 /// Every type name a method spec refers to.
 pub fn method_types(method: ir.Method) -> List(String) {
   let response = case method.response {
-    Some(ir.ResponseFields(fields)) -> fields_types(fields)
+    Some(ir.ResponseFields(fields:, ..)) -> fields_types(fields)
     Some(ir.ResponseType(type_)) -> type_names(type_)
     None -> []
   }

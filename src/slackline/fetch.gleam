@@ -31,27 +31,29 @@ pub fn send(call: Call(m, a), client: Client) -> Promise(Result(a, Error)) {
     Error(error) -> promise.resolve(Error(slackline.transport_error(error)))
     Ok(response) ->
       unpack(call, response)
-      |> promise.map(slackline.response_bits(call, _))
+      |> promise.map(result.try(_, slackline.response_bits(call, _)))
   }
 }
 
-/// Decompresses a gzip body for calls that answer with a gzip file, with the
+/// Decompresses the body of calls that answer with a gzip file, with the
 /// runtime's `DecompressionStream`.
 @external(erlang, "slackline_ffi", "javascript_only")
 fn unpack(
   call: Call(m, a),
   response: Response(BitArray),
-) -> Promise(Response(BitArray)) {
-  case slackline.gzipped(call), response.body {
-    True, <<0x1f, 0x8b, _:bits>> ->
-      gunzip(response.body)
+) -> Promise(Result(Response(BitArray), Error)) {
+  case slackline.gzip_body(call, response) {
+    Error(Nil) -> promise.resolve(Ok(response))
+    Ok(gz) ->
+      gunzip(gz)
       |> promise.map(fn(result) {
-        case result {
-          Ok(body) -> response.set_body(response, body)
-          Error(Nil) -> response
-        }
+        result
+        |> result.map(response.set_body(response, _))
+        |> result.replace_error(slackline.UnexpectedResponse(
+          response.status,
+          "a gzip body that could not be decompressed",
+        ))
       })
-    _, _ -> promise.resolve(response)
   }
 }
 

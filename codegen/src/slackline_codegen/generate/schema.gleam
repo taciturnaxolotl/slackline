@@ -605,8 +605,22 @@ fn method_sections(tokens: Tokens, method: Method) -> Parsed(Method) {
 fn response(tokens: Tokens) -> Parsed(Response) {
   case peek(tokens) {
     Token(Sym, "{", _) -> {
-      use #(fields, rest) <- result.map(fields(tokens, False))
-      #(ir.ResponseFields(fields), rest)
+      use #(fields, rest) <- result.map(fields(tokens, True))
+      let #(dropped, fields) =
+        list.partition(fields, fn(field) {
+          case field {
+            ir.Drop(..) -> True
+            _ -> False
+          }
+        })
+      let not_sent =
+        list.filter_map(dropped, fn(field) {
+          case field {
+            ir.Drop(key) -> Ok(key)
+            _ -> Error(Nil)
+          }
+        })
+      #(ir.ResponseFields(fields:, not_sent:), rest)
     }
     _ -> {
       use #(type_, rest) <- result.map(type_expr(tokens))

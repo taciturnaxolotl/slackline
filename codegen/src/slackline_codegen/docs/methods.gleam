@@ -34,12 +34,7 @@ pub fn extract(docs: String) -> Result(Int, String) {
     |> list.try_map(fn(file) {
       let json_file =
         filepath.join(directory, string.remove_suffix(file, ".md") <> ".json")
-      let rendered =
-        simplifile.read(json_file)
-        |> result.try(fn(text) {
-          method_json.parse(text) |> result.replace_error(simplifile.Eio)
-        })
-        |> option.from_result
+      use rendered <- result.try(read_method_json(json_file))
       simplifile.read(filepath.join(directory, file))
       |> result.map(method(file, _, rendered))
       |> result.map_error(describe)
@@ -54,6 +49,19 @@ pub fn extract(docs: String) -> Result(Int, String) {
     |> result.map_error(describe),
   )
   Ok(list.length(methods))
+}
+
+/// The json behind a method page. Some pages have none; a file that exists
+/// but does not parse is an error.
+fn read_method_json(path: String) -> Result(Option(MethodJson), String) {
+  case simplifile.read(path) {
+    Error(simplifile.Enoent) -> Ok(None)
+    Error(error) -> Error(path <> ": " <> describe(error))
+    Ok(text) ->
+      method_json.parse(text)
+      |> result.map(Some)
+      |> result.map_error(fn(error) { path <> ": " <> error })
+  }
 }
 
 /// A json array with one method per line, so a change to one method is a
@@ -113,13 +121,9 @@ fn method(file: String, text: String, rendered: Option(MethodJson)) -> Json {
     #("content_types", json.preprocessed_array(page.content_types(body))),
     #(
       "args",
-      json.preprocessed_array(
-        args.parse(body, fn(arg) {
-          option.then(rendered, fn(r) {
-            dict.get(r.arg_types, arg) |> option.from_result
-          })
-        }),
-      ),
+      json.array(args.parse(body), fn(arg) {
+        args.to_json(with_rendered_type(arg, rendered))
+      }),
     ),
     #("errors", json.preprocessed_array(page.errors(body))),
     #("response_examples", json.preprocessed_array(page.responses(body))),
@@ -131,6 +135,18 @@ fn method(file: String, text: String, rendered: Option(MethodJson)) -> Json {
       ),
     ),
   ])
+}
+
+/// Fills in the type of an argument the page shows without one.
+fn with_rendered_type(arg: args.Arg, rendered: Option(MethodJson)) -> args.Arg {
+  case arg.type_, rendered {
+    None, Some(rendered) ->
+      args.Arg(
+        ..arg,
+        type_: dict.get(rendered.arg_types, arg.name) |> option.from_result,
+      )
+    _, _ -> arg
+  }
 }
 
 /// A frontmatter value, falling back to `default` when missing or empty.

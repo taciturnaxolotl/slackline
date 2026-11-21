@@ -167,6 +167,7 @@ method chat.postMessage {
     channel: String
     ts: String
     message: Message?
+    -bots                         # in the docs schema, but never sent
   }
 }
 ```

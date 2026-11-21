@@ -80,14 +80,17 @@ fn print_untyped_fields(methods: List(ir.DocsMethod), built: module.Built) {
     list.filter_map(methods, fn(method) {
       case method.response_fields, dict.get(built.placement, method.name) {
         Some(documented),
-          Ok(ir.Method(response: Some(ir.ResponseFields(fields)), ..))
+          Ok(ir.Method(
+            response: Some(ir.ResponseFields(fields:, not_sent:)),
+            ..,
+          ))
         -> {
           let typed = list.map(fields, field_key)
           case
             list.filter(documented, fn(key) {
               !list.contains(typed, key)
               && !list.contains(envelope, key)
-              && !list.contains(schema_mistakes, #(method.name, key))
+              && !list.contains(not_sent, key)
             })
           {
             [] -> Error(Nil)
@@ -116,12 +119,6 @@ const envelope = [
   "needed",
   "provided",
   "callstack",
-]
-
-/// Keys the docs schema lists that live responses do not send.
-const schema_mistakes = [
-  // Live responses send `bot`, a single object.
-  #("bots.info", "bots"),
 ]
 
 fn field_key(field: ir.Field) -> String {

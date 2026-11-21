@@ -75,3 +75,15 @@ pub fn ordinary_calls_still_decode_test() {
       answer(200, <<"{\"ok\":true,\"user_id\":\"U1\"}">>),
     )
 }
+
+pub fn only_json_lines_calls_unpack_gzip_test() {
+  let gz = answer(200, <<0x1f, 0x8b, 0x08, 0>>)
+  assert slackline.gzip_body(analytics.get_file(type_: analytics.Member), gz)
+    == Ok(gz.body)
+  assert slackline.gzip_body(slackline.raw("auth.test", []), gz) == Error(Nil)
+  assert slackline.gzip_body(
+      analytics.get_file(type_: analytics.Member),
+      answer(200, <<"{\"ok\":false}">>),
+    )
+    == Error(Nil)
+}

@@ -9,5 +9,7 @@ method bots.info {
   response {
     /// The bot.
     bot: Bot?
+    # The docs schema lists a `bots` array, but live responses send `bot`.
+    -bots
   }
 }

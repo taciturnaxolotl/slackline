@@ -24,21 +24,24 @@ pub fn send(call: Call(m, a), client: Client) -> Result(a, Error) {
     |> httpc.send_bits
     |> result.map_error(slackline.transport_error),
   )
-  slackline.response_bits(call, unpack(call, response))
+  use response <- result.try(unpack(call, response))
+  slackline.response_bits(call, response)
 }
 
-/// Decompresses a gzip body for calls that answer with a gzip file.
+/// Decompresses the body of calls that answer with a gzip file.
 fn unpack(
   call: Call(m, a),
   response: response.Response(BitArray),
-) -> response.Response(BitArray) {
-  case slackline.gzipped(call), response.body {
-    True, <<0x1f, 0x8b, _:bits>> ->
-      case gunzip(response.body) {
-        Ok(body) -> response.set_body(response, body)
-        Error(Nil) -> response
-      }
-    _, _ -> response
+) -> Result(response.Response(BitArray), Error) {
+  case slackline.gzip_body(call, response) {
+    Error(Nil) -> Ok(response)
+    Ok(gz) ->
+      gunzip(gz)
+      |> result.map(response.set_body(response, _))
+      |> result.replace_error(slackline.UnexpectedResponse(
+        response.status,
+        "a gzip body that could not be decompressed",
+      ))
   }
 }
 
@@ -59,7 +62,8 @@ pub fn send_with(
     |> httpc.dispatch_bits(config, _)
     |> result.map_error(slackline.transport_error),
   )
-  slackline.response_bits(call, unpack(call, response))
+  use response <- result.try(unpack(call, response))
+  slackline.response_bits(call, response)
 }
 
 /// Sends a call and every following page, folding each response into an
@@ -189,5 +193,3 @@ pub fn webhook(url: String, body: json.Json) -> Result(Nil, Error) {
   )
   slackline.webhook_response(response)
 }
-/// Slack answers Web API calls with json, so a body that is not UTF-8 is
-/// unexpected.

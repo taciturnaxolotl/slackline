@@ -193,11 +193,17 @@ pub fn json_lines(call: Call(m, a)) -> Call(m, a) {
   Call(..call, format: GzipJsonLines)
 }
 
-/// Whether a successful response to this call is gzip data that the client
-/// has to decompress before `response_bits`.
+/// The gzip body a client has to decompress before `response_bits`, if this
+/// call answers with a gzip file and the body is one.
 @internal
-pub fn gzipped(call: Call(m, a)) -> Bool {
-  call.format == GzipJsonLines
+pub fn gzip_body(
+  call: Call(m, a),
+  response: Response(BitArray),
+) -> Result(BitArray, Nil) {
+  case call.format, response.body {
+    GzipJsonLines, <<0x1f, 0x8b, _:bits>> -> Ok(response.body)
+    _, _ -> Error(Nil)
+  }
 }
 
 /// The method type of calls built with `raw`.
@@ -326,40 +332,30 @@ pub fn response(
   response: Response(String),
 ) -> Result(a, Error) {
   use <- rate_limited(response)
-  case json.parse(response.body, value.decoder()) {
-    Error(_) -> Error(UnexpectedResponse(response.status, response.body))
-    Ok(body) -> decode_body(call, response, body)
+  // Every answer that carries `ok` is the json envelope, even for a call
+  // that otherwise answers with json lines.
+  let envelope =
+    json.parse(response.body, value.decoder())
+    |> result.replace_error(Nil)
+    |> result.try(fn(body) { value.field(body, "ok") |> result.replace(body) })
+  case envelope, call.format {
+    Ok(body), _ -> decode_body(call, response, body)
+    Error(Nil), GzipJsonLines ->
+      decode_lines(call, response.status, response.body)
+    Error(Nil), JsonObject ->
+      Error(UnexpectedResponse(response.status, response.body))
   }
 }
 
-/// Decodes an HTTP response with a binary body. Methods that answer with
-/// json lines arrive here already decompressed; their decoder sees the list
-/// of lines. Errors still arrive as a json object.
+/// Decodes an HTTP response with a binary body, already decompressed.
 @internal
 pub fn response_bits(
   call: Call(m, a),
   bits: Response(BitArray),
 ) -> Result(a, Error) {
-  case call.format, bit_array.to_string(bits.body) {
-    JsonObject, Ok(text) -> response(call, response.set_body(bits, text))
-    JsonObject, Error(Nil) -> {
-      use <- rate_limited(bits)
-      Error(UnexpectedResponse(bits.status, "a body that is not UTF-8"))
-    }
-    GzipJsonLines, Ok(text) -> {
-      use <- rate_limited(bits)
-      // Errors are a json object with `ok`. A one-row file is a json
-      // object too, but without `ok`.
-      case json.parse(text, value.decoder()) {
-        Ok(body) ->
-          case value.field(body, "ok") {
-            Ok(_) -> decode_body(call, response.set_body(bits, text), body)
-            Error(_) -> decode_lines(call, bits.status, text)
-          }
-        Error(_) -> decode_lines(call, bits.status, text)
-      }
-    }
-    GzipJsonLines, Error(Nil) -> {
+  case bit_array.to_string(bits.body) {
+    Ok(text) -> response(call, response.set_body(bits, text))
+    Error(Nil) -> {
       use <- rate_limited(bits)
       Error(UnexpectedResponse(bits.status, "a body that is not UTF-8"))
     }

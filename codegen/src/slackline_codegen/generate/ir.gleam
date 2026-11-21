@@ -73,7 +73,9 @@ pub type OneofVariant {
 }
 
 pub type Response {
-  ResponseFields(fields: List(Field))
+  /// `not_sent` holds `-key` entries: keys the docs schema lists that live
+  /// responses do not send.
+  ResponseFields(fields: List(Field), not_sent: List(String))
   ResponseType(type_: TypeExpr)
 }
 

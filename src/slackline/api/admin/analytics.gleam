@@ -1837,6 +1837,6 @@ pub fn get_public_channel_metadata_file() -> slackline.Call(
   List(PublicChannelMetadata),
 ) {
   get_file(type_: PublicChannel)
-  |> slackline.with_param("metadata_only", "true")
+  |> slackline.with_param("metadata_only", codec.form_bool(True))
   |> slackline.decode_with(decode.list(public_channel_metadata_decoder()))
 }
