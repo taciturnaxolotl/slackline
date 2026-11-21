@@ -9,7 +9,9 @@ import gleam/result
 import gleam/string
 import simplifile
 import slackline_codegen/docs/args
+import slackline_codegen/docs/entry.{type MethodEntry, MethodEntry}
 import slackline_codegen/docs/frontmatter.{type Meta}
+import slackline_codegen/docs/legal_holds
 import slackline_codegen/docs/method_json.{type MethodJson}
 import slackline_codegen/docs/page
 
@@ -40,6 +42,11 @@ pub fn extract(docs: String) -> Result(Int, String) {
       |> result.map_error(describe)
     }),
   )
+  use legal_holds <- result.try(legal_holds.extract(docs))
+  let methods =
+    list.append(methods, legal_holds)
+    |> list.sort(fn(a, b) { string.compare(a.name, b.name) })
+    |> list.map(entry.to_json)
   use _ <- result.try(
     simplifile.create_directory_all(filepath.directory_name(output))
     |> result.map_error(describe),
@@ -74,67 +81,39 @@ fn describe(error: simplifile.FileError) -> String {
   simplifile.describe_error(error)
 }
 
-fn method(file: String, text: String, rendered: Option(MethodJson)) -> Json {
+fn method(
+  file: String,
+  text: String,
+  rendered: Option(MethodJson),
+) -> MethodEntry {
   let #(meta, body) = frontmatter.parse(text)
   let summary = get(meta, "summary", "")
-  let name = case get(meta, "method_name", "") {
-    "" -> string.remove_suffix(file, ".md")
-    name -> name
+  let from_json = fn(field, default) {
+    option.map(rendered, field) |> option.unwrap(default)
   }
-  json.object([
-    #("name", json.string(name)),
-    #("summary", json.string(summary)),
-    #(
-      "deprecated",
-      json.bool(
-        string.starts_with(string.lowercase(summary), "deprecated")
-        || string.contains(
-          string.lowercase(get(meta, "title", "")),
-          "deprecated",
-        ),
-      ),
+  MethodEntry(
+    name: case get(meta, "method_name", "") {
+      "" -> string.remove_suffix(file, ".md")
+      name -> name
+    },
+    summary:,
+    deprecated: string.starts_with(string.lowercase(summary), "deprecated")
+      || string.contains(string.lowercase(get(meta, "title", "")), "deprecated"),
+    url: get(meta, "url", ""),
+    http_method: get(meta, "http_method", "POST"),
+    rate_limit: option.or(
+      frontmatter.get(meta, "rate_limit"),
+      option.then(rendered, fn(r) { r.rate_limit }),
     ),
-    #("url", json.string(get(meta, "url", ""))),
-    #("http_method", json.string(get(meta, "http_method", "POST"))),
-    #(
-      "rate_limit",
-      nullable(option.or(
-        frontmatter.get(meta, "rate_limit"),
-        option.then(rendered, fn(r) { r.rate_limit }),
-      )),
-    ),
-    #(
-      "scopes",
-      json.object([
-        #("bot", json.preprocessed_array(list.map(meta.bot, json.string))),
-        #("user", json.preprocessed_array(list.map(meta.user, json.string))),
-        #(
-          "configuration",
-          json.array(
-            option.map(rendered, fn(r) { r.configuration_scopes })
-              |> option.unwrap([]),
-            json.string,
-          ),
-        ),
-      ]),
-    ),
-    #("content_types", json.preprocessed_array(page.content_types(body))),
-    #(
-      "args",
-      json.array(args.parse(body), fn(arg) {
-        args.to_json(with_rendered_type(arg, rendered))
-      }),
-    ),
-    #("errors", json.preprocessed_array(page.errors(body))),
-    #("response_examples", json.preprocessed_array(page.responses(body))),
-    #(
-      "response_fields",
-      json.nullable(
-        option.then(rendered, fn(r) { r.response_fields }),
-        json.array(_, json.string),
-      ),
-    ),
-  ])
+    bot_scopes: meta.bot,
+    user_scopes: meta.user,
+    configuration_scopes: from_json(fn(r) { r.configuration_scopes }, []),
+    content_types: page.content_types(body),
+    args: list.map(args.parse(body), with_rendered_type(_, rendered)),
+    errors: page.errors(body),
+    response_examples: page.responses(body),
+    response_fields: option.then(rendered, fn(r) { r.response_fields }),
+  )
 }
 
 /// Fills in the type of an argument the page shows without one.
@@ -155,9 +134,4 @@ fn get(meta: Meta, key: String, default: String) -> String {
     Some("") | None -> default
     Some(value) -> value
   }
-}
-
-/// An optional string: `None` becomes `null`.
-fn nullable(value: Option(String)) -> Json {
-  json.nullable(value, json.string)
 }

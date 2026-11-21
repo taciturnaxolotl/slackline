@@ -8,7 +8,7 @@ import gleam/regexp
 import gleam/string
 import slackline_codegen/docs/section
 
-pub fn content_types(body: String) -> List(Json) {
+pub fn content_types(body: String) -> List(String) {
   let facts = section.find(body, "Facts")
   case
     section.capture("(?s)\\*\\*Content types\\*\\*(.*?)(?=\\*\\*|\\z)", facts)
@@ -19,7 +19,7 @@ pub fn content_types(body: String) -> List(Json) {
       regexp.scan(type_, found)
       |> list.filter_map(fn(match) {
         case match {
-          regexp.Match(_, [Some(name)]) -> Ok(json.string(name))
+          regexp.Match(_, [Some(name)]) -> Ok(name)
           _ -> Error(Nil)
         }
       })

@@ -11,6 +11,7 @@ import slackline/api/admin/barriers
 import slackline/api/admin/conversations
 import slackline/api/admin/emoji
 import slackline/api/admin/functions
+import slackline/api/admin/legal_hold
 import slackline/api/admin/roles
 import slackline/api/admin/slackbot
 import slackline/api/admin/teams
@@ -370,6 +371,87 @@ pub fn admin_functions_permissions_lookup_0_test() {
     json.parse(
       "{\"errors\":{},\"ok\":true}",
       functions.permissions_lookup_response_decoder(),
+    )
+}
+
+/// admin.legalHold.entities.add: Example Response
+pub fn admin_legal_hold_entities_add_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"created_entities\":[{\"date_created\":1616085744,\"date_deleted\":0,\"entity_id\":\"W8V90M2U9\",\"entity_type\":\"USER\",\"id\":\"He01RA72HZL7\",\"policy_id\":\"H01RR4604RZ\",\"team_id\":\"E81A4BN3H\"}],\"failed_entities\":[],\"ok\":true}",
+      legal_hold.entities_add_response_decoder(),
+    )
+}
+
+/// admin.legalHold.entities.list: Example Response
+pub fn admin_legal_hold_entities_list_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"entities\":[{\"date_created\":1616085744,\"date_deleted\":0,\"entity_id\":\"W8V90M2U9\",\"entity_type\":\"USER\",\"id\":\"He01RA72HZL7\",\"policy_id\":\"H01RR4604RZ\",\"team_id\":\"E81A4BN3H\"}],\"ok\":true,\"response_metadata\":{\"next_cursor\":\"\"}}",
+      legal_hold.entities_list_response_decoder(),
+    )
+}
+
+/// admin.legalHold.entities.remove: Example Response
+pub fn admin_legal_hold_entities_remove_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"failed_ids\":[],\"ok\":true}",
+      legal_hold.entities_remove_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.activate: Example Response
+pub fn admin_legal_hold_policies_activate_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policy\":{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616084896,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616084896,\"description\":\"...\",\"id\":\"H01RR4604RZ\",\"name\":\"First Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"}}",
+      legal_hold.policies_activate_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.create: Example Response
+pub fn admin_legal_hold_policies_create_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policy\":{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616516022,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616516022,\"description\":\"A policy covering a custodians in group A\",\"id\":\"H01S3583Z4M\",\"name\":\"Second Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"}}",
+      legal_hold.policies_create_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.info: Example Response
+pub fn admin_legal_hold_policies_info_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policy\":{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616084896,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616084896,\"description\":\"\",\"id\":\"H01RR4604RZ\",\"name\":\"First Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"}}",
+      legal_hold.policies_info_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.list: Example Response
+pub fn admin_legal_hold_policies_list_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policies\":[{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616516022,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616516022,\"description\":\"A policy covering a custodians in group A\",\"id\":\"H01S3583Z4M\",\"name\":\"Second Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"},{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616084896,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616517381,\"description\":\"\",\"id\":\"H01RR4604RZ\",\"name\":\"First Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"}],\"policy_total_count\":2,\"response_metadata\":{\"next_cursor\":\"\"}}",
+      legal_hold.policies_list_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.release: Example Response
+pub fn admin_legal_hold_policies_release_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policy\":{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616084896,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":1616518337,\"date_updated\":1616518337,\"description\":\"\",\"id\":\"H01RR4604RZ\",\"name\":\"First Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"RELEASED\",\"team_id\":\"E81A4BN3H\"}}",
+      legal_hold.policies_release_response_decoder(),
+    )
+}
+
+/// admin.legalHold.policies.set: Example Response
+pub fn admin_legal_hold_policies_set_0_test() {
+  let assert Ok(_) =
+    json.parse(
+      "{\"ok\":true,\"policy\":{\"creator_id\":\"WKUNKUXSL\",\"date_created\":1616516022,\"date_policy_end\":0,\"date_policy_start\":0,\"date_released\":0,\"date_updated\":1616519107,\"description\":\"This policy applies to custodians in group A and B\",\"id\":\"H01S3583Z4M\",\"name\":\"Second Policy\",\"restrictions\":[\"NO_RESTRICTION\"],\"status\":\"ACTIVE\",\"team_id\":\"E81A4BN3H\"}}",
+      legal_hold.policies_set_response_decoder(),
     )
 }
 
