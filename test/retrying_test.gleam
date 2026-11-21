@@ -3,6 +3,7 @@
 import gleam/list
 import log
 import slackline
+import slackline/value
 
 fn attempt(name: String, results: List(Result(Int, slackline.Error))) {
   fn() {
@@ -43,7 +44,7 @@ pub fn gives_up_after_attempts_test() {
 
 @target(erlang)
 pub fn other_errors_return_at_once_test() {
-  let failure = slackline.TransportError("down")
+  let failure = slackline.ApiError("channel_not_found", value.Null)
   let run = attempt("retry-3", [Error(failure), Ok(1)])
   assert httpc.retrying(attempts: 5, run:) == Error(failure)
   assert tries("retry-3") == 1
@@ -62,4 +63,18 @@ pub fn fetch_retries_rate_limited_test() {
   use result <- promise.map(fetch.retrying(attempts: 3, run:))
   assert result == Ok(7)
   assert tries("retry-js") == 2
+}
+
+pub fn retry_delay_policy_test() {
+  assert slackline.retry_delay(slackline.RateLimited(7), 1) == Ok(7000)
+  assert slackline.retry_delay(slackline.UnexpectedResponse(503, ""), 1)
+    == Ok(1000)
+  assert slackline.retry_delay(slackline.UnexpectedResponse(502, ""), 3)
+    == Ok(4000)
+  assert slackline.retry_delay(slackline.TransportError("closed"), 9)
+    == Ok(30_000)
+  assert slackline.retry_delay(slackline.UnexpectedResponse(404, ""), 1)
+    == Error(Nil)
+  assert slackline.retry_delay(slackline.ApiError("nope", value.Null), 1)
+    == Error(Nil)
 }

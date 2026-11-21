@@ -95,10 +95,12 @@ pub fn fold_pages(
   }
 }
 
-/// Runs `run` again while Slack answers `RateLimited`, waiting the
-/// `retry_after` seconds Slack asks for each time. Gives up after
-/// `attempts` tries in total and returns the last result. Other errors
-/// return at once.
+/// Runs `run` again when it fails with a rate limit, a 5xx response or a
+/// failed connection, and returns the last result after `attempts` tries in
+/// total. Rate limits wait the `retry_after` Slack asks for; the others back
+/// off from one second, doubling. Other errors return at once. A retried
+/// write can happen twice if Slack applied it before failing, as with a
+/// timeout after `chat.postMessage` was accepted.
 ///
 /// ```gleam
 /// use <- httpc.retrying(attempts: 3)
@@ -109,11 +111,19 @@ pub fn retrying(
   attempts attempts: Int,
   run run: fn() -> Result(a, Error),
 ) -> Result(a, Error) {
+  retry_loop(attempts, 1, run)
+}
+
+fn retry_loop(attempts: Int, tries: Int, run: fn() -> Result(a, Error)) {
   case run() {
-    Error(slackline.RateLimited(retry_after:)) if attempts > 1 -> {
-      sleep(retry_after * 1000)
-      retrying(attempts - 1, run)
-    }
+    Error(error) as result if tries < attempts ->
+      case slackline.retry_delay(error, tries) {
+        Ok(delay) -> {
+          sleep(delay)
+          retry_loop(attempts, tries + 1, run)
+        }
+        Error(Nil) -> result
+      }
     result -> result
   }
 }

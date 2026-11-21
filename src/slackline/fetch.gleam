@@ -85,10 +85,12 @@ pub fn fold_pages(
   }
 }
 
-/// Runs `run` again while Slack answers `RateLimited`, waiting the
-/// `retry_after` seconds Slack asks for each time. Gives up after
-/// `attempts` tries in total and returns the last result. Other errors
-/// return at once.
+/// Runs `run` again when it fails with a rate limit, a 5xx response or a
+/// failed connection, and returns the last result after `attempts` tries in
+/// total. Rate limits wait the `retry_after` Slack asks for; the others back
+/// off from one second, doubling. Other errors return at once. A retried
+/// write can happen twice if Slack applied it before failing, as with a
+/// timeout after `chat.postMessage` was accepted.
 ///
 /// ```gleam
 /// use <- fetch.retrying(attempts: 3)
@@ -99,13 +101,26 @@ pub fn retrying(
   attempts attempts: Int,
   run run: fn() -> Promise(Result(a, Error)),
 ) -> Promise(Result(a, Error)) {
+  retry_loop(attempts, 1, run)
+}
+
+@external(erlang, "slackline_ffi", "javascript_only")
+fn retry_loop(
+  attempts: Int,
+  tries: Int,
+  run: fn() -> Promise(Result(a, Error)),
+) -> Promise(Result(a, Error)) {
   use result <- promise.await(run())
   case result {
-    Error(slackline.RateLimited(retry_after:)) if attempts > 1 -> {
-      use Nil <- promise.await(promise.wait(retry_after * 1000))
-      retrying(attempts - 1, run)
-    }
-    result -> promise.resolve(result)
+    Error(error) if tries < attempts ->
+      case slackline.retry_delay(error, tries) {
+        Ok(delay) -> {
+          use Nil <- promise.await(promise.wait(delay))
+          retry_loop(attempts, tries + 1, run)
+        }
+        Error(Nil) -> promise.resolve(result)
+      }
+    _ -> promise.resolve(result)
   }
 }
 

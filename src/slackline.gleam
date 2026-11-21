@@ -471,6 +471,24 @@ pub fn next_page(
   }
 }
 
+/// How long to wait, in milliseconds, before trying a failed call again:
+/// Slack's `Retry-After` for rate limits, and a doubling backoff from one
+/// second (at most thirty) for server errors and failed connections. `tries`
+/// is how many attempts have failed so far. Other errors are not retried.
+@internal
+pub fn retry_delay(error: Error, tries: Int) -> Result(Int, Nil) {
+  case error {
+    RateLimited(retry_after:) -> Ok(retry_after * 1000)
+    UnexpectedResponse(status:, ..) if status >= 500 -> Ok(backoff(tries))
+    TransportError(_) -> Ok(backoff(tries))
+    _ -> Error(Nil)
+  }
+}
+
+fn backoff(tries: Int) -> Int {
+  int.min(30_000, 1000 * int.bitwise_shift_left(1, int.max(tries - 1, 0)))
+}
+
 /// Describes an error for logs.
 pub fn describe_error(error: Error) -> String {
   case error {

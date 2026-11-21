@@ -145,7 +145,7 @@ conversations.list()
 
 ### Rate limits
 
-A call Slack rate limits fails with `RateLimited(retry_after:)`. `httpc.retrying` (or `fetch.retrying`) runs it again after waiting that long:
+A call Slack rate limits fails with `RateLimited(retry_after:)`. `httpc.retrying` (or `fetch.retrying`) runs it again after waiting that long, and also retries 5xx answers and failed connections, backing off from one second. A retried write can land twice if Slack accepted it before failing:
 
 ```gleam
 use <- httpc.retrying(attempts: 3)
