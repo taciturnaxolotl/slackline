@@ -36,10 +36,7 @@ pub fn prepare(
   case list.find(prepared, holds_file) {
     Ok(field) ->
       Error(
-        context
-        <> "."
-        <> field.key
-        <> ": Upload is only for method arguments",
+        context <> "." <> field.key <> ": Upload is only for method arguments",
       )
     Error(Nil) -> Ok(prepared)
   }

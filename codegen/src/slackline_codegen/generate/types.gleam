@@ -87,8 +87,13 @@ pub fn resolve(
     "Bool", [] -> Ok(RBool)
     "Value", [] -> Ok(RValue)
     "Upload", [] -> Ok(RFile)
-    "String", _ | "Int", _ | "Float", _ | "Bool", _ | "Value", _ | "Upload", _ ->
-      Error(context <> ": " <> name <> " takes no type arguments")
+    "String", _
+    | "Int", _
+    | "Float", _
+    | "Bool", _
+    | "Value", _
+    | "Upload", _
+    -> Error(context <> ": " <> name <> " takes no type arguments")
     _, _ -> {
       use #(path, item) <- result.map(registry.lookup(
         scope.registry,
