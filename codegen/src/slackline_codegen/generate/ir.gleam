@@ -118,7 +118,7 @@ pub type Oneof {
   Oneof(name: String, docs: String, file: String, variants: List(OneofVariant))
 }
 
-/// `method name [as function] [unauthenticated] { .. }`
+/// `method name [as function] [unauthenticated] [json_lines] { .. }`
 pub type Method {
   Method(
     name: String,
@@ -126,6 +126,8 @@ pub type Method {
     file: String,
     function: Option(String),
     unauthenticated: Bool,
+    /// The response is a gzip file of json lines, not a json object.
+    json_lines: Bool,
     args: List(Field),
     response: Option(Response),
     /// The `deprecated "reason"` section, for methods Slack is retiring

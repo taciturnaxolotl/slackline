@@ -775,10 +775,6 @@ pub type SetPhoto
 ///
 /// `users.SetPhoto` identifies this method in `slackline.Call`.
 ///
-/// The `image` argument is a binary `multipart/form-data` upload, which
-/// slackline cannot
-/// send yet, so it is left out.
-///
 /// Set optional arguments with the functions in
 /// `slackline/api/users/set_photo`.
 ///

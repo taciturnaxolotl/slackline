@@ -10,6 +10,7 @@
 
 import gleam/bit_array
 import gleam/fetch
+import gleam/http/response.{type Response}
 import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
@@ -21,15 +22,42 @@ import slackline/api/files
 /// Sends a call and decodes its response.
 @external(erlang, "slackline_ffi", "javascript_only")
 pub fn send(call: Call(m, a), client: Client) -> Promise(Result(a, Error)) {
-  slackline.request(call, client)
-  |> fetch.send_bits
-  |> promise.try_await(fetch.read_text_body)
-  |> promise.map(fn(result) {
-    result
-    |> result.map_error(slackline.transport_error)
-    |> result.try(slackline.response(call, _))
-  })
+  use result <- promise.await(
+    slackline.request(call, client)
+    |> fetch.send_bits
+    |> promise.try_await(fetch.read_bytes_body),
+  )
+  case result {
+    Error(error) -> promise.resolve(Error(slackline.transport_error(error)))
+    Ok(response) ->
+      unpack(call, response)
+      |> promise.map(slackline.response_bits(call, _))
+  }
 }
+
+/// Decompresses a gzip body for calls that answer with a gzip file, with the
+/// runtime's `DecompressionStream`.
+@external(erlang, "slackline_ffi", "javascript_only")
+fn unpack(
+  call: Call(m, a),
+  response: Response(BitArray),
+) -> Promise(Response(BitArray)) {
+  case slackline.gzipped(call), response.body {
+    True, <<0x1f, 0x8b, _:bits>> ->
+      gunzip(response.body)
+      |> promise.map(fn(result) {
+        case result {
+          Ok(body) -> response.set_body(response, body)
+          Error(Nil) -> response
+        }
+      })
+    _, _ -> promise.resolve(response)
+  }
+}
+
+@external(erlang, "slackline_ffi", "javascript_only")
+@external(javascript, "../slackline_ffi.mjs", "gunzip")
+fn gunzip(data: BitArray) -> Promise(Result(BitArray, Nil))
 
 /// Sends a call and every following page, folding each response into an
 /// accumulator. `metadata` finds a response's `response_metadata`, which

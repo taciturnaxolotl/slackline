@@ -1,5 +1,5 @@
 -module(slackline_ffi).
--export([javascript_only/0, javascript_only/1, javascript_only/2, javascript_only/3, javascript_only/5, now_seconds/0, sleep/1]).
+-export([javascript_only/0, javascript_only/1, javascript_only/2, javascript_only/3, javascript_only/5, now_seconds/0, sleep/1, gunzip/1]).
 
 javascript_only() ->
     erlang:error(slackline_fetch_is_javascript_only).
@@ -23,3 +23,8 @@ sleep(Milliseconds) ->
     timer:sleep(Milliseconds),
     nil.
 
+
+gunzip(Data) ->
+    try {ok, zlib:gunzip(Data)}
+    catch _:_ -> {error, nil}
+    end.

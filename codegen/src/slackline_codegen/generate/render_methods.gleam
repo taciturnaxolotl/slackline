@@ -329,6 +329,12 @@ pub fn render(
         True -> []
         False -> ["|> " <> slackline <> ".without_token"]
       },
+      case spec {
+        Some(ir.Method(json_lines: True, ..)) -> [
+          "|> " <> slackline <> ".json_lines",
+        ]
+        _ -> []
+      },
       ["}"],
     ])
   let example = case response {

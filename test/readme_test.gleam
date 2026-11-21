@@ -8,6 +8,7 @@ import gleam/option.{None, Some}
 import gleam/string
 import gleam/uri
 import slackline
+import slackline/api/admin/analytics
 import slackline/api/apps
 import slackline/api/chat
 import slackline/api/chat/post_message
@@ -197,6 +198,13 @@ pub fn set_photo(
     contents: png,
   ))
   |> httpc.send(user_client)
+}
+
+pub fn analytics_file(
+  admin_client: slackline.Client,
+) -> Result(List(analytics.MemberAnalytics), slackline.Error) {
+  analytics.get_member_file(date: "2026-11-20")
+  |> httpc.send(admin_client)
 }
 
 pub fn file_argument_test() {

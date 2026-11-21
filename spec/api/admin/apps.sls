@@ -127,6 +127,52 @@ method admin.apps.config.set {
   response Nil
 }
 
+/// An MCP server an app provides, approved for the organization.
+record ApprovedMcpServer {
+  /// Encoded ID of the MCP server.
+  server_id: String
+  server_name: String?
+  /// The URL of the MCP server.
+  url: String?
+  /// The authentication type of the MCP server.
+  auth_type: String?
+  /// The app that provides the MCP server.
+  app_id: String?
+  app_name: String?
+}
+
+# The docs schema points each item at an unpublished definition. The fields
+# follow slackapi/java-slack-sdk json-logs/samples and the arguments of
+# admin.apps.mcp.servers.permissions.set.
+/// An MCP server of an app, with who can use it.
+record McpServerPermissions {
+  /// Encoded ID of the MCP server.
+  server_id: String
+  server_name: String?
+  url: String?
+  /// Who can use the server.
+  permission_type: AppPermissionType?
+  /// Users allowed or excluded, for the `named_entities` types.
+  user_ids: List(String)?
+  /// User groups allowed or excluded, for the `named_entities` types.
+  usergroup_ids: List(String)?
+  /// Whether the permission comes from the organization default.
+  is_inherited: Bool?
+}
+
+method admin.apps.mcp.servers.list {
+  response {
+    servers: List(ApprovedMcpServer)
+    response_metadata: ResponseMetadata?
+  }
+}
+
+method admin.apps.mcp.servers.permissions.list {
+  response {
+    servers: List(McpServerPermissions)
+  }
+}
+
 method admin.apps.mcp.servers.permissions.set {
   args {
     permission_type: AppPermissionType

@@ -177,8 +177,6 @@ method users.setActive {
   response Nil
 }
 
-/// The `image` argument is a binary `multipart/form-data` upload, which slackline cannot
-/// send yet, so it is left out.
 method users.setPhoto {
   args {
     /// The new profile photo.

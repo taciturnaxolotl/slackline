@@ -10,7 +10,6 @@ import slackline
 import slackline/common
 import slackline/event
 import slackline/internal/codec
-import slackline/value
 
 /// Who last approved or restricted an app.
 pub type AppResolver {
@@ -414,6 +413,113 @@ pub fn app_permissions_to_json(it: AppPermissions) -> json.Json {
   ])
 }
 
+/// An MCP server an app provides, approved for the organization.
+pub type ApprovedMcpServer {
+  ApprovedMcpServer(
+    /// Encoded ID of the MCP server.
+    server_id: String,
+    server_name: Option(String),
+    /// The URL of the MCP server.
+    url: Option(String),
+    /// The authentication type of the MCP server.
+    auth_type: Option(String),
+    /// The app that provides the MCP server.
+    app_id: Option(String),
+    app_name: Option(String),
+  )
+}
+
+/// Decodes `ApprovedMcpServer` from json.
+pub fn approved_mcp_server_decoder() -> decode.Decoder(ApprovedMcpServer) {
+  use v_server_id <- decode.field("server_id", decode.string)
+  use v_server_name <- codec.optional_field("server_name", decode.string)
+  use v_url <- codec.optional_field("url", decode.string)
+  use v_auth_type <- codec.optional_field("auth_type", decode.string)
+  use v_app_id <- codec.optional_field("app_id", decode.string)
+  use v_app_name <- codec.optional_field("app_name", decode.string)
+  decode.success(ApprovedMcpServer(
+    server_id: v_server_id,
+    server_name: v_server_name,
+    url: v_url,
+    auth_type: v_auth_type,
+    app_id: v_app_id,
+    app_name: v_app_name,
+  ))
+}
+
+/// Encodes `ApprovedMcpServer` as json.
+pub fn approved_mcp_server_to_json(it: ApprovedMcpServer) -> json.Json {
+  codec.object([
+    codec.field("server_id", json.string(it.server_id)),
+    codec.optional("server_name", it.server_name, json.string),
+    codec.optional("url", it.url, json.string),
+    codec.optional("auth_type", it.auth_type, json.string),
+    codec.optional("app_id", it.app_id, json.string),
+    codec.optional("app_name", it.app_name, json.string),
+  ])
+}
+
+/// An MCP server of an app, with who can use it.
+pub type McpServerPermissions {
+  McpServerPermissions(
+    /// Encoded ID of the MCP server.
+    server_id: String,
+    server_name: Option(String),
+    url: Option(String),
+    /// Who can use the server.
+    permission_type: Option(AppPermissionType),
+    /// Users allowed or excluded, for the `named_entities` types.
+    user_ids: Option(List(String)),
+    /// User groups allowed or excluded, for the `named_entities` types.
+    usergroup_ids: Option(List(String)),
+    /// Whether the permission comes from the organization default.
+    is_inherited: Option(Bool),
+  )
+}
+
+/// Decodes `McpServerPermissions` from json.
+pub fn mcp_server_permissions_decoder() -> decode.Decoder(McpServerPermissions) {
+  use v_server_id <- decode.field("server_id", decode.string)
+  use v_server_name <- codec.optional_field("server_name", decode.string)
+  use v_url <- codec.optional_field("url", decode.string)
+  use v_permission_type <- codec.optional_field(
+    "permission_type",
+    app_permission_type_decoder(),
+  )
+  use v_user_ids <- codec.optional_field("user_ids", decode.list(decode.string))
+  use v_usergroup_ids <- codec.optional_field(
+    "usergroup_ids",
+    decode.list(decode.string),
+  )
+  use v_is_inherited <- codec.optional_field("is_inherited", decode.bool)
+  decode.success(McpServerPermissions(
+    server_id: v_server_id,
+    server_name: v_server_name,
+    url: v_url,
+    permission_type: v_permission_type,
+    user_ids: v_user_ids,
+    usergroup_ids: v_usergroup_ids,
+    is_inherited: v_is_inherited,
+  ))
+}
+
+/// Encodes `McpServerPermissions` as json.
+pub fn mcp_server_permissions_to_json(it: McpServerPermissions) -> json.Json {
+  codec.object([
+    codec.field("server_id", json.string(it.server_id)),
+    codec.optional("server_name", it.server_name, json.string),
+    codec.optional("url", it.url, json.string),
+    codec.optional(
+      "permission_type",
+      it.permission_type,
+      app_permission_type_to_json,
+    ),
+    codec.optional("user_ids", it.user_ids, codec.list(json.string)),
+    codec.optional("usergroup_ids", it.usergroup_ids, codec.list(json.string)),
+    codec.optional("is_inherited", it.is_inherited, json.bool),
+  ])
+}
+
 /// Who logged an app activity.
 pub type ActivitySource {
   /// `slack`
@@ -748,6 +854,32 @@ pub fn config_set(app_id app_id: String) -> slackline.Call(ConfigSet, Nil) {
 /// `mcp_servers_list` returns.
 pub type McpServersList
 
+/// A successful response from `admin.apps.mcp.servers.list`.
+pub type McpServersListResponse {
+  McpServersListResponse(
+    servers: List(ApprovedMcpServer),
+    response_metadata: Option(slackline.ResponseMetadata),
+  )
+}
+
+/// Decodes the response from `admin.apps.mcp.servers.list`.
+pub fn mcp_servers_list_response_decoder() -> decode.Decoder(
+  McpServersListResponse,
+) {
+  use v_servers <- decode.field(
+    "servers",
+    decode.list(decode.recursive(approved_mcp_server_decoder)),
+  )
+  use v_response_metadata <- codec.optional_field(
+    "response_metadata",
+    slackline.response_metadata_decoder(),
+  )
+  decode.success(McpServersListResponse(
+    servers: v_servers,
+    response_metadata: v_response_metadata,
+  ))
+}
+
 /// [`admin.apps.mcp.servers.list`](https://docs.slack.dev/reference/methods/admin.apps.mcp.servers.list):
 /// List third-party app MCP servers approved for an organization.
 ///
@@ -762,13 +894,36 @@ pub type McpServersList
 ///
 /// Documented errors: `feature_not_enabled`, `invalid_cursor`, `not_an_admin`,
 /// `not_an_enterprise`, `restricted_action`.
-pub fn mcp_servers_list() -> slackline.Call(McpServersList, value.Value) {
-  slackline.call("admin.apps.mcp.servers.list", [], value.decoder())
+pub fn mcp_servers_list() -> slackline.Call(
+  McpServersList,
+  McpServersListResponse,
+) {
+  slackline.call(
+    "admin.apps.mcp.servers.list",
+    [],
+    mcp_servers_list_response_decoder(),
+  )
 }
 
 /// Identifies `admin.apps.mcp.servers.permissions.list` in the `slackline.Call`
 /// that `mcp_servers_permissions_list` returns.
 pub type McpServersPermissionsList
+
+/// A successful response from `admin.apps.mcp.servers.permissions.list`.
+pub type McpServersPermissionsListResponse {
+  McpServersPermissionsListResponse(servers: List(McpServerPermissions))
+}
+
+/// Decodes the response from `admin.apps.mcp.servers.permissions.list`.
+pub fn mcp_servers_permissions_list_response_decoder() -> decode.Decoder(
+  McpServersPermissionsListResponse,
+) {
+  use v_servers <- decode.field(
+    "servers",
+    decode.list(decode.recursive(mcp_server_permissions_decoder)),
+  )
+  decode.success(McpServersPermissionsListResponse(servers: v_servers))
+}
 
 /// [`admin.apps.mcp.servers.permissions.list`](https://docs.slack.dev/reference/methods/admin.apps.mcp.servers.permissions.list):
 /// List MCP servers for an app with their access control permissions.
@@ -783,13 +938,16 @@ pub type McpServersPermissionsList
 /// `restricted_action`.
 pub fn mcp_servers_permissions_list(
   app_id app_id: String,
-) -> slackline.Call(McpServersPermissionsList, value.Value) {
+) -> slackline.Call(
+  McpServersPermissionsList,
+  McpServersPermissionsListResponse,
+) {
   slackline.call(
     "admin.apps.mcp.servers.permissions.list",
     [
       #("app_id", app_id),
     ],
-    value.decoder(),
+    mcp_servers_permissions_list_response_decoder(),
   )
 }
 

@@ -184,11 +184,14 @@ that name in any module except an `api/*` module. A type declared in an
 `api/*` module is private to that module. Other modules can only refer to it
 by its full name, such as `slackline/api/chat.TaskIcon`.
 
-A method header is `method name [as function] [unauthenticated] {`. `as`
+A method header is `method name [as function] [unauthenticated] [json_lines] {`. `as`
 overrides the Gleam function name. `unauthenticated` marks methods that
 authenticate with client credentials or a refresh token in the body
 (`oauth.v2.access`, `tooling.tokens.rotate`, ...): their calls never send the
-client's bearer token, which could make Slack reject them.
+client's bearer token, which could make Slack reject them. `json_lines` marks
+methods that answer with a gzip file of json lines (`admin.analytics.getFile`).
+The clients decompress the file, and the response decoder receives the list
+of lines, so such a method's response is a `List(..)`.
 
 `deprecated "reason"` inside a method marks its function `@deprecated` with
 that reason. Methods whose docs summary starts with "Deprecated" get the

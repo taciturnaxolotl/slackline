@@ -1389,6 +1389,12 @@ pub type GetFile
 ///
 /// `analytics.GetFile` identifies this method in `slackline.Call`.
 ///
+/// Slack answers with a gzip file of json lines. `httpc.send` and
+/// `fetch.send` decompress it and decode each line. Each row's shape depends
+/// on `type`, so this returns the rows as json. `get_member_file`,
+/// `get_public_channel_file` and `get_public_channel_metadata_file` return
+/// typed rows.
+///
 /// Set optional arguments with the functions in
 /// `slackline/api/admin/analytics/get_file`.
 ///
@@ -1404,14 +1410,15 @@ pub type GetFile
 /// `user_cannot_manage_public_channels`.
 pub fn get_file(
   type_ type_: AnalyticsFileType,
-) -> slackline.Call(GetFile, value.Value) {
+) -> slackline.Call(GetFile, List(value.Value)) {
   slackline.call(
     "admin.analytics.getFile",
     [
       #("type", analytics_file_type_to_string(type_)),
     ],
-    value.decoder(),
+    decode.list(value.decoder()),
   )
+  |> slackline.json_lines
 }
 
 /// Identifies `admin.analytics.members.activity` in the `slackline.Call` that
@@ -1801,4 +1808,35 @@ pub fn decode_lines(
   |> list.map(string.trim)
   |> list.filter(fn(line) { line != "" })
   |> list.try_map(fn(line) { json.parse(line, row) })
+}
+
+/// `admin.analytics.getFile` for member analytics on `date`
+/// (`YYYY-MM-DD`, UTC), one row per member.
+pub fn get_member_file(
+  date date: String,
+) -> slackline.Call(GetFile, List(MemberAnalytics)) {
+  get_file(type_: Member)
+  |> slackline.with_param("date", date)
+  |> slackline.decode_with(decode.list(member_analytics_decoder()))
+}
+
+/// `admin.analytics.getFile` for public channel analytics on `date`
+/// (`YYYY-MM-DD`, UTC), one row per channel.
+pub fn get_public_channel_file(
+  date date: String,
+) -> slackline.Call(GetFile, List(PublicChannelAnalytics)) {
+  get_file(type_: PublicChannel)
+  |> slackline.with_param("date", date)
+  |> slackline.decode_with(decode.list(public_channel_analytics_decoder()))
+}
+
+/// `admin.analytics.getFile` with `metadata_only`: the current name, topic
+/// and description of each public channel.
+pub fn get_public_channel_metadata_file() -> slackline.Call(
+  GetFile,
+  List(PublicChannelMetadata),
+) {
+  get_file(type_: PublicChannel)
+  |> slackline.with_param("metadata_only", "true")
+  |> slackline.decode_with(decode.list(public_channel_metadata_decoder()))
 }

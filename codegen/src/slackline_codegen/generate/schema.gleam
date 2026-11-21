@@ -555,11 +555,15 @@ fn oneof_variant(tokens: Tokens, docs: String) -> Parsed(Entry(OneofVariant)) {
   #(Entry(ir.OneofVariant(ctor, type_, docs)), rest)
 }
 
-/// `method name [as function] [unauthenticated] { args {..} response .. deprecated ".." }`
+/// `method name [as function] [unauthenticated] [json_lines] { args {..} response .. deprecated ".." }`
 fn method(tokens: Tokens, docs: String, file: String) -> Parsed(Method) {
   use #(name, rest) <- result.try(expect(tokens, Ident, ""))
   use #(function, rest) <- result.try(rename(rest))
   let #(unauthenticated, rest) = case accept(rest, Ident, "unauthenticated") {
+    Ok(#(_, rest)) -> #(True, rest)
+    Error(Nil) -> #(False, rest)
+  }
+  let #(json_lines, rest) = case accept(rest, Ident, "json_lines") {
     Ok(#(_, rest)) -> #(True, rest)
     Error(Nil) -> #(False, rest)
   }
@@ -571,6 +575,7 @@ fn method(tokens: Tokens, docs: String, file: String) -> Parsed(Method) {
       file:,
       function:,
       unauthenticated:,
+      json_lines:,
       args: [],
       response: None,
       deprecated: None,

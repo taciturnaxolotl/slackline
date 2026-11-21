@@ -417,10 +417,6 @@ pub fn remote_add_response_decoder() -> decode.Decoder(RemoteAddResponse) {
 ///
 /// `files.RemoteAdd` identifies this method in `slackline.Call`.
 ///
-/// `preview_image` and `indexable_file_contents` are binary
-/// `multipart/form-data` uploads, which
-/// slackline cannot send yet, so they are left out.
-///
 /// Set optional arguments with the functions in
 /// `slackline/api/files/remote_add`.
 ///
@@ -617,10 +613,6 @@ pub fn remote_update_response_decoder() -> decode.Decoder(RemoteUpdateResponse) 
 ///
 /// `files.RemoteUpdate` identifies this method in `slackline.Call`.
 ///
-/// `preview_image` and `indexable_file_contents` are binary
-/// `multipart/form-data` uploads, which
-/// slackline cannot send yet, so they are left out.
-///
 /// Set optional arguments with the functions in
 /// `slackline/api/files/remote_update`.
 ///
@@ -746,10 +738,8 @@ pub fn upload_response_decoder() -> decode.Decoder(UploadResponse) {
 ///
 /// `files.Upload` identifies this method in `slackline.Call`.
 ///
-/// slackline supports only the `content` form of this method. The `file`
-/// argument is a binary
-/// `multipart/form-data` upload, which slackline cannot send. Prefer
-/// `get_upload_url_external` and `complete_upload_external`.
+/// Prefer `get_upload_url_external` and `complete_upload_external`, or
+/// `httpc.upload_files` and `fetch.upload_files`, which run both steps.
 ///
 /// Set optional arguments with the functions in `slackline/api/files/upload`.
 ///

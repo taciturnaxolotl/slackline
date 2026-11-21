@@ -210,12 +210,18 @@ record MessageMetadataEntry {
   files: List(MessageMetadataFile)?
 }
 
-method admin.analytics.getFile {
+/// Slack answers with a gzip file of json lines. `httpc.send` and
+/// `fetch.send` decompress it and decode each line. Each row's shape depends
+/// on `type`, so this returns the rows as json. `get_member_file`,
+/// `get_public_channel_file` and `get_public_channel_metadata_file` return
+/// typed rows.
+method admin.analytics.getFile json_lines {
   args {
     /// Date to retrieve the analytics data for, as `YYYY-MM-DD` in UTC. Required unless `metadata_only` is true.
     date: String?
     type: AnalyticsFileType
   }
+  response List(Value)
 }
 
 method admin.analytics.messages.activity {

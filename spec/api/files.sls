@@ -97,8 +97,6 @@ method files.list {
   }
 }
 
-/// `preview_image` and `indexable_file_contents` are binary `multipart/form-data` uploads, which
-/// slackline cannot send yet, so they are left out.
 method files.remote.add {
   args {
     /// A text file of search terms that improve discovery of the file.
@@ -142,8 +140,6 @@ method files.remote.share {
   }
 }
 
-/// `preview_image` and `indexable_file_contents` are binary `multipart/form-data` uploads, which
-/// slackline cannot send yet, so they are left out.
 method files.remote.update {
   args {
     /// A text file of search terms that improve discovery of the file.
@@ -173,9 +169,8 @@ method files.sharedPublicURL {
   }
 }
 
-/// slackline supports only the `content` form of this method. The `file` argument is a binary
-/// `multipart/form-data` upload, which slackline cannot send. Prefer
-/// `get_upload_url_external` and `complete_upload_external`.
+/// Prefer `get_upload_url_external` and `complete_upload_external`, or
+/// `httpc.upload_files` and `fetch.upload_files`, which run both steps.
 method files.upload {
   args {
     /// The file contents. Send this or `content`.

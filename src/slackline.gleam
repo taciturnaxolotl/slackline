@@ -124,7 +124,17 @@ pub opaque type Call(method, a) {
     files: List(#(String, FileUpload)),
     decoder: Decoder(a),
     authenticated: Bool,
+    format: Format,
   )
+}
+
+/// How a method answers.
+type Format {
+  /// A json object with `"ok"`.
+  JsonObject
+  /// A gzip file with one json value per line, such as
+  /// `admin.analytics.getFile`. The decoder sees a list of the lines.
+  GzipJsonLines
 }
 
 /// File contents a call sends as a `multipart/form-data` part, such as the
@@ -148,7 +158,14 @@ pub fn call(
   params: List(#(String, String)),
   decoder: Decoder(a),
 ) -> Call(method, a) {
-  Call(method:, params:, files: [], decoder:, authenticated: True)
+  Call(
+    method:,
+    params:,
+    files: [],
+    decoder:,
+    authenticated: True,
+    format: JsonObject,
+  )
 }
 
 /// The same call, for code that sends different methods alike.
@@ -160,12 +177,27 @@ pub fn erase(call: Call(m, a)) -> Call(Nil, a) {
     files: call.files,
     decoder: call.decoder,
     authenticated: call.authenticated,
+    format: call.format,
   )
 }
 
 @internal
 pub fn without_token(call: Call(m, a)) -> Call(m, a) {
   Call(..call, authenticated: False)
+}
+
+/// Marks a method that answers with a gzip file of json lines. The decoder
+/// receives the list of lines.
+@internal
+pub fn json_lines(call: Call(m, a)) -> Call(m, a) {
+  Call(..call, format: GzipJsonLines)
+}
+
+/// Whether a successful response to this call is gzip data that the client
+/// has to decompress before `response_bits`.
+@internal
+pub fn gzipped(call: Call(m, a)) -> Bool {
+  call.format == GzipJsonLines
 }
 
 /// The method type of calls built with `raw`.
@@ -223,6 +255,7 @@ pub fn decode_with(call: Call(m, a), decoder: Decoder(b)) -> Call(m, b) {
     files: call.files,
     decoder:,
     authenticated: call.authenticated,
+    format: call.format,
   )
 }
 
@@ -299,8 +332,62 @@ pub fn response(
   }
 }
 
+/// Decodes an HTTP response with a binary body. Methods that answer with
+/// json lines arrive here already decompressed; their decoder sees the list
+/// of lines. Errors still arrive as a json object.
+@internal
+pub fn response_bits(
+  call: Call(m, a),
+  bits: Response(BitArray),
+) -> Result(a, Error) {
+  case call.format, bit_array.to_string(bits.body) {
+    JsonObject, Ok(text) -> response(call, response.set_body(bits, text))
+    JsonObject, Error(Nil) -> {
+      use <- rate_limited(bits)
+      Error(UnexpectedResponse(bits.status, "a body that is not UTF-8"))
+    }
+    GzipJsonLines, Ok(text) -> {
+      use <- rate_limited(bits)
+      // Errors are a json object with `ok`. A one-row file is a json
+      // object too, but without `ok`.
+      case json.parse(text, value.decoder()) {
+        Ok(body) ->
+          case value.field(body, "ok") {
+            Ok(_) -> decode_body(call, response.set_body(bits, text), body)
+            Error(_) -> decode_lines(call, bits.status, text)
+          }
+        Error(_) -> decode_lines(call, bits.status, text)
+      }
+    }
+    GzipJsonLines, Error(Nil) -> {
+      use <- rate_limited(bits)
+      Error(UnexpectedResponse(bits.status, "a body that is not UTF-8"))
+    }
+  }
+}
+
+fn decode_lines(
+  call: Call(m, a),
+  status: Int,
+  text: String,
+) -> Result(a, Error) {
+  let lines =
+    text
+    |> string.split("\n")
+    |> list.map(string.trim)
+    |> list.filter(fn(line) { line != "" })
+    |> list.try_map(json.parse(_, value.decoder()))
+  case status, lines {
+    200, Ok(lines) -> {
+      let rows = value.Array(lines)
+      value.decode(rows, call.decoder) |> result.map_error(DecodeError(_, rows))
+    }
+    _, _ -> Error(UnexpectedResponse(status, text))
+  }
+}
+
 fn rate_limited(
-  response: Response(String),
+  response: Response(b),
   otherwise: fn() -> Result(a, Error),
 ) -> Result(a, Error) {
   case response.status {
