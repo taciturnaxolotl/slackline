@@ -72,6 +72,21 @@ The official OpenAPI spec, `slackapi/slack-api-specs`, was archived in 2021. `ap
 - `apps.icon.set` lists `app_configurations:write` as a user scope. A distributed app can't request that scope: the manifest fails with "Distributed apps can't add the app_configurations:* scope". The page doesn't mention this.
 - `slackbot.skills.list` returns `restricted_action`, and `assistant.search.context` returns `feature_not_enabled`, on a Pro workspace with AI search off. Both errors are listed but don't mention required plan.
 
+## Legal Holds API
+
+The `admin.legalHold.*` methods are only on the [Legal Holds API reference](https://docs.slack.dev/reference/legal-holds-api-reference). They have no method pages and no method json, so anything built from the methods reference misses them.
+
+- The scopes table names the methods `admin.legalHolds.*`. Those names answer `unknown_method`; the real ones are `admin.legalHold.*`.
+- The errors table says a token without the scopes gets `unknown_method`, and calls the scopes `admin.legalHolds:*`. Live, a token without them gets `missing_scope` with `needed: admin.legal_holds:read`.
+
+## Other APIs
+
+- Audit Logs API: errors arrive as an empty body with HTTP 400 (no token) or 401 (a token that can't read logs), not as the documented codes such as `missing_authentication` or `invalid_authentication`. An unknown endpoint answers HTTP 500 with an HTML page, not `bad_endpoint`.
+- Audit Logs API: `/schemas` lists the `user` and `app` types twice.
+- SCIM API: with a Pro plan's token, v1 answers `plus_teams_only` as documented, but v2 answers `unsupported_version`.
+- Status API: `id` is shown as a string (`"546"`); the live API sends a number.
+- Status API: the `current` and `history` sections list different services. `current` has `Canvases` and `Connectivity`; `history` has `Connections`, `Posts/Files`, `Calls` and `Link Previews`. Live history uses `Connectivity` and `Canvases`.
+
 ## Arguments missing from the arguments list
 
 These arguments only show up in prose or examples. They are missing from the JSON too:
@@ -100,6 +115,8 @@ These arguments only show up in prose or examples. They are missing from the JSO
 
 ## Broken examples
 
+- `function_executed` event: the example has a trailing comma in `authorizations`, so it isn't valid json.
+- Status API: the incident example has a trailing comma after `notes`.
 - `assistant.search.context`: one example spells a key `user_id:`, with the colon inside the name.
 - `admin.conversations.ekm.listOriginalConnectedChannelInfo`: `internal_team_ids` is the string `"array"` instead of a list.
 - `apps.event.authorizations.list`: `is_bot` is a placeholder string instead of a boolean.
