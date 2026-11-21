@@ -183,6 +183,26 @@ httpc.upload_files(client, [report], share: fn(call) {
 
 Run the three steps yourself to set `alt_txt` or `snippet_type`, to upload now and share later, or to retry only the byte upload.
 
+### Other Slack APIs
+
+Calls to Slack's APIs outside the Web API go through the same `httpc.send`, `fetch.send`, `retrying` and `fold_pages`:
+
+- `slackline/scim`: SCIM v2 users and groups (Business+ and Enterprise).
+- `slackline/audit_logs`: audit events of an Enterprise organization.
+- `slackline/status`: Slack's own status, no token needed.
+
+```gleam
+import slackline/audit_logs
+import slackline/status
+
+let assert Ok(now) = status.current() |> httpc.send(slackline.anonymous())
+
+audit_logs.logs()
+|> audit_logs.action(["user_login"])
+|> audit_logs.limit(100)
+|> httpc.send(org_owner_client)
+```
+
 ### Streaming a reply
 
 `slackline/stream` allows you to stream a agent reply to Slack with `stream/httpc` on Erlang or `stream/fetch` on JavaScript.

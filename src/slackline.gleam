@@ -68,12 +68,18 @@ pub const gov_slack_api_url = "https://slack-gov.com/api/"
 
 /// The token to call the Web API with, and where to send calls.
 pub opaque type Client {
-  Client(token: Option(String), base: uri.Uri, headers: List(#(String, String)))
+  Client(
+    token: Option(String),
+    base: uri.Uri,
+    headers: List(#(String, String)),
+    /// Where calls to Slack's other HTTP APIs go instead of their own hosts.
+    other_apis: Option(uri.Uri),
+  )
 }
 
 fn client(token: Option(String)) -> Client {
   let assert Ok(base) = uri.parse(slack_api_url)
-  Client(token:, base:, headers: [])
+  Client(token:, base:, headers: [], other_apis: None)
 }
 
 /// A client that authenticates with a bot (`xoxb-`), user (`xoxp-`) or
@@ -109,6 +115,18 @@ pub fn with_base_url(client: Client, url: String) -> Result(Client, Nil) {
   }
 }
 
+/// Sends calls to Slack's other HTTP APIs (SCIM, Audit Logs, Status) to this
+/// scheme and host instead, keeping their paths, such as for a local mock
+/// server.
+pub fn with_other_apis_url(client: Client, url: String) -> Result(Client, Nil) {
+  use base <- result.try(uri.parse(url))
+  case base.scheme, base.host {
+    Some("https"), Some(_) | Some("http"), Some(_) ->
+      Ok(Client(..client, other_apis: Some(base)))
+    _, _ -> Error(Nil)
+  }
+}
+
 /// Adds a header to every request, such as a custom `user-agent`.
 pub fn with_header(client: Client, name: String, value: String) -> Client {
   Client(..client, headers: [#(string.lowercase(name), value), ..client.headers])
@@ -124,17 +142,21 @@ pub opaque type Call(method, a) {
     files: List(#(String, FileUpload)),
     decoder: Decoder(a),
     authenticated: Bool,
-    format: Format,
+    endpoint: Endpoint,
   )
 }
 
-/// How a method answers.
-type Format {
-  /// A json object with `"ok"`.
-  JsonObject
-  /// A gzip file with one json value per line, such as
-  /// `admin.analytics.getFile`. The decoder sees a list of the lines.
-  GzipJsonLines
+/// Where a call goes and how it answers.
+type Endpoint {
+  /// A Web API method, answering a json object with `"ok"`.
+  WebApi
+  /// A Web API method answering a gzip file with one json value per line,
+  /// such as `admin.analytics.getFile`. The decoder sees a list of the lines.
+  WebApiJsonLines
+  /// Another Slack HTTP API, such as SCIM. Arguments go in the query string,
+  /// `json` is the body, and the answer is plain json: no `"ok"`, errors as
+  /// an HTTP status.
+  Rest(verb: http.Method, url: uri.Uri, json: Option(String))
 }
 
 /// File contents a call sends as a `multipart/form-data` part, such as the
@@ -164,7 +186,7 @@ pub fn call(
     files: [],
     decoder:,
     authenticated: True,
-    format: JsonObject,
+    endpoint: WebApi,
   )
 }
 
@@ -177,7 +199,7 @@ pub fn erase(call: Call(m, a)) -> Call(Nil, a) {
     files: call.files,
     decoder: call.decoder,
     authenticated: call.authenticated,
-    format: call.format,
+    endpoint: call.endpoint,
   )
 }
 
@@ -190,7 +212,33 @@ pub fn without_token(call: Call(m, a)) -> Call(m, a) {
 /// receives the list of lines.
 @internal
 pub fn json_lines(call: Call(m, a)) -> Call(m, a) {
-  Call(..call, format: GzipJsonLines)
+  Call(..call, endpoint: WebApiJsonLines)
+}
+
+/// Builds a call to another Slack HTTP API, such as SCIM or Audit Logs. The
+/// API modules use this.
+@internal
+pub fn rest(
+  verb: http.Method,
+  url: String,
+  json_body: Option(json.Json),
+  decoder: Decoder(a),
+) -> Call(method, a) {
+  let assert Ok(parsed) = uri.parse(url)
+  Call(
+    method: http.method_to_string(verb) |> string.uppercase
+      <> " "
+      <> parsed.path,
+    params: [],
+    files: [],
+    decoder:,
+    authenticated: True,
+    endpoint: Rest(
+      verb:,
+      url: parsed,
+      json: option.map(json_body, json.to_string),
+    ),
+  )
 }
 
 /// The gzip body a client has to decompress before `response_bits`, if this
@@ -200,8 +248,8 @@ pub fn gzip_body(
   call: Call(m, a),
   response: Response(BitArray),
 ) -> Result(BitArray, Nil) {
-  case call.format, response.body {
-    GzipJsonLines, <<0x1f, 0x8b, _:bits>> -> Ok(response.body)
+  case call.endpoint, response.body {
+    WebApiJsonLines, <<0x1f, 0x8b, _:bits>> -> Ok(response.body)
     _, _ -> Error(Nil)
   }
 }
@@ -233,8 +281,9 @@ pub fn with_param(call: Call(m, a), key: String, value: String) -> Call(m, a) {
   Call(..call, params: list.key_set(call.params, key, value))
 }
 
-/// Adds or replaces a file argument. A call with files is sent as
-/// `multipart/form-data` instead of a urlencoded form.
+/// Adds or replaces a file argument. A Web API call with files is sent as
+/// `multipart/form-data` instead of a urlencoded form. Calls to Slack's other
+/// APIs send json and ignore files.
 pub fn with_file(
   call: Call(m, a),
   key: String,
@@ -261,7 +310,7 @@ pub fn decode_with(call: Call(m, a), decoder: Decoder(b)) -> Call(m, b) {
     files: call.files,
     decoder:,
     authenticated: call.authenticated,
-    format: call.format,
+    endpoint: call.endpoint,
   )
 }
 
@@ -302,19 +351,24 @@ pub type Error {
   TransportError(reason: String)
 }
 
-/// The HTTP request for a call. Calls without files are a urlencoded form;
-/// calls with files are `multipart/form-data`.
+/// The HTTP request for a call. Web API calls without files are a
+/// urlencoded form; calls with files are `multipart/form-data`.
 pub fn request(call: Call(m, a), client: Client) -> Request(BitArray) {
-  let assert Ok(base) =
-    request.from_uri(
-      uri.Uri(..client.base, path: client.base.path <> call.method),
-    )
-  let #(content_type, body) = body(call)
-  let base =
-    base
-    |> request.set_method(http.Post)
-    |> request.set_header("content-type", content_type)
-    |> request.set_body(body)
+  let base = case call.endpoint {
+    Rest(verb:, url:, json:) ->
+      rest_request(verb, rehost(url, client.other_apis), json, call.params)
+    WebApi | WebApiJsonLines -> {
+      let assert Ok(base) =
+        request.from_uri(
+          uri.Uri(..client.base, path: client.base.path <> call.method),
+        )
+      let #(content_type, body) = body(call)
+      base
+      |> request.set_method(http.Post)
+      |> request.set_header("content-type", content_type)
+      |> request.set_body(body)
+    }
+  }
   let base =
     list.fold(list.reverse(client.headers), base, fn(acc, header) {
       request.set_header(acc, header.0, header.1)
@@ -326,24 +380,94 @@ pub fn request(call: Call(m, a), client: Client) -> Request(BitArray) {
   }
 }
 
+fn rehost(url: uri.Uri, other_apis: Option(uri.Uri)) -> uri.Uri {
+  case other_apis {
+    Some(base) ->
+      uri.Uri(..url, scheme: base.scheme, host: base.host, port: base.port)
+    None -> url
+  }
+}
+
+fn rest_request(
+  verb: http.Method,
+  url: uri.Uri,
+  json: Option(String),
+  params: List(#(String, String)),
+) -> Request(BitArray) {
+  let assert Ok(base) = request.from_uri(url)
+  let base =
+    base
+    |> request.set_method(verb)
+    |> request.set_query(params)
+    |> request.set_body(<<>>)
+  case json {
+    None -> base
+    Some(json) ->
+      base
+      |> request.set_header("content-type", "application/json")
+      |> request.set_body(bit_array.from_string(json))
+  }
+}
+
 /// Decodes the HTTP response for a call.
 pub fn response(
   call: Call(m, a),
   response: Response(String),
 ) -> Result(a, Error) {
   use <- rate_limited(response)
-  // Every answer that carries `ok` is the json envelope, even for a call
-  // that otherwise answers with json lines.
+  case call.endpoint {
+    Rest(..) -> decode_rest(call, response)
+    WebApi | WebApiJsonLines -> decode_web_api(call, response)
+  }
+}
+
+/// Every Web API answer that carries `ok` is the json envelope, even for a
+/// call that otherwise answers with json lines.
+fn decode_web_api(
+  call: Call(m, a),
+  response: Response(String),
+) -> Result(a, Error) {
   let envelope =
     json.parse(response.body, value.decoder())
     |> result.replace_error(Nil)
     |> result.try(fn(body) { value.field(body, "ok") |> result.replace(body) })
-  case envelope, call.format {
+  case envelope, call.endpoint {
     Ok(body), _ -> decode_body(call, response, body)
-    Error(Nil), GzipJsonLines ->
+    Error(Nil), WebApiJsonLines ->
       decode_lines(call, response.status, response.body)
-    Error(Nil), JsonObject ->
-      Error(UnexpectedResponse(response.status, response.body))
+    Error(Nil), _ -> Error(UnexpectedResponse(response.status, response.body))
+  }
+}
+
+/// A plain json answer. Success is any 2xx status; an empty body, as for a
+/// `204`, decodes as `null`. Errors carry a code as `error`, or as SCIM's
+/// `Errors.description`.
+fn decode_rest(
+  call: Call(m, a),
+  response: Response(String),
+) -> Result(a, Error) {
+  let body = case response.body {
+    "" -> Ok(value.Null)
+    text -> json.parse(text, value.decoder()) |> result.replace_error(Nil)
+  }
+  case response.status >= 200 && response.status < 300, body {
+    True, Ok(body) ->
+      value.decode(body, call.decoder) |> result.map_error(DecodeError(_, body))
+    False, Ok(body) ->
+      case rest_error_code(body) {
+        Ok(code) -> Error(ApiError(code, body))
+        Error(Nil) -> Error(UnexpectedResponse(response.status, response.body))
+      }
+    _, Error(Nil) -> Error(UnexpectedResponse(response.status, response.body))
+  }
+}
+
+fn rest_error_code(body: Value) -> Result(String, Nil) {
+  case value.string_field(body, "error") {
+    Ok(code) -> Ok(code)
+    Error(Nil) ->
+      value.field(body, "Errors")
+      |> result.try(value.string_field(_, "description"))
   }
 }
 
