@@ -110,6 +110,25 @@ Give `app.handle` the request from your HTTP server with its raw body. Send back
 let app.Handled(response:, after:) = app.handle(bot, request)
 ```
 
+Like Bolt, `handle` and `handle_socket` skip events your app caused, such as its own messages, so a handler that posts cannot trigger itself. `app.include_own_events` turns that off.
+
+Custom workflow steps route by `callback_id`. Finish each run with the short-lived token Slack sends with it:
+
+```gleam
+import slackline/api/functions
+
+app.function("summarize", fn(execution) {
+  let assert Some(token) = execution.token
+  functions.complete_success(
+    function_execution_id: execution.function_execution_id,
+    outputs: dict.from_list([#("summary", value.String("all good"))]),
+  )
+  |> httpc.send(slackline.with_token(client, token))
+})
+```
+
+`app.assistant_message` handles what a user writes in a thread of your AI app's split view. Handle `assistant_thread_started` and `assistant_thread_context_changed` with `on_event`, and answer with `assistant.threads_set_status` and friends or a `slackline/stream` reply.
+
 ### Socket Mode
 
 Call `apps.connections_open()` with an app-level (`xapp-`) token. Connect any WebSocket client to the `url` it returns and then pass text frames back to the app:

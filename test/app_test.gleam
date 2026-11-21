@@ -1,3 +1,4 @@
+import gleam/dict
 import gleam/http/request
 import gleam/http/response
 import gleam/json
@@ -298,4 +299,138 @@ pub fn later_fallback_replaces_earlier_test() {
     |> app.on_interaction(fn(_) { app.ack() })
   let res = app.handle(my_app, form([#("payload", payload)])).response
   assert res.body == ""
+}
+
+fn event_body(event: String, authorizations: String) -> String {
+  "{\"team_id\":\"T1\",\"api_app_id\":\"A1\",\"event\":"
+  <> event
+  <> ",\"type\":\"event_callback\",\"event_id\":\"Ev1\",\"authorizations\":"
+  <> authorizations
+  <> "}"
+}
+
+const bot_authorization =
+  "[{\"team_id\":\"T1\",\"user_id\":\"UBOT\",\"is_bot\":true}]"
+
+fn ran(my_app: app.App, body: String, label: String) -> Bool {
+  let handled = app.handle(my_app, signed(body, "application/json"))
+  handled.after()
+  list.contains(log.recorded(), label)
+}
+
+pub fn function_routes_by_callback_id_test() {
+  let body =
+    event_body(
+      "{\"type\":\"function_executed\",\"function\":{\"id\":\"Fn1\",\"callback_id\":\"summarize\"},\"inputs\":{\"user_id\":\"U9\"},\"function_execution_id\":\"Fx1\",\"bot_access_token\":\"xwfp-1\",\"event_ts\":\"1.1\"}",
+      "[]",
+    )
+  let my_app =
+    app.unverified()
+    |> app.function("other", fn(_) { log.record("fn: other") })
+    |> app.function("summarize", fn(execution) {
+      assert execution.function_execution_id == "Fx1"
+      assert execution.token == Some("xwfp-1")
+      assert dict.size(execution.inputs) == 1
+      log.record("fn: summarize")
+    })
+  assert ran(my_app, body, "fn: summarize")
+  assert !list.contains(log.recorded(), "fn: other")
+}
+
+pub fn assistant_message_matches_user_dm_threads_test() {
+  let message = fn(extra) {
+    event_body(
+      "{\"type\":\"message\",\"channel\":\"D1\",\"channel_type\":\"im\",\"text\":\"hi\",\"ts\":\"2.2\""
+        <> extra
+        <> "}",
+      "[]",
+    )
+  }
+  let my_app = fn(label) {
+    app.unverified()
+    |> app.assistant_message(fn(_, _) { log.record(label) })
+  }
+  assert ran(
+    my_app("assistant: thread"),
+    message(",\"user\":\"U1\",\"thread_ts\":\"1.0\""),
+    "assistant: thread",
+  )
+  assert !ran(
+    my_app("assistant: top level"),
+    message(",\"user\":\"U1\""),
+    "assistant: top level",
+  )
+}
+
+pub fn own_events_are_skipped_test() {
+  let from_bot =
+    event_body(
+      "{\"type\":\"message\",\"channel\":\"C1\",\"user\":\"UBOT\",\"text\":\"hi\",\"ts\":\"3.3\"}",
+      bot_authorization,
+    )
+  let from_app =
+    event_body(
+      "{\"type\":\"reaction_added\",\"user\":\"U2\",\"app_id\":\"A1\",\"reaction\":\"x\",\"item\":{\"type\":\"message\",\"channel\":\"C1\",\"ts\":\"1.1\"},\"event_ts\":\"3.4\"}",
+      bot_authorization,
+    )
+  let joined =
+    event_body(
+      "{\"type\":\"member_joined_channel\",\"user\":\"UBOT\",\"channel\":\"C1\",\"event_ts\":\"3.5\"}",
+      bot_authorization,
+    )
+  let from_person =
+    event_body(
+      "{\"type\":\"message\",\"channel\":\"C1\",\"user\":\"U2\",\"text\":\"hi\",\"ts\":\"3.6\"}",
+      bot_authorization,
+    )
+  let recording = fn(label) {
+    app.unverified() |> app.on_event(fn(_, _) { log.record(label) })
+  }
+  assert !ran(recording("own: bot user"), from_bot, "own: bot user")
+  assert !ran(recording("own: app id"), from_app, "own: app id")
+  assert ran(recording("own: joined"), joined, "own: joined")
+  assert ran(recording("own: person"), from_person, "own: person")
+  assert ran(
+    recording("own: kept") |> app.include_own_events,
+    from_bot,
+    "own: kept",
+  )
+}
+
+pub fn own_events_are_skipped_over_socket_mode_test() {
+  let frame =
+    "{\"envelope_id\":\"e1\",\"type\":\"events_api\",\"accepts_response_payload\":false,\"payload\":"
+    <> event_body(
+      "{\"type\":\"message\",\"channel\":\"C1\",\"user\":\"UBOT\",\"text\":\"hi\",\"ts\":\"4.4\"}",
+      bot_authorization,
+    )
+    <> "}"
+  let my_app =
+    app.unverified() |> app.on_event(fn(_, _) { log.record("socket: own") })
+  let assert app.Send(frame: "{\"envelope_id\":\"e1\"}", after:) =
+    app.handle_socket(my_app, frame)
+  after()
+  assert !list.contains(log.recorded(), "socket: own")
+}
+
+pub fn dispatch_skips_own_events_too_test() {
+  let assert Ok(incoming) =
+    app.parse_request(signed(
+      event_body(
+        "{\"type\":\"message\",\"channel\":\"C1\",\"user\":\"UBOT\",\"text\":\"hi\",\"ts\":\"5.5\"}",
+        bot_authorization,
+      ),
+      "application/json",
+    ))
+  let assert app.Events(own: True, ..) = incoming
+  let my_app =
+    app.unverified() |> app.on_event(fn(_, _) { log.record("dispatch: own") })
+  let ack = app.dispatch(my_app, incoming, None)
+  let assert app.Send(after:, ..) =
+    app.handle_socket(
+      app.unverified() |> app.command("/x", fn(_) { ack }),
+      "{\"envelope_id\":\"e2\",\"type\":\"slash_commands\",\"accepts_response_payload\":false,\"payload\":{\"token\":\"t\",\"team_id\":\"T1\",\"team_domain\":\"d\",\"channel_id\":\"C1\",\"channel_name\":\"c\",\"user_id\":\"U1\",\"user_name\":\"u\",\"command\":\"/x\",\"text\":\"\",\"response_url\":\"https://x\",\"trigger_id\":\"t\"}}",
+    )
+  after()
+  assert !list.contains(log.recorded(), "dispatch: own")
 }

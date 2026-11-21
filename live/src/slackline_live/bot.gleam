@@ -163,9 +163,9 @@ fn callback(info: env.AppInfo, request: Request(String)) -> #(Int, String) {
 fn slack(info: env.AppInfo, request: Request(String)) -> #(Int, String) {
   let n = env.unique()
   let kind = case app.parse_request(request) {
-    Ok(app.Events(event.EventCallback(event: inner, ..))) ->
+    Ok(app.Events(event.EventCallback(event: inner, ..), ..)) ->
       "event-" <> event_type(inner)
-    Ok(app.Events(_)) -> "envelope"
+    Ok(app.Events(..)) -> "envelope"
     Ok(app.Interactive(_)) -> "interaction"
     Ok(app.Command(_)) -> "command"
     Ok(app.SslCheck) -> "ssl-check"
@@ -231,7 +231,9 @@ fn report(label: String, result: Result(a, slackline.Error)) -> Nil {
 }
 
 pub fn router(info: env.AppInfo) -> app.App {
+  // The live tests record the events their own writes cause.
   app.new(info.signing_secret)
+  |> app.include_own_events
   |> app.command("/slackline", fn(command) {
     case string.trim(option.unwrap(command.text, "")) {
       "modal" -> {

@@ -1,6 +1,7 @@
 //// The examples from README.md, so they keep compiling. Calls are built and
 //// checked with `slackline.params`, not sent.
 
+import gleam/dict
 import gleam/http/request
 import gleam/int
 import gleam/list
@@ -16,11 +17,13 @@ import slackline/api/conversations
 import slackline/api/conversations/list as conversations_list
 import slackline/api/files
 import slackline/api/files/complete_upload_external
+import slackline/api/functions
 import slackline/api/users
 import slackline/api/users/set_photo
 import slackline/api/views
 import slackline/api/views/open
 import slackline/app
+import slackline/audit_logs
 import slackline/block
 import slackline/block/input
 import slackline/block/section
@@ -29,6 +32,8 @@ import slackline/element
 import slackline/element/button
 import slackline/event
 import slackline/httpc
+import slackline/status
+import slackline/value
 import slackline/verify
 import slackline/view
 
@@ -205,6 +210,26 @@ pub fn analytics_file(
 ) -> Result(List(analytics.MemberAnalytics), slackline.Error) {
   analytics.get_member_file(date: "2026-11-20")
   |> httpc.send(admin_client)
+}
+
+pub fn workflow_step(client: slackline.Client) -> app.App {
+  app.unverified()
+  |> app.function("summarize", fn(execution) {
+    let assert Some(token) = execution.token
+    functions.complete_success(
+      function_execution_id: execution.function_execution_id,
+      outputs: dict.from_list([#("summary", value.String("all good"))]),
+    )
+    |> httpc.send(slackline.with_token(client, token))
+  })
+}
+
+pub fn other_apis(org_owner_client: slackline.Client) {
+  let assert Ok(_now) = status.current() |> httpc.send(slackline.anonymous())
+  audit_logs.logs()
+  |> audit_logs.action(["user_login"])
+  |> audit_logs.limit(100)
+  |> httpc.send(org_owner_client)
 }
 
 pub fn file_argument_test() {

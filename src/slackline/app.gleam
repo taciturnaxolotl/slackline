@@ -44,6 +44,7 @@
 //// Everything here is synchronous and does no IO of its own, so it works on
 //// both targets and with any HTTP server or WebSocket client.
 
+import gleam/dict.{type Dict}
 import gleam/http/request.{type Request}
 import gleam/http/response.{type Response}
 import gleam/int
@@ -55,13 +56,15 @@ import gleam/string
 import gleam/uri
 import slackline/block
 import slackline/command.{type SlashCommand}
-import slackline/event.{type Envelope, type Event}
+import slackline/event.{type Envelope, type Event, type MessageEvent}
 import slackline/interaction.{
   type BlockAction, type BlockActionsPayload, type BlockSuggestionPayload,
   type GlobalShortcutPayload, type Interaction, type MessageShortcutPayload,
   type ViewClosedPayload, type ViewSubmissionPayload,
 }
+import slackline/internal/own_event
 import slackline/socket_mode
+import slackline/value.{type Value}
 import slackline/verify
 import slackline/view.{type View}
 
@@ -186,6 +189,24 @@ pub opaque type App {
     message_shortcuts: Routes(MessageShortcutPayload),
     block_suggestions: Routes(BlockSuggestionPayload),
     fallback: Option(fn(Interaction) -> Ack),
+    ignore_own_events: Bool,
+  )
+}
+
+/// One run of your app's custom workflow step, from a `function_executed`
+/// event. Finish it with `functions.complete_success` or
+/// `functions.complete_error`, sent with a client built from `token`.
+pub type Execution {
+  Execution(
+    function_execution_id: String,
+    workflow_execution_id: Option(String),
+    /// The step's inputs, keyed by parameter name.
+    inputs: Dict(String, Value),
+    /// A short-lived bot token for this run, such as for
+    /// `slackline.with_token(client, token)`.
+    token: Option(String),
+    function: event.ExecutedFunction,
+    delivery: Delivery,
   )
 }
 
@@ -208,6 +229,7 @@ pub fn unverified() -> App {
     message_shortcuts: [],
     block_suggestions: [],
     fallback: None,
+    ignore_own_events: True,
   )
 }
 
@@ -291,6 +313,81 @@ pub fn block_suggestion(
   App(..app, block_suggestions: [#(action_id, handler), ..app.block_suggestions])
 }
 
+/// Handles `function_executed` events for your app's custom workflow step
+/// with this `callback_id`. Like event handlers, it runs after the
+/// acknowledgement.
+///
+/// ```gleam
+/// app.function("summarize", fn(execution) {
+///   let assert Some(token) = execution.token
+///   functions.complete_success(
+///     function_execution_id: execution.function_execution_id,
+///     outputs: dict.from_list([#("summary", value.String("..."))]),
+///   )
+///   |> httpc.send(slackline.with_token(client, token))
+/// })
+/// ```
+pub fn function(
+  app: App,
+  callback_id: String,
+  handler: fn(Execution) -> a,
+) -> App {
+  use event, delivery <- on_event(app)
+  case event {
+    event.FunctionExecuted(
+      function: event.ExecutedFunction(callback_id: Some(id), ..) as function,
+      inputs:,
+      function_execution_id:,
+      workflow_execution_id:,
+      bot_access_token:,
+      ..,
+    )
+      if id == callback_id
+    -> {
+      let _ =
+        handler(Execution(
+          function_execution_id:,
+          workflow_execution_id:,
+          inputs: option.unwrap(inputs, dict.new()),
+          token: bot_access_token,
+          function:,
+          delivery:,
+        ))
+      Nil
+    }
+    _ -> Nil
+  }
+}
+
+/// Handles messages a user sends in a thread of your app's assistant (the
+/// AI app split view): a user's message or file share in a DM thread.
+/// Handle `assistant_thread_started` and `assistant_thread_context_changed`
+/// with `on_event`.
+pub fn assistant_message(
+  app: App,
+  handler: fn(MessageEvent, Delivery) -> a,
+) -> App {
+  use event, delivery <- on_event(app)
+  case event {
+    event.MessageEvent(message) ->
+      case is_assistant_message(message) {
+        True -> {
+          let _ = handler(message, delivery)
+          Nil
+        }
+        False -> Nil
+      }
+    _ -> Nil
+  }
+}
+
+/// Also runs handlers for events your app caused, such as its own messages.
+/// By default `handle` and `handle_socket` acknowledge those without running
+/// any handler, so a handler that posts cannot trigger itself.
+pub fn include_own_events(app: App) -> App {
+  App(..app, ignore_own_events: False)
+}
+
 /// Handles any interaction that no other handler matched, such as a legacy
 /// dialog or interactive message. A second call replaces the first handler.
 pub fn on_interaction(app: App, handler: fn(Interaction) -> Ack) -> App {
@@ -301,8 +398,9 @@ pub fn on_interaction(app: App, handler: fn(Interaction) -> Ack) -> App {
 
 /// A request from Slack, decoded.
 pub type Incoming {
-  /// An Events API delivery, or a `url_verification` challenge.
-  Events(Envelope)
+  /// An Events API delivery, or a `url_verification` challenge. `own` is
+  /// whether your app caused the event, such as by posting the message.
+  Events(envelope: Envelope, own: Bool)
   /// An interactivity payload.
   Interactive(Interaction)
   /// A slash command.
@@ -328,7 +426,7 @@ pub fn parse_request(
   case string.starts_with(content_type, "application/json") {
     True ->
       json.parse(request.body, event.envelope_decoder())
-      |> result.map(Events)
+      |> result.map(Events(_, own: own_event.check(request.body, [])))
       |> result.map_error(fn(error) { Malformed(string.inspect(error)) })
     False -> parse_form(request.body)
   }
@@ -430,7 +528,7 @@ pub fn handle_socket(app: App, frame: String) -> SocketOutcome {
         envelope_id,
         dispatch(
           app,
-          Events(payload),
+          Events(payload, own: own_event.check(frame, ["payload"])),
           socket_retry(retry_attempt, retry_reason),
         ),
       )
@@ -465,19 +563,23 @@ pub fn dispatch(app: App, incoming: Incoming, retry: Option(Retry)) -> Ack {
         Ok(handler) -> handler(command)
         Error(Nil) -> ack()
       }
-    Events(event.UrlVerification(challenge:, ..)) ->
+    Events(own: True, ..) if app.ignore_own_events -> ack()
+    Events(event.UrlVerification(challenge:, ..), ..) ->
       ack_json(json.object([#("challenge", json.string(challenge))]))
-    Events(event.EventCallback(
-      team_id:,
-      enterprise_id:,
-      api_app_id:,
-      event: inner,
-      event_id:,
-      event_time:,
-      authorizations:,
-      is_ext_shared_channel:,
+    Events(
+      envelope: event.EventCallback(
+        team_id:,
+        enterprise_id:,
+        api_app_id:,
+        event: inner,
+        event_id:,
+        event_time:,
+        authorizations:,
+        is_ext_shared_channel:,
+        ..,
+      ),
       ..,
-    )) -> {
+    ) -> {
       let delivery =
         Delivery(
           team_id:,
@@ -497,8 +599,30 @@ pub fn dispatch(app: App, incoming: Incoming, retry: Option(Retry)) -> Ack {
           })
       }
     }
-    Events(_) -> ack()
+    Events(..) -> ack()
     Interactive(payload) -> dispatch_interaction(app, payload)
+  }
+}
+
+/// A user's message or file share in a DM thread, as Bolt's `Assistant`
+/// matches them.
+fn is_assistant_message(message: MessageEvent) -> Bool {
+  case message {
+    event.PlainMessage(
+      channel_type: Some(event.Im),
+      thread_ts: Some(_),
+      user: Some(_),
+      bot_id: None,
+      ..,
+    )
+    | event.FileShareMessage(
+        channel_type: Some(event.Im),
+        thread_ts: Some(_),
+        user: Some(_),
+        bot_id: None,
+        ..,
+      ) -> True
+    _ -> False
   }
 }
 
