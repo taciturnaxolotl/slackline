@@ -5,8 +5,8 @@ module slackline/api/agents
 record AgentCommand {
   /// Command name without the leading slash. 1 to 31 characters, unique in the set.
   name: String
-  /// What the command does, shown in the composer typeahead.
-  description: String?
+  /// What the command does, shown in the composer typeahead. Required; Slack rejects commands without one.
+  description: String
   /// Hint for the command's arguments, such as `[title]`.
   argument_hint: String?
 }

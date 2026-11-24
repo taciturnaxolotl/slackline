@@ -15,8 +15,9 @@ pub type AgentCommand {
     /// Command name without the leading slash. 1 to 31 characters, unique in
     /// the set.
     name: String,
-    /// What the command does, shown in the composer typeahead.
-    description: Option(String),
+    /// What the command does, shown in the composer typeahead. Required; Slack
+    /// rejects commands without one.
+    description: String,
     /// Hint for the command's arguments, such as `[title]`.
     argument_hint: Option(String),
   )
@@ -25,7 +26,7 @@ pub type AgentCommand {
 /// Decodes `AgentCommand` from json.
 pub fn agent_command_decoder() -> decode.Decoder(AgentCommand) {
   use v_name <- decode.field("name", decode.string)
-  use v_description <- codec.optional_field("description", decode.string)
+  use v_description <- decode.field("description", decode.string)
   use v_argument_hint <- codec.optional_field("argument_hint", decode.string)
   decode.success(AgentCommand(
     name: v_name,
@@ -38,7 +39,7 @@ pub fn agent_command_decoder() -> decode.Decoder(AgentCommand) {
 pub fn agent_command_to_json(it: AgentCommand) -> json.Json {
   codec.object([
     codec.field("name", json.string(it.name)),
-    codec.optional("description", it.description, json.string),
+    codec.field("description", json.string(it.description)),
     codec.optional("argument_hint", it.argument_hint, json.string),
   ])
 }
