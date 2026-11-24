@@ -102,6 +102,18 @@ pub fn describe_error_test() {
       value.Null,
     ))
     == "slack api error: not_in_channel"
+  let assert Ok(body) =
+    value.parse(
+      "{\"ok\":false,\"error\":\"invalid_arguments\",\"response_metadata\":{\"messages\":[\"[ERROR] missing required field: channel\",\"[ERROR] bad text\"]}}",
+    )
+  assert slackline.describe_error(slackline.ApiError("invalid_arguments", body))
+    == "slack api error: invalid_arguments ([ERROR] missing required field: channel; [ERROR] bad text)"
+  let assert Ok(body) =
+    value.parse(
+      "{\"ok\":false,\"error\":\"missing_scope\",\"needed\":\"chat:write\",\"provided\":\"users:read\"}",
+    )
+  assert slackline.describe_error(slackline.ApiError("missing_scope", body))
+    == "slack api error: missing_scope (needed: chat:write)"
 }
 
 pub fn urlencoded_body_test() {

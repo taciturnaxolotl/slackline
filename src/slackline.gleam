@@ -616,7 +616,8 @@ fn backoff(tries: Int) -> Int {
 /// Describes an error for logs.
 pub fn describe_error(error: Error) -> String {
   case error {
-    ApiError(error:, ..) -> "slack api error: " <> error
+    ApiError(error:, response:) ->
+      "slack api error: " <> error <> api_error_details(response)
     RateLimited(retry_after) ->
       "rate limited, retry after " <> int.to_string(retry_after) <> "s"
     UnexpectedResponse(status, body) ->
@@ -624,6 +625,26 @@ pub fn describe_error(error: Error) -> String {
     DecodeError(errors, ..) ->
       "could not decode response: " <> string.inspect(errors)
     TransportError(reason) -> "http error: " <> reason
+  }
+}
+
+/// Slack's explanation of a vague error code, such as ` (needed: chat:write)`.
+fn api_error_details(response: Value) -> String {
+  let messages =
+    value.field(response, "response_metadata")
+    |> result.try(fn(metadata) {
+      value.decode(metadata, response_metadata_decoder())
+      |> result.replace_error(Nil)
+    })
+    |> result.map(fn(metadata) { option.unwrap(metadata.messages, []) })
+    |> result.unwrap([])
+  let needed = case value.string_field(response, "needed") {
+    Ok(scope) -> ["needed: " <> scope]
+    Error(Nil) -> []
+  }
+  case list.append(messages, needed) {
+    [] -> ""
+    details -> " (" <> string.join(details, "; ") <> ")"
   }
 }
 
