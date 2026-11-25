@@ -14,10 +14,9 @@ gleam_crypto = ">= 1.6.0 and < 2.0.0"
 gleam_httpc = ">= 5.0.0 and < 6.0.0"
 gleam_fetch = ">= 1.4.1 and < 2.0.0"
 gleam_javascript = ">= 1.0.1 and < 2.0.0"
-multipartkit = ">= 0.15.0 and < 0.17.0"
-mimetype = ">= 0.24.0 and < 0.27.0"
 gleam_otp = ">= 1.3.0 and < 2.0.0"
 gleam_erlang = ">= 1.3.0 and < 2.0.0"
 
 [dev_dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
+multipartkit = ">= 0.18.0 and < 0.19.0"

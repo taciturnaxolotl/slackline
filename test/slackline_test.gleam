@@ -1,11 +1,11 @@
 import gleam/dynamic/decode
 import gleam/http/request
 import gleam/http/response
+import gleam/list
 import gleam/option
 import gleam/string
 import gleeunit
 import multipartkit
-import multipartkit/part
 import slackline
 import slackline/value
 
@@ -139,13 +139,34 @@ pub fn multipart_body_test() {
   let req = slackline.request(call, slackline.new("xoxb-1"))
   let assert Ok(content_type) = request.get_header(req, "content-type")
   assert string.starts_with(content_type, "multipart/form-data; boundary=")
-  let assert Ok([field, file]) = multipartkit.parse(req.body, content_type)
-  assert part.name(field) == option.Some("crop_w")
-  assert part.body(field) == <<"100":utf8>>
-  assert part.name(file) == option.Some("image")
-  assert part.filename(file) == option.Some("avatar.png")
-  assert part.content_type(file) == option.Some("image/png")
-  assert part.body(file) == png
+  let assert Ok([field, file]) =
+    multipartkit.parse(req.body, content_type, multipartkit.default_limits)
+  assert multipartkit.name(field) == option.Some("crop_w")
+  assert multipartkit.body(field) == <<"100":utf8>>
+  assert multipartkit.name(file) == option.Some("image")
+  assert multipartkit.filename(file) == option.Some("avatar.png")
+  assert multipartkit.content_type(file) == option.Some("image/png")
+  assert multipartkit.body(file) == png
+}
+
+pub fn multipart_header_injection_test() {
+  let call =
+    slackline.raw("files.upload", [#("a\r\nb", "line\none")])
+    |> slackline.with_file(
+      "file",
+      slackline.FileUpload(
+        filename: "evil\r\nX-Injected: \"1\"\u{0000}.txt",
+        content_type: "text/plain\nX-Other: 2",
+        contents: <<"hi":utf8>>,
+      ),
+    )
+  let req = slackline.request(call, slackline.new("xoxb-1"))
+  let assert Ok(content_type) = request.get_header(req, "content-type")
+  let assert Ok([field, file]) =
+    multipartkit.parse(req.body, content_type, multipartkit.default_limits)
+  assert multipartkit.body(field) == <<"line\none":utf8>>
+  assert multipartkit.headers(file) |> list.length == 2
+  assert multipartkit.body(file) == <<"hi":utf8>>
 }
 
 pub fn with_file_replaces_test() {

@@ -45,6 +45,7 @@
 //// `httpc.fold_pages` and `fetch.fold_pages` do the whole loop.
 
 import gleam/bit_array
+import gleam/crypto
 import gleam/dynamic/decode.{type Decoder}
 import gleam/http
 import gleam/http/request.{type Request}
@@ -56,8 +57,7 @@ import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import gleam/uri
-import multipartkit
-import multipartkit/form
+import slackline/internal/multipart
 import slackline/value.{type Value}
 
 /// The default Web API base url.
@@ -321,15 +321,19 @@ fn body(call: Call(m, a)) -> #(String, BitArray) {
       bit_array.from_string(uri.query_to_string(call.params)),
     )
     files -> {
-      let form =
-        list.fold(call.params, form.new(), fn(form, param) {
-          form.add_field(form, name: param.0, value: param.1)
+      let boundary =
+        "slackline-" <> bit_array.base16_encode(crypto.strong_random_bytes(16))
+      let fields =
+        list.map(call.params, fn(param) { multipart.Field(param.0, param.1) })
+      let files =
+        list.map(files, fn(entry) {
+          let #(name, FileUpload(filename:, content_type:, contents:)) = entry
+          multipart.File(name:, filename:, content_type:, body: contents)
         })
-      list.fold(files, form, fn(form, entry) {
-        let #(name, FileUpload(filename:, content_type:, contents:)) = entry
-        form.add_file(form, name:, filename:, content_type:, body: contents)
-      })
-      |> multipartkit.encode_form
+      #(
+        "multipart/form-data; boundary=" <> boundary,
+        multipart.encode(boundary, list.append(fields, files)),
+      )
     }
   }
 }
