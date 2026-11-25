@@ -1,5 +1,5 @@
 name = "slackline"
-version = "2.0.1"
+version = "2.0.2"
 description = "Slackline is a slack api client for gleam that attempts to port most of slack's api surface similar to projects like slack-edge"
 licences = ["MIT"]
 repository = { type = "tangled", user = "dunkirk.sh", repo = "slackline" }
