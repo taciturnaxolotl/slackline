@@ -631,12 +631,10 @@ pub fn describe_error(error: Error) -> String {
 /// Slack's explanation of a vague error code, such as ` (needed: chat:write)`.
 fn api_error_details(response: Value) -> String {
   let messages =
-    value.field(response, "response_metadata")
-    |> result.try(fn(metadata) {
-      value.decode(metadata, response_metadata_decoder())
-      |> result.replace_error(Nil)
-    })
-    |> result.map(fn(metadata) { option.unwrap(metadata.messages, []) })
+    value.decode(
+      response,
+      decode.at(["response_metadata", "messages"], decode.list(decode.string)),
+    )
     |> result.unwrap([])
   let needed = case value.string_field(response, "needed") {
     Ok(scope) -> ["needed: " <> scope]
